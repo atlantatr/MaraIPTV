@@ -16,7 +16,10 @@ import com.atlanta.maraplayer.data.Models.Account;
 import com.atlanta.maraplayer.data.Models.Profile;
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.data.Repo;
+import com.atlanta.maraplayer.data.Source;
+import com.atlanta.maraplayer.data.Sources;
 import com.atlanta.maraplayer.data.XtreamApi;
+import com.atlanta.maraplayer.web.WebServer;
 import com.atlanta.maraplayer.util.Async;
 import com.atlanta.maraplayer.util.Ui;
 
@@ -44,7 +47,8 @@ public class ProfilesActivity extends BaseActivity {
         adapter = new Adapters.RowAdapter(this);
         list.setAdapter(adapter);
         try {
-            ((TextView) v(R.id.version)).setText("Surum " + getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
+            ((TextView) v(R.id.version)).setText("Surum " + getPackageManager().getPackageInfo(getPackageName(), 0).versionName
+                    + "  ·  " + com.atlanta.maraplayer.BuildConfig.EDITION);
         } catch (Exception ignored) {
         }
 
@@ -99,13 +103,17 @@ public class ProfilesActivity extends BaseActivity {
         List<Profile> ps = Db.get().profiles();
         List<Adapters.Row> rows = new ArrayList<>();
         for (Profile p : ps) {
-            Adapters.Row r = new Adapters.Row(p.name, p.user + "  @  " + XtreamApi.normalizeUrl(p.url), p);
+            Adapters.Row r = new Adapters.Row(p.name, p.isM3u() ? "M3U  ·  " + p.url
+                    : p.user + "  @  " + XtreamApi.normalizeUrl(p.url), p);
             if (p.id == Prefs.lastProfile()) r.right = "son kullanilan";
             rows.add(r);
         }
         adapter.set(rows);
         v(R.id.empty).setVisibility(ps.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(ps.isEmpty() ? View.GONE : View.VISIBLE);
+        String web = WebServer.address();
+        ((TextView) v(R.id.webInfo)).setText(web != null && WebServer.isRunning()
+                ? "Web panel: " + web + "\n(Ayni agdaki telefon/bilgisayardan hesap ekleyebilirsiniz)" : "");
         if (ps.isEmpty()) v(R.id.btnAdd).requestFocus();
         else list.requestFocus();
     }
@@ -145,16 +153,17 @@ public class ProfilesActivity extends BaseActivity {
     /** Profile baglanir, basariliysa ana ekrana gecer. */
     public static void login(final Activity a, final Profile p) {
         final ProgressDialog pd = Ui.progress(a, "Baglaniliyor: " + p.name + " ...");
+        final Source src = Sources.create(p);
         Async.run(a, new Async.Task<Account>() {
             @Override
             public Account run() throws Exception {
-                return new XtreamApi(p).login();
+                return src.login();
             }
         }, new Async.Callback<Account>() {
             @Override
             public void on(Account acc) {
                 Ui.dismiss(pd);
-                Repo.setSession(p, acc);
+                Repo.setSession(p, acc, src);
                 Db.get().touchProfile(p.id);
                 Prefs.setLastProfile(p.id);
                 if (acc.status != null && !acc.status.isEmpty() && !"Active".equalsIgnoreCase(acc.status)) {

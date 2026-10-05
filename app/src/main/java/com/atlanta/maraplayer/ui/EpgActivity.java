@@ -76,8 +76,8 @@ public class EpgActivity extends BaseActivity {
         Async.run(this, new Async.Task<List<Epg>>() {
             @Override
             public List<Epg> run() throws Exception {
-                List<Epg> l = Repo.api().fullEpg(channel.id);
-                if (l.isEmpty()) l = Repo.api().shortEpg(channel.id, 30);
+                List<Epg> l = Repo.api().fullEpg(channel.id, channel.epgId);
+                if (l.isEmpty()) l = Repo.api().shortEpg(channel.id, channel.epgId, 30);
                 return l;
             }
         }, new Async.Callback<List<Epg>>() {
@@ -123,7 +123,7 @@ public class EpgActivity extends BaseActivity {
             } else if (e.stop <= now && canCatchup(e, archiveFrom)) {
                 r.right = "Geri izle";
             } else if (e.start > now) {
-                r.right = "";
+                r.right = "OK: Kaydet";
             }
             r.sub = prefix.isEmpty() ? null : prefix.trim();
             r.tag = e;
@@ -146,20 +146,30 @@ public class EpgActivity extends BaseActivity {
         return e.hasArchive || e.start >= archiveFrom;
     }
 
-    private void click(Epg e) {
+    private void click(final Epg e) {
         long off = Prefs.epgOffsetSec();
         long now = System.currentTimeMillis() / 1000L - off;
         if (e.isNow(now)) {
-            List<Item> one = Collections.singletonList(channel);
-            PlayerActivity.playLive(this, new ArrayList<>(one), 0);
+            Ui.choose(this, e.title, new String[]{"Canli izle", "Kaydet (program sonuna kadar)"}, -1, new Ui.Choice() {
+                @Override
+                public void on(int which) {
+                    if (which == 0) {
+                        List<Item> one = Collections.singletonList(channel);
+                        Play.playLive(EpgActivity.this, new ArrayList<>(one), 0);
+                    } else {
+                        RecordUi.recordNow(EpgActivity.this, channel, e.stop);
+                    }
+                }
+            });
         } else if (e.stop <= now) {
             if (canCatchup(e, now - Math.max(1, channel.archiveDays) * 86400L)) {
-                PlayerActivity.playCatchup(this, channel, e);
+                Play.playCatchup(this, channel, e);
             } else {
                 Ui.toast(this, "Bu program icin geri izleme yok");
             }
         } else {
-            Ui.toast(this, "Program henuz baslamadi (" + Ui.dayTime(e.start + off) + ")");
+            // ileri tarihli program -> zamanli kayit
+            RecordUi.schedule(this, channel, e);
         }
     }
 }

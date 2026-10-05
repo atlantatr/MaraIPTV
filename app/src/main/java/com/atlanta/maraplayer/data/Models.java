@@ -30,6 +30,17 @@ public final class Models {
         public String user = "";
         public String pass = "";
         public long lastUsed;
+        /** "xtream" veya "m3u" */
+        public String type = TYPE_XTREAM;
+        /** Istege bagli harici XMLTV EPG adresi */
+        public String epgUrl = "";
+
+        public static final String TYPE_XTREAM = "xtream";
+        public static final String TYPE_M3U = "m3u";
+
+        public boolean isM3u() {
+            return TYPE_M3U.equals(type);
+        }
     }
 
     public static class Account {
@@ -166,6 +177,7 @@ public final class Models {
         public boolean archive;
         public int archiveDays;
         public String categoryId = "";
+        public String epgId = "";
         // dizi bolumu icin
         public String seriesId = "";
         public String seriesName = "";
@@ -178,4 +190,6 @@ public final class Models {
     }
 
     public static final int CATCHUP = -1;
+    /** Yerel kayit dosyasi */
+    public static final int RECORDING = 4;
 }

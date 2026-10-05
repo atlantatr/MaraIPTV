@@ -300,11 +300,11 @@ public class SeriesDetailActivity extends BaseActivity {
                     new Ui.Choice() {
                         @Override
                         public void on(int which) {
-                            PlayerActivity.playEpisodes(SeriesDetailActivity.this, item.id, name, cover, eps, index, which == 0 ? pos : 0);
+                            Play.playEpisodes(SeriesDetailActivity.this, item.id, name, cover, eps, index, which == 0 ? pos : 0);
                         }
                     });
         } else {
-            PlayerActivity.playEpisodes(this, item.id, name, cover, eps, index, 0);
+            Play.playEpisodes(this, item.id, name, cover, eps, index, 0);
         }
     }
 }

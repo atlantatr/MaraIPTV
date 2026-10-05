@@ -50,6 +50,42 @@
             android:key="epg_offset"
             android:summary="%s"
             android:title="EPG saat duzeltmesi" />
+        <ListPreference
+            android:defaultValue="auto"
+            android:entries="@array/epg_source_names"
+            android:entryValues="@array/epg_source_values"
+            android:key="epg_source"
+            android:summary="%s"
+            android:title="EPG kaynagi" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="xmltv_auto"
+            android:summary="Xtream sunucusunun xmltv.php dosyasini da gunluk indir (daha zengin EPG, ilk indirme uzun surebilir)"
+            android:title="XMLTV'yi otomatik guncelle" />
+        <Preference
+            android:key="xmltv_now"
+            android:summary="Aktif profilin XMLTV yayin akisini simdi indir"
+            android:title="EPG'yi simdi guncelle" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Kayit ve web panel">
+        <ListPreference
+            android:defaultValue="auto"
+            android:entries="@array/rec_storage_names"
+            android:entryValues="@array/rec_storage_values"
+            android:key="rec_storage"
+            android:summary="%s"
+            android:title="Kayit yeri" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="web_panel"
+            android:summary="Ayni agdan tarayici ile http://CIHAZ_IP:8765 adresine girerek hesap / PIN / kategori yonetimi"
+            android:title="Web panel (port 8765)" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pip_home"
+            android:summary="Android 7.0+ surumunde HOME tusuna basinca canli yayin kucuk pencerede devam eder"
+            android:title="Resim icinde resim" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="Ebeveyn kilidi">

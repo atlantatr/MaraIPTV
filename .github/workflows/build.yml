@@ -19,16 +19,28 @@ jobs:
 
       - name: Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # varsayilan 'tools' paketi artik yok -> sadece gerekenleri kur
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
-      - name: Gradle 8.7
+      - name: Logo setini uygula (branding/*.png)
+        run: |
+          if ls branding/*.png >/dev/null 2>&1; then
+            pip install --quiet pillow
+            python3 tools/brand.py
+          else
+            echo "branding/ klasorunde logo seti yok, varsayilan ikon kullanilacak"
+          fi
+
+      - name: Gradle 8.10.2
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.7'
+          gradle-version: '8.10.2'
 
-      - name: Debug APK derle
+      - name: Debug APK'lar (4.2 / 5.0 / 7.0)
         run: gradle assembleDebug --stacktrace
 
-      - name: Release APK derle (kucuk/optimize)
+      - name: Release APK'lar (kucuk/optimize)
         continue-on-error: true
         run: gradle assembleRelease --stacktrace
 
@@ -39,5 +51,5 @@ jobs:
           name: MaraIPTV-apk
           path: |
             app/build/outputs/apk/**/*.apk
-            app/build/outputs/mapping/release/missing_rules.txt
+            app/build/outputs/mapping/**/missing_rules.txt
           if-no-files-found: warn

@@ -15,3 +15,8 @@
 -dontwarn libcore.**
 -keep class com.google.android.exoplayer2.** { *; }
 -keep class com.atlanta.maraplayer.** { *; }
+# Media3 eklentileri (FFmpeg) DefaultRenderersFactory tarafindan reflection ile yuklenir
+-keep class androidx.media3.decoder.** { *; }
+-keep class androidx.media3.exoplayer.** { *; }
+-keep class androidx.tvprovider.** { *; }
+-dontwarn androidx.media3.**

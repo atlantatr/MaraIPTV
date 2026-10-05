@@ -7,7 +7,9 @@ import androidx.multidex.MultiDexApplication;
 import com.atlanta.maraplayer.data.Db;
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.net.Http;
+import com.atlanta.maraplayer.record.Recorder;
 import com.atlanta.maraplayer.util.ImageLoader;
+import com.atlanta.maraplayer.web.WebServer;
 
 public class App extends MultiDexApplication {
 
@@ -25,6 +27,13 @@ public class App extends MultiDexApplication {
         Http.init(this);
         Db.init(this);
         ImageLoader.init(this);
+        // Yerel ag web paneli: http://CIHAZ_IP:8765
+        WebServer.start(this);
+        // Zamanli kayitlarin alarmlarini kur (yeniden baslatma / guncelleme sonrasi)
+        try {
+            Recorder.rescheduleAll(this);
+        } catch (Exception ignored) {
+        }
     }
 
     @Override

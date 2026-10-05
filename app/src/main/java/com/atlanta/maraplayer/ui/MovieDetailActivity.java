@@ -145,7 +145,7 @@ public class MovieDetailActivity extends BaseActivity {
     }
 
     private void play(long startMs) {
-        PlayerActivity.playMovie(this, item, startMs);
+        Play.playMovie(this, item, startMs);
     }
 
     static void openTrailer(Activity a, String t) {

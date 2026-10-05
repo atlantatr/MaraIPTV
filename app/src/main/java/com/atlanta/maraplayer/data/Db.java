@@ -26,7 +26,14 @@ public final class Db extends SQLiteOpenHelper {
     }
 
     private Db(Context c) {
-        super(c, "mara.db", null, 1);
+        super(c, "mara.db", null, 2);
+    }
+
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+        // XMLTV ice aktarimi (uzun yazma islemi) sirasinda arayuz okuyabilsin
+        db.enableWriteAheadLogging();
     }
 
     @Override
@@ -34,17 +41,26 @@ public final class Db extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, url TEXT, user TEXT, pass TEXT, last_used INTEGER DEFAULT 0)");
         db.execSQL("CREATE TABLE favorites (profile_id INTEGER, type INTEGER, item_id TEXT, name TEXT, icon TEXT, category_id TEXT, ext TEXT, epg_id TEXT, archive INTEGER, archive_days INTEGER, num INTEGER, added_at INTEGER, PRIMARY KEY(profile_id, type, item_id))");
         db.execSQL("CREATE TABLE resume (profile_id INTEGER, rkey TEXT, type INTEGER, item_id TEXT, name TEXT, subtitle TEXT, icon TEXT, ext TEXT, series_id TEXT, series_name TEXT, position INTEGER, duration INTEGER, updated_at INTEGER, PRIMARY KEY(profile_id, rkey))");
+        onUpgrade(db, 1, 2);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {
+        if (oldV < 2) {
+            // v2: M3U profilleri, XMLTV EPG, zamanli kayitlar
+            db.execSQL("ALTER TABLE profiles ADD COLUMN type TEXT DEFAULT 'xtream'");
+            db.execSQL("ALTER TABLE profiles ADD COLUMN epg_url TEXT DEFAULT ''");
+            db.execSQL("CREATE TABLE epg (profile_id INTEGER, channel TEXT, start INTEGER, stop INTEGER, title TEXT, descr TEXT)");
+            db.execSQL("CREATE INDEX epg_idx ON epg(profile_id, channel, start)");
+            db.execSQL("CREATE TABLE rec_schedule (id INTEGER PRIMARY KEY AUTOINCREMENT, profile_id INTEGER, stream_id TEXT, channel TEXT, title TEXT, url TEXT, start INTEGER, stop INTEGER)");
+        }
     }
 
     // ------------------------------------------------------------ Profiller
 
     public List<Profile> profiles() {
         List<Profile> out = new ArrayList<>();
-        Cursor c = getReadableDatabase().rawQuery("SELECT id,name,url,user,pass,last_used FROM profiles ORDER BY last_used DESC, id", null);
+        Cursor c = getReadableDatabase().rawQuery("SELECT id,name,url,user,pass,last_used,type,epg_url FROM profiles ORDER BY last_used DESC, id", null);
         try {
             while (c.moveToNext()) {
                 Profile p = new Profile();
@@ -54,6 +70,8 @@ public final class Db extends SQLiteOpenHelper {
                 p.user = nz(c.getString(3));
                 p.pass = nz(c.getString(4));
                 p.lastUsed = c.getLong(5);
+                p.type = c.isNull(6) ? Profile.TYPE_XTREAM : c.getString(6);
+                p.epgUrl = nz(c.getString(7));
                 out.add(p);
             }
         } finally {
@@ -73,6 +91,8 @@ public final class Db extends SQLiteOpenHelper {
         v.put("url", p.url);
         v.put("user", p.user);
         v.put("pass", p.pass);
+        v.put("type", p.type == null ? Profile.TYPE_XTREAM : p.type);
+        v.put("epg_url", p.epgUrl == null ? "" : p.epgUrl);
         SQLiteDatabase db = getWritableDatabase();
         if (p.id > 0) {
             db.update("profiles", v, "id=?", new String[]{String.valueOf(p.id)});
@@ -94,6 +114,123 @@ public final class Db extends SQLiteOpenHelper {
         db.delete("profiles", "id=?", a);
         db.delete("favorites", "profile_id=?", a);
         db.delete("resume", "profile_id=?", a);
+        db.delete("epg", "profile_id=?", a);
+        db.delete("rec_schedule", "profile_id=?", a);
+    }
+
+    // ------------------------------------------------------------ XMLTV EPG
+
+    public void epgReplace(long pid, List<Models.Epg> programs, List<String> channels) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            db.delete("epg", "profile_id=?", new String[]{String.valueOf(pid)});
+            android.database.sqlite.SQLiteStatement st = db.compileStatement(
+                    "INSERT INTO epg(profile_id,channel,start,stop,title,descr) VALUES (?,?,?,?,?,?)");
+            for (int i = 0; i < programs.size(); i++) {
+                Models.Epg e = programs.get(i);
+                st.clearBindings();
+                st.bindLong(1, pid);
+                st.bindString(2, channels.get(i));
+                st.bindLong(3, e.start);
+                st.bindLong(4, e.stop);
+                st.bindString(5, e.title == null ? "" : e.title);
+                st.bindString(6, e.description == null ? "" : e.description);
+                st.executeInsert();
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    /** fromSec..toSec arasindaki programlar */
+    public List<Models.Epg> epgQuery(long pid, String channel, long fromSec, long toSec, int limit) {
+        List<Models.Epg> out = new ArrayList<>();
+        if (channel == null || channel.isEmpty()) return out;
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT start,stop,title,descr FROM epg WHERE profile_id=? AND channel=? AND stop>? AND start<? ORDER BY start LIMIT " + limit,
+                new String[]{String.valueOf(pid), channel, String.valueOf(fromSec), String.valueOf(toSec)});
+        try {
+            while (c.moveToNext()) {
+                Models.Epg e = new Models.Epg();
+                e.start = c.getLong(0);
+                e.stop = c.getLong(1);
+                e.title = nz(c.getString(2));
+                e.description = nz(c.getString(3));
+                out.add(e);
+            }
+        } finally {
+            c.close();
+        }
+        return out;
+    }
+
+    public int epgCount(long pid) {
+        Cursor c = getReadableDatabase().rawQuery("SELECT COUNT(*) FROM epg WHERE profile_id=?", new String[]{String.valueOf(pid)});
+        try {
+            return c.moveToFirst() ? c.getInt(0) : 0;
+        } finally {
+            c.close();
+        }
+    }
+
+    // ------------------------------------------------------------ Zamanli kayit
+
+    public static class Scheduled {
+        public long id;
+        public long profileId;
+        public String streamId;
+        public String channel;
+        public String title;
+        public String url;
+        public long start; // unix sn
+        public long stop;
+    }
+
+    public long addSchedule(Scheduled s) {
+        ContentValues v = new ContentValues();
+        v.put("profile_id", s.profileId);
+        v.put("stream_id", s.streamId);
+        v.put("channel", s.channel);
+        v.put("title", s.title);
+        v.put("url", s.url);
+        v.put("start", s.start);
+        v.put("stop", s.stop);
+        s.id = getWritableDatabase().insert("rec_schedule", null, v);
+        return s.id;
+    }
+
+    public void deleteSchedule(long id) {
+        getWritableDatabase().delete("rec_schedule", "id=?", new String[]{String.valueOf(id)});
+    }
+
+    public List<Scheduled> schedules() {
+        List<Scheduled> out = new ArrayList<>();
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT id,profile_id,stream_id,channel,title,url,start,stop FROM rec_schedule ORDER BY start", null);
+        try {
+            while (c.moveToNext()) {
+                Scheduled s = new Scheduled();
+                s.id = c.getLong(0);
+                s.profileId = c.getLong(1);
+                s.streamId = nz(c.getString(2));
+                s.channel = nz(c.getString(3));
+                s.title = nz(c.getString(4));
+                s.url = nz(c.getString(5));
+                s.start = c.getLong(6);
+                s.stop = c.getLong(7);
+                out.add(s);
+            }
+        } finally {
+            c.close();
+        }
+        return out;
+    }
+
+    public Scheduled schedule(long id) {
+        for (Scheduled s : schedules()) if (s.id == id) return s;
+        return null;
     }
 
     // ------------------------------------------------------------ Favoriler

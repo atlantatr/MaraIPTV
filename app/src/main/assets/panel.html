@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mara IPTV - Web Panel</title>
+<link rel="icon" href="/logo.png">
+<style>
+  :root { --bg:#0f1115; --panel:#181b22; --panel2:#222733; --text:#f2f4f8; --muted:#9aa4b5; --acc:#ff7a1a; --acc2:#ffb15c; --ok:#3ccb7f; --bad:#e5484d; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: radial-gradient(1200px 600px at 10% -10%, #3a1c06 0%, var(--bg) 60%) fixed; color: var(--text); }
+  header { display:flex; align-items:center; gap:14px; padding:14px 22px; border-bottom:1px solid #ffffff14; background:#0f1115cc; position:sticky; top:0; backdrop-filter: blur(6px); z-index:5; }
+  header img { height:40px; }
+  header .brand { font-weight:800; font-size:20px; } header .brand span { color: var(--acc); }
+  header .meta { color: var(--muted); font-size:13px; margin-left:auto; text-align:right; }
+  main { max-width: 1100px; margin: 0 auto; padding: 22px; }
+  nav { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+  nav button { background: var(--panel2); color: var(--text); border:0; padding:10px 18px; border-radius:10px; cursor:pointer; font-size:15px; }
+  nav button.on { background: var(--acc); color:#111; font-weight:700; }
+  .card { background: var(--panel); border-radius:14px; padding:18px; margin-bottom:16px; border:1px solid #ffffff0d; }
+  .card h2 { margin:0 0 12px; font-size:18px; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  label { display:block; font-size:13px; color: var(--muted); margin:10px 0 4px; }
+  input, select { width:100%; padding:10px 12px; border-radius:9px; border:1px solid #ffffff22; background: var(--panel2); color: var(--text); font-size:15px; }
+  input:focus, select:focus { outline:2px solid var(--acc); border-color: transparent; }
+  .btn { background: var(--acc); color:#111; border:0; padding:10px 16px; border-radius:9px; font-weight:700; cursor:pointer; font-size:14px; }
+  .btn.sec { background: var(--panel2); color: var(--text); font-weight:500; }
+  .btn.red { background: var(--bad); color:#fff; }
+  .btn:disabled { opacity:.5; }
+  table { width:100%; border-collapse: collapse; }
+  th, td { text-align:left; padding:10px 8px; border-bottom:1px solid #ffffff10; font-size:14px; vertical-align: middle; }
+  th { color: var(--muted); font-weight:600; font-size:12px; text-transform: uppercase; letter-spacing:.04em; }
+  .tag { display:inline-block; padding:2px 8px; border-radius:20px; font-size:12px; background: var(--panel2); color: var(--muted); }
+  .tag.acc { background:#ff7a1a22; color: var(--acc2); }
+  .muted { color: var(--muted); font-size:13px; }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  @media (max-width: 700px) { .grid2 { grid-template-columns: 1fr; } header .meta { display:none; } }
+  .switch { position:relative; display:inline-block; width:46px; height:26px; flex:none; }
+  .switch input { display:none; }
+  .switch span { position:absolute; inset:0; background:#3a4150; border-radius:26px; transition:.2s; cursor:pointer; }
+  .switch span:before { content:""; position:absolute; width:20px; height:20px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+  .switch input:checked + span { background: var(--acc); }
+  .switch input:checked + span:before { transform: translateX(20px); }
+  #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#000d; color:#fff; padding:12px 20px; border-radius:10px; display:none; z-index:10; }
+  #login { max-width:380px; margin:12vh auto; text-align:center; }
+  #login img { max-width:260px; margin-bottom:14px; }
+  #login input { text-align:center; font-size:26px; letter-spacing:10px; }
+  .hidden { display:none !important; }
+  .catname { max-width: 520px; }
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin: 10px 0; }
+  .toolbar input { max-width: 260px; }
+</style>
+</head>
+<body>
+
+<div id="login" class="card">
+  <img src="/logo_text.png" onerror="this.style.display='none'" alt="">
+  <h2>Mara IPTV Web Panel</h2>
+  <p class="muted">Giris icin ebeveyn PIN'ini girin (varsayilan 0000).</p>
+  <input id="pin" type="password" inputmode="numeric" maxlength="8" autofocus>
+  <div style="margin-top:14px"><button class="btn" onclick="doLogin()">Giris</button></div>
+  <p id="loginErr" style="color:var(--bad)"></p>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <img src="/logo.png" onerror="this.style.display='none'" alt="">
+    <div class="brand">Mara <span>IPTV Player</span></div>
+    <div class="meta" id="meta"></div>
+    <button class="btn sec" onclick="logout()">Cikis</button>
+  </header>
+  <main>
+    <nav>
+      <button data-tab="accounts" class="on">Hesaplar</button>
+      <button data-tab="parental">Ebeveyn Kontrolu</button>
+      <button data-tab="cats">Kategoriler (Gizle / Kilitle)</button>
+    </nav>
+
+    <!-- HESAPLAR -->
+    <section id="tab-accounts">
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <h2>Hesaplar</h2>
+          <button class="btn" onclick="editProfile()">+ Yeni hesap</button>
+        </div>
+        <table>
+          <thead><tr><th>Ad</th><th>Tur</th><th>Sunucu / Liste</th><th>Kullanici</th><th>EPG</th><th></th></tr></thead>
+          <tbody id="profiles"></tbody>
+        </table>
+      </div>
+
+      <div class="card hidden" id="editor">
+        <h2 id="edTitle">Yeni hesap</h2>
+        <input type="hidden" id="edId">
+        <div class="grid2">
+          <div>
+            <label>Hesap adi</label><input id="edName" placeholder="Ornek: Ev">
+          </div>
+          <div>
+            <label>Tur</label>
+            <select id="edType" onchange="typeChanged()">
+              <option value="xtream">Xtream Codes (sunucu + kullanici + sifre)</option>
+              <option value="m3u">M3U calma listesi (link)</option>
+            </select>
+          </div>
+        </div>
+        <label id="edUrlLbl">Sunucu adresi (M3U linki de yapistirabilirsiniz)</label>
+        <input id="edUrl" placeholder="http://sunucu.com:8080" onchange="parseM3u()">
+        <div class="grid2" id="edCreds">
+          <div><label>Kullanici adi</label><input id="edUser" autocomplete="off"></div>
+          <div><label>Sifre</label><input id="edPass" autocomplete="off"></div>
+        </div>
+        <label>XMLTV EPG adresi (istege bagli)</label>
+        <input id="edEpg" placeholder="Bos birakilirsa sunucunun kendi EPG'si kullanilir">
+        <p id="edMsg" class="muted"></p>
+        <div class="row">
+          <button class="btn" onclick="saveProfile()">Kaydet</button>
+          <button class="btn sec" onclick="testProfile()">Baglantiyi test et</button>
+          <button class="btn sec" onclick="hide('editor')">Vazgec</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EBEVEYN -->
+    <section id="tab-parental" class="hidden">
+      <div class="card">
+        <h2>Ebeveyn kilidi</h2>
+        <div class="row" style="justify-content:space-between; margin:10px 0">
+          <div><b>Ebeveyn kilidi acik</b><div class="muted">Kilitli kategoriler cihazda PIN ister ve aramada gizlenir.</div></div>
+          <label class="switch"><input type="checkbox" id="parEnabled" onchange="setParental()"><span></span></label>
+        </div>
+        <div class="row" style="justify-content:space-between; margin:10px 0">
+          <div><b>Yetiskin kategorilerini otomatik kilitle</b><div class="muted">Adinda Adult, XXX, +18 gecen kategoriler.</div></div>
+          <label class="switch"><input type="checkbox" id="parAdult" onchange="setParental()"><span></span></label>
+        </div>
+        <div class="row"><button class="btn sec" onclick="resetLocks()">Tum elle yapilan kilit ayarlarini sifirla</button></div>
+      </div>
+      <div class="card">
+        <h2>PIN degistir</h2>
+        <p id="pinWarn" class="muted"></p>
+        <div class="grid2">
+          <div><label>Mevcut PIN</label><input id="pinOld" type="password" inputmode="numeric"></div>
+          <div></div>
+          <div><label>Yeni PIN (en az 4 rakam)</label><input id="pinNew" type="password" inputmode="numeric"></div>
+          <div><label>Yeni PIN (tekrar)</label><input id="pinNew2" type="password" inputmode="numeric"></div>
+        </div>
+        <div style="margin-top:12px"><button class="btn" onclick="changePin()">PIN'i degistir</button></div>
+      </div>
+    </section>
+
+    <!-- KATEGORILER -->
+    <section id="tab-cats" class="hidden">
+      <div class="card">
+        <h2>Kategoriler</h2>
+        <p class="muted"><b>Gizle:</b> kategori cihazda hic gorunmez. <b>Kilitle:</b> kategori gorunur ama acmak icin PIN gerekir.</p>
+        <div class="grid2">
+          <div><label>Hesap</label><select id="catProfile" onchange="loadCats()"></select></div>
+          <div><label>Bolum</label>
+            <select id="catType" onchange="loadCats()">
+              <option value="0">Canli TV</option><option value="1">Filmler</option><option value="2">Diziler</option>
+            </select>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input id="catFilter" placeholder="Kategori ara..." oninput="renderCats()">
+          <button class="btn sec" onclick="bulk('showAll')">Tumunu goster</button>
+          <button class="btn sec" onclick="bulk('hideAll')">Tumunu gizle</button>
+          <button class="btn sec" onclick="bulk('unlockAll')">Tum kilitleri ac</button>
+          <button class="btn sec" onclick="bulk('lockAll')">Tumunu kilitle</button>
+        </div>
+        <p id="catMsg" class="muted"></p>
+        <table>
+          <thead><tr><th>Kategori</th><th style="width:90px">Gizle</th><th style="width:90px">Kilitle</th></tr></thead>
+          <tbody id="cats"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var state = null, cats = [];
+
+function $(id) { return document.getElementById(id); }
+function show(id) { $(id).classList.remove('hidden'); }
+function hide(id) { $(id).classList.add('hidden'); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function toast(msg) { var t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 2600); }
+
+function api(path, body) {
+  var opt = { method: body ? 'POST' : 'GET', headers: {}, credentials: 'same-origin' };
+  var tok = sessionStorage.getItem('maraToken');
+  if (tok) opt.headers['X-Token'] = tok;
+  if (body) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  return fetch(path, opt).then(function (r) {
+    if (r.status === 401 && path !== '/api/login') { sessionStorage.removeItem('maraToken'); location.reload(); }
+    return r.json();
+  });
+}
+
+function doLogin() {
+  api('/api/login', { pin: $('pin').value }).then(function (r) {
+    if (r.ok) { sessionStorage.setItem('maraToken', r.token); start(); }
+    else $('loginErr').textContent = r.error || 'Hata';
+  }).catch(function () { $('loginErr').textContent = 'Cihaza ulasilamadi'; });
+}
+$('pin').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+
+function logout() { api('/api/logout', {}).then(function () { sessionStorage.removeItem('maraToken'); location.reload(); }); }
+
+document.querySelectorAll('nav button').forEach(function (b) {
+  b.onclick = function () {
+    document.querySelectorAll('nav button').forEach(function (x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    ['accounts', 'parental', 'cats'].forEach(function (t) { hide('tab-' + t); });
+    show('tab-' + b.dataset.tab);
+    if (b.dataset.tab === 'cats') loadCats();
+  };
+});
+
+function start() {
+  hide('login'); show('app');
+  refresh();
+}
+
+function refresh() {
+  return api('/api/status').then(function (s) {
+    state = s;
+    $('meta').innerHTML = esc(s.device) + '<br>' + esc(s.app) + ' ' + esc(s.version) + ' (' + esc(s.edition) + ')';
+    var rows = '';
+    s.profiles.forEach(function (p) {
+      var active = p.id === s.activeProfile ? ' <span class="tag acc">cihazda acik</span>' : '';
+      rows += '<tr><td><b>' + esc(p.name) + '</b>' + active + '</td>' +
+        '<td><span class="tag">' + (p.type === 'm3u' ? 'M3U' : 'Xtream') + '</span></td>' +
+        '<td class="muted" style="word-break:break-all">' + esc(p.url) + '</td>' +
+        '<td>' + esc(p.user) + '</td>' +
+        '<td class="muted">' + (p.epgCount ? p.epgCount + ' program' : '-') +
+        ' <a href="#" onclick="updateEpg(' + p.id + ');return false" style="color:var(--acc2)">guncelle</a></td>' +
+        '<td style="white-space:nowrap"><button class="btn sec" onclick="editProfile(' + p.id + ')">Duzenle</button> ' +
+        '<button class="btn red" onclick="delProfile(' + p.id + ')">Sil</button></td></tr>';
+    });
+    $('profiles').innerHTML = rows || '<tr><td colspan="6" class="muted">Henuz hesap yok. "+ Yeni hesap" ile ekleyin.</td></tr>';
+    $('parEnabled').checked = s.parental.enabled;
+    $('parAdult').checked = s.parental.adultAutolock;
+    $('pinWarn').textContent = s.parental.defaultPin ? 'Uyari: varsayilan PIN (0000) kullaniliyor. Lutfen degistirin.' : '';
+    var opts = '';
+    s.profiles.forEach(function (p) { opts += '<option value="' + p.id + '">' + esc(p.name) + '</option>'; });
+    var cur = $('catProfile').value;
+    $('catProfile').innerHTML = opts;
+    if (cur) $('catProfile').value = cur;
+    else if (s.activeProfile > 0) $('catProfile').value = s.activeProfile;
+  });
+}
+
+function findProfile(id) { for (var i = 0; i < state.profiles.length; i++) if (state.profiles[i].id === id) return state.profiles[i]; return null; }
+
+function editProfile(id) {
+  var p = id ? findProfile(id) : { id: 0, name: '', type: 'xtream', url: '', user: '', hasPass: false, epgUrl: '' };
+  $('edTitle').textContent = id ? 'Hesabi duzenle' : 'Yeni hesap';
+  $('edId').value = p.id; $('edName').value = p.name; $('edType').value = p.type;
+  $('edUrl').value = p.url; $('edUser').value = p.user; $('edPass').value = ''; $('edEpg').value = p.epgUrl || '';
+  $('edPass').placeholder = (id && p.hasPass) ? 'Kayitli sifre korunur (degistirmek icin yazin)' : '';
+  $('edMsg').textContent = '';
+  typeChanged(); show('editor'); $('editor').scrollIntoView({ behavior: 'smooth' });
+}
+
+function typeChanged() {
+  var m3u = $('edType').value === 'm3u';
+  $('edCreds').style.display = m3u ? 'none' : '';
+  $('edUrlLbl').textContent = m3u ? 'M3U calma listesi linki' : 'Sunucu adresi (M3U linki de yapistirabilirsiniz)';
+}
+
+function parseM3u() {
+  if ($('edType').value !== 'xtream') return;
+  var u = $('edUrl').value;
+  var m = /[?&]username=([^&]+)/.exec(u), pw = /[?&]password=([^&]+)/.exec(u);
+  if (m && pw) {
+    $('edUser').value = decodeURIComponent(m[1]); $('edPass').value = decodeURIComponent(pw[1]);
+    $('edUrl').value = u.split('?')[0].replace(/\/(get|player_api)\.php$/, '');
+    $('edMsg').textContent = 'M3U linkinden kullanici adi ve sifre dolduruldu.';
+  }
+}
+
+function formData() {
+  return { id: +$('edId').value || 0, name: $('edName').value, type: $('edType').value, url: $('edUrl').value,
+           user: $('edUser').value, pass: $('edPass').value, epgUrl: $('edEpg').value };
+}
+
+function saveProfile() {
+  api('/api/profile/save', formData()).then(function (r) {
+    if (r.ok) { toast('Hesap kaydedildi'); hide('editor'); refresh(); }
+    else $('edMsg').textContent = r.error;
+  });
+}
+
+function testProfile() {
+  $('edMsg').textContent = 'Test ediliyor...';
+  api('/api/profile/test', formData()).then(function (r) {
+    if (r.ok) {
+      var exp = r.expDate ? new Date(r.expDate * 1000).toLocaleDateString('tr-TR') : 'sinirsiz';
+      $('edMsg').innerHTML = '<span style="color:var(--ok)">Basarili.</span> Durum: ' + esc(r.status) +
+        ' &nbsp; Bitis: ' + exp + ' &nbsp; Baglanti: ' + r.activeConnections + '/' + r.maxConnections;
+    } else $('edMsg').innerHTML = '<span style="color:var(--bad)">Hata: ' + esc(r.error) + '</span>';
+  });
+}
+
+function delProfile(id) {
+  var p = findProfile(id);
+  if (!confirm('"' + p.name + '" hesabi ve favorileri/izleme gecmisi silinsin mi?')) return;
+  api('/api/profile/delete', { id: id }).then(function () { toast('Hesap silindi'); refresh(); });
+}
+
+function updateEpg(id) {
+  api('/api/epg/update', { pid: id }).then(function (r) { toast(r.ok ? r.message + ' (birkac dakika surebilir)' : r.error); });
+}
+
+function setParental() {
+  api('/api/parental', { enabled: $('parEnabled').checked, adultAutolock: $('parAdult').checked }).then(function () { toast('Kaydedildi'); });
+}
+
+function resetLocks() {
+  if (!confirm('Tum hesaplardaki elle kilitlenen/acilan kategori ayarlari sifirlansin mi?')) return;
+  api('/api/locks/reset', {}).then(function () { toast('Kilitler sifirlandi'); loadCats(); });
+}
+
+function changePin() {
+  if ($('pinNew').value !== $('pinNew2').value) { toast('Yeni PIN\'ler eslesmiyor'); return; }
+  api('/api/pin', { old: $('pinOld').value, 'new': $('pinNew').value }).then(function (r) {
+    if (r.ok) { toast('PIN degistirildi'); $('pinOld').value = $('pinNew').value = $('pinNew2').value = ''; refresh(); }
+    else toast(r.error);
+  });
+}
+
+function loadCats() {
+  var pid = $('catProfile').value;
+  if (!pid) { $('catMsg').textContent = 'Once bir hesap ekleyin.'; $('cats').innerHTML = ''; return; }
+  $('catMsg').textContent = 'Kategoriler sunucudan aliniyor...';
+  $('cats').innerHTML = '';
+  api('/api/categories?pid=' + pid + '&type=' + $('catType').value).then(function (r) {
+    if (!r.ok) { $('catMsg').textContent = 'Hata: ' + r.error; return; }
+    cats = r.categories;
+    renderCats();
+  });
+}
+
+function renderCats() {
+  var f = $('catFilter').value.toLowerCase(), rows = '', hidden = 0, locked = 0;
+  cats.forEach(function (c, i) {
+    if (c.hidden) hidden++;
+    if (c.locked) locked++;
+    if (f && c.name.toLowerCase().indexOf(f) < 0) return;
+    rows += '<tr><td class="catname">' + esc(c.name) + (c.adult ? ' <span class="tag acc">+18</span>' : '') + '</td>' +
+      '<td><label class="switch"><input type="checkbox" ' + (c.hidden ? 'checked' : '') + ' onchange="setCat(' + i + ',\'hidden\',this.checked)"><span></span></label></td>' +
+      '<td><label class="switch"><input type="checkbox" ' + (c.locked ? 'checked' : '') + ' onchange="setCat(' + i + ',\'locked\',this.checked)"><span></span></label></td></tr>';
+  });
+  $('cats').innerHTML = rows || '<tr><td colspan="3" class="muted">Kategori yok</td></tr>';
+  $('catMsg').textContent = cats.length + ' kategori  ·  ' + hidden + ' gizli  ·  ' + locked + ' kilitli';
+}
+
+function setCat(i, field, val) {
+  var c = cats[i], body = { pid: +$('catProfile').value, type: +$('catType').value, id: c.id, name: c.name };
+  body[field] = val;
+  api('/api/category', body).then(function (r) {
+    if (r.ok) { c[field] = val; renderCats(); } else toast(r.error);
+  });
+}
+
+function bulk(action) {
+  var names = { showAll: 'Tum kategoriler gosterilsin', hideAll: 'Tum kategoriler gizlensin', unlockAll: 'Tum kilitler acilsin', lockAll: 'Tum kategoriler kilitlensin' };
+  if (!confirm(names[action] + ' mi?')) return;
+  api('/api/categories/bulk', { pid: +$('catProfile').value, type: +$('catType').value, action: action }).then(function () { loadCats(); });
+}
+
+if (sessionStorage.getItem('maraToken')) {
+  api('/api/status').then(function (s) { if (s.ok) start(); });
+}
+</script>
+</body>
+</html>

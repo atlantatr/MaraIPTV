@@ -33,7 +33,7 @@ import java.util.Map;
  * Xtream Codes "player_api.php" istemcisi.
  * Buyuk listeler android.util.JsonReader ile akista (stream) islenir; dusuk RAM'li cihazlar icin.
  */
-public class XtreamApi {
+public class XtreamApi implements Source {
 
     public interface ObjReader<T> {
         T read(JsonReader r) throws IOException;
@@ -42,11 +42,15 @@ public class XtreamApi {
     private final String base;
     private final String user;
     private final String pass;
+    private final long pid;
+    /** stream_id -> epg_channel_id (XMLTV eslestirmesi icin) */
+    private final Map<String, String> epgIds = new HashMap<>();
 
     public XtreamApi(Profile p) {
         this.base = normalizeUrl(p.url);
         this.user = p.user.trim();
         this.pass = p.pass.trim();
+        this.pid = p.id;
     }
 
     // ---------------------------------------------------------------- URL'ler
@@ -216,7 +220,13 @@ public class XtreamApi {
                     }
                 }
                 r.endObject();
-                return it.id.isEmpty() ? null : it;
+                if (it.id.isEmpty()) return null;
+                if (type == Models.LIVE && !it.epgId.isEmpty()) {
+                    synchronized (epgIds) {
+                        epgIds.put(it.id, it.epgId);
+                    }
+                }
+                return it;
             }
         });
     }
@@ -431,14 +441,46 @@ public class XtreamApi {
         r.endArray();
     }
 
-    /** Kisa EPG (simdi/sonra). */
-    public List<Epg> shortEpg(String streamId, int limit) throws IOException {
-        return epg(api("get_short_epg", "&stream_id=" + enc(streamId) + "&limit=" + limit));
+    /** Kisa EPG (simdi/sonra). Ayara gore Xtream API veya XMLTV veritabanindan. */
+    @Override
+    public List<Epg> shortEpg(String streamId, String epgId, int limit) throws IOException {
+        if (empty(epgId)) epgId = epgIdOf(streamId);
+        if (Prefs.epgXmltvOnly()) return XmlTv.shortEpg(pid, epgId, limit);
+        List<Epg> l;
+        try {
+            l = epg(api("get_short_epg", "&stream_id=" + enc(streamId) + "&limit=" + limit));
+        } catch (IOException e) {
+            l = new ArrayList<>();
+        }
+        if (l.isEmpty()) l = XmlTv.shortEpg(pid, epgId, limit);
+        return l;
     }
 
     /** Tum EPG (arsiv bilgisi dahil). */
-    public List<Epg> fullEpg(String streamId) throws IOException {
-        return epg(api("get_simple_data_table", "&stream_id=" + enc(streamId)));
+    @Override
+    public List<Epg> fullEpg(String streamId, String epgId) throws IOException {
+        if (empty(epgId)) epgId = epgIdOf(streamId);
+        if (Prefs.epgXmltvOnly()) return XmlTv.fullEpg(pid, epgId);
+        List<Epg> l;
+        try {
+            l = epg(api("get_simple_data_table", "&stream_id=" + enc(streamId)));
+        } catch (IOException e) {
+            l = new ArrayList<>();
+        }
+        if (l.isEmpty()) l = XmlTv.fullEpg(pid, epgId);
+        return l;
+    }
+
+    private String epgIdOf(String streamId) {
+        synchronized (epgIds) {
+            String s = epgIds.get(streamId);
+            return s == null ? "" : s;
+        }
+    }
+
+    @Override
+    public String defaultXmltvUrl() {
+        return base + "/xmltv.php?username=" + enc(user) + "&password=" + enc(pass);
     }
 
     private List<Epg> epg(String url) throws IOException {

@@ -1,76 +1,88 @@
-# Mara IPTV Player
+# Mara IPTV Player 2.0
 
-Xtream Codes API ile çalışan IPTV oynatıcı. **Minimum Android 4.2 (API 17)**, TV box + kumanda öncelikli arayüz.
+Xtream Codes ve M3U destekli IPTV oynatıcı. Arayüz önce TV box ve kumanda için tasarlandı. Tek proje 3 ayrı APK üretir:
 
-Paket adı: `com.atlanta.maraplayer` (değiştirmek için `app/build.gradle` → `applicationId`).
+| Sürüm (flavor) | En düşük Android | Oynatıcı motoru | Ek özellikler |
+|---|---|---|---|
+| **legacy** | 4.2 (API 17) | ExoPlayer 2.19.1 | Ortak özellikler |
+| **lollipop** | 5.0 (API 21) | AndroidX Media3 1.5 + FFmpeg ses | Çoklu ekran, Android TV öneriler / "İzlemeye devam" |
+| **nougat** | 7.0 (API 24) | AndroidX Media3 1.5 + FFmpeg ses | Yukarıdakiler + **resim içinde resim (PiP)** |
 
-## Özellikler
+Üç sürümün paket adı aynı (`com.atlanta.maraplayer`); versionCode'lar 1200 / 2200 / 3200. Bu yüzden aynı imzayla derlenmişlerse yüksek sürüm düşük sürümün üzerine kurulabilir.
 
-- **Çoklu profil:** Birden fazla Xtream hesabı, son profile otomatik bağlanma. Sunucu alanına M3U linki (`get.php?username=..&password=..`) yapıştırılırsa bilgiler otomatik doldurulur.
-- **Ana ekran:** Hesap bitiş tarihi, kalan gün, bağlantı sayısı, saat.
-- **Canlı TV:** Kategoriler, kanal logoları, önizleme penceresi, seçili kanalın şimdi/sonra EPG bilgisi, favoriler.
-- **Tam ekran canlı yayın:**
-  - Yukarı/Aşağı veya CH+/CH- ile kanal değiştirme.
-  - Rakam tuşlarıyla kanal numarası girme.
-  - OK veya Sol ile kanal listesi.
-  - Bilgi çubuğu (logo, şimdi/sonra, ilerleme).
-  - Yayın koparsa otomatik yeniden bağlanma.
-- **EPG + Catch-up:** Tam yayın akışı; arşivi olan kanallarda geçmiş programları geri izleme (timeshift).
-- **Filmler / Diziler:** Poster ızgarası, sıralama (A-Z, en yeni, puan), detay sayfası (konu, oyuncular, puan, fragman), sezon/bölüm listesi.
-- **Devam et:** Film ve bölümlerde kaldığı yerden devam, izlenme çubuğu, otomatik sonraki bölüm.
-- **Oynatıcı (ExoPlayer 2.19.1):**
-  - Ses dili/parça seçimi, altyazı seçimi.
-  - Görüntü oranı: sığdır, doldur, yakınlaştır, 16:9, 4:3.
-  - Yayın bilgisi (çözünürlük/codec).
-  - Harici oynatıcıya (VLC/MX) gönderme.
-- **Ebeveyn kilidi:** PIN (varsayılan **0000**). "Adult / XXX / +18" kategoriler otomatik kilitli. Herhangi bir kategori MENU tuşu ile kilitlenebilir. Kilitli içerik aramada da gizlenir.
-- **Arama:** Kanal + film + dizi içinde Türkçe karakter duyarsız arama.
-- **Android 4.2 uyumu:**
-  - Conscrypt ile TLS 1.2/1.3.
-  - İsteğe bağlı "sertifika hatalarını yoksay" seçeneği (eski kök sertifikalar için).
-  - Düşük RAM için akışlı JSON okuma ve küçültülmüş resimler.
+## Tüm sürümlerde ortak özellikler
 
-## Kumanda tuşları
+- **Hesaplar:** Xtream Codes ve **M3U çalma listesi**, birden çok profil, otomatik bağlanma.
+- **Canlı TV:** Kategoriler, önizleme, şimdi/sonra EPG, rakamla kanal seçme, zapping, kanal listesi, otomatik yeniden bağlanma.
+- **Film / dizi:** Poster ızgarası, detay, sezon/bölüm, kaldığı yerden devam, otomatik sonraki bölüm.
+- **EPG:** Xtream EPG'si ve/veya **harici XMLTV** (.xml / .xml.gz). XMLTV'yi Ayarlar'dan ya da web panelden güncelleyebilirsiniz.
+- **Geri izleme (catch-up):** Arşivli kanallarda.
+- **Kayıt:**
+  - Canlı yayında MENU → Kaydet (veya kumandadaki ● REC tuşu). Süre: program sonuna kadar / 30-180 dk / siz durdurana kadar.
+  - Yayın akışında ileri tarihli bir programa basınca **zamanlı kayıt** kurulur. Uygulama kapalıyken ve cihaz yeniden başladıktan sonra da çalışır.
+  - Kayıtlar USB / SD / dahili hafızaya `.ts` olarak yazılır (Ana sayfa → Kayıtlar).
+- **Ebeveyn kilidi:** PIN ile kategori kilitleme; yetişkin kategorileri otomatik kilitlenir.
+- **Kategori gizleme:** Web panelden yapılır; gizlenen kategori cihazda hiç görünmez.
+- **Sesli arama:** Kumandada mikrofon varsa.
+- **Web panel (port 8765):** Aşağıdaki bölüme bakın.
 
-| Ekran | Tuş | İşlev |
-|---|---|---|
-| Listeler | MENU / uzun bas | Favori, kilit, yayın akışı, sıralama |
-| Canlı TV (tam ekran) | OK / Sol | Kanal listesi |
-| | Yukarı / Aşağı, CH+/- | Kanal değiştir |
-| | 0-9 | Kanal numarası |
-| | Sağ / INFO | Bilgi çubuğu |
-| | GUIDE | Yayın akışı |
-| | MENU | Ses, altyazı, oran, favori, yeniden bağlan... |
-| Film / Dizi | OK | Duraklat / Oynat |
-| | Sol / Sağ | 10 sn geri/ileri (basılı tutunca 30-60 sn) |
-| | CH+/- , Next/Prev | Sonraki / önceki bölüm |
+## Web panel
 
-## APK nasıl derlenir (Windows)
-
-1. **Android Studio** kurun (Koala / Ladybug veya daha yeni; içinde JDK 17 gelir).
-2. Bu klasördeki `gradle-wrapper-olustur.bat` dosyasını çift tıklayıp çalıştırın. Wrapper ayar dosyasını oluşturur.
-3. Android Studio → **File → Open** → `MaraIPTV` klasörünü seçin.
-   - İlk açılışta Gradle 8.7 ve bağımlılıklar internetten iner.
-   - "Gradle wrapper bulunamadı" gibi bir soru gelirse **OK / Use Gradle wrapper** deyin.
-4. SDK eksikse Studio **Android SDK Platform 34** kurmayı önerir; kabul edin.
-5. Menüden **Build → Build App Bundle(s) / APK(s) → Build APK(s)** seçin.
-   - Çıktı: `app/build/outputs/apk/debug/app-debug.apk`
-6. Daha küçük, optimize edilmiş sürüm için: **Build → Generate Signed App Bundle / APK** ya da Gradle panelinden `assembleRelease` çalıştırın.
-   - Release, kolaylık olsun diye debug anahtarıyla imzalanır.
-   - Çıktı: `app/build/outputs/apk/release/app-release.apk`
-
-Kutuya yükleme:
+Aynı ağdaki telefon veya bilgisayarın tarayıcısından girilir. Cihazın adresi Profiller ve Ana sayfa ekranında yazar:
 
 ```
-adb connect 192.168.1.120
-adb install -r app\build\outputs\apk\debug\app-debug.apk
+http://CIHAZ_IP:8765
 ```
 
-## Notlar / sorun giderme
+Giriş **ebeveyn PIN'i** ile yapılır (varsayılan 0000; lütfen değiştirin). 5 hatalı denemede 1 dakika kilitlenir. Panelden yapılabilenler:
 
-- **Kanal açılmıyorsa:** Ayarlar → Canlı yayın formatı'nı **TS ↔ HLS** olarak değiştirin. Ayrıca **Tampon**'u "Yüksek" yapın.
-- **https sunucuya bağlanamıyorsa (Android 4.x):** Ayarlar → **Sertifika hatalarını yoksay** seçeneğini açın.
-- **Ses yok (AC3/EAC3/DTS):** Eski cihazların donanım çözücüsü bu formatları desteklemeyebilir. Oynatıcıda MENU → **Harici oynatıcıda aç** (VLC) seçin ya da Ayarlar → Oynatıcı motoru → Harici seçin.
-- **Sunucu belirli bir User-Agent istiyorsa:** Ayarlar → **User-Agent** alanına girin.
-- **EPG saatleri kaymışsa:** Ayarlar → **EPG saat düzeltmesi**.
-- **Release derlemesinde R8 "Missing class" hatası:** `app/build/outputs/mapping/release/missing_rules.txt` içindeki satırları `app/proguard-rules.pro` sonuna ekleyin. Debug derlemesi etkilenmez.
+- **Hesaplar:** Ekleme, düzenleme, silme, bağlantı testi. Xtream veya M3U; XMLTV adresi; EPG güncelleme.
+- **Ebeveyn kontrolü:** Kilidi açma/kapama, yetişkin otomatik kilidi, PIN değiştirme, kilitleri sıfırlama.
+- **Kategoriler:** Her hesap için Canlı / Film / Dizi kategorilerini tek tek veya toplu **gizleme** ve **kilitleme**. Hangi kategorinin gizli veya kilitli olduğu listede görünür.
+
+Paneli Ayarlar → "Web panel"den kapatabilirsiniz.
+
+## Logo seti
+
+`branding/` klasörüne logo sayfasını **marka-seti.png** adıyla koyun. GitHub derlemesi `tools/brand.py` ile bu sayfadan şunları otomatik keser:
+
+- uygulama ikonu
+- Android TV banner
+- açılış görseli
+- yazı logosu
+- web panel logosu
+
+Bilgisayarda derleyecekseniz bir kez şunları çalıştırın:
+
+```
+pip install pillow
+python tools\brand.py
+```
+
+## Derleme
+
+### GitHub Actions
+
+Her push'ta **Actions → APK Derle** çalışır. Bitince **Artifacts → MaraIPTV-apk** zip'inde şu dosyalar olur:
+
+```
+apk/legacy/debug/app-legacy-debug.apk       -> Android 4.2+
+apk/lollipop/debug/app-lollipop-debug.apk   -> Android 5.0+
+apk/nougat/debug/app-nougat-debug.apk       -> Android 7.0+
+(+ release/ klasorlerinde kucultulmus surumler)
+```
+
+### Android Studio
+
+1. `gradle-wrapper-olustur.bat` dosyasını çalıştırın (Gradle 8.10.2).
+2. Projeyi açın.
+3. Sol alttaki **Build Variants** panelinden sürümü seçin (`legacyDebug`, `lollipopDebug`, `nougatDebug`).
+4. **Build → Build APK(s)** ile derleyin.
+
+## Sorun giderme
+
+- **FFmpeg ses eklentisi derlemede hata verirse:** `gradle.properties` içinde `mara.ffmpeg=false` yapın.
+- **Kanal açılmıyorsa:** Ayarlar → Canlı yayın formatı'nı TS ↔ HLS olarak değiştirin.
+- **https sorunu (Android 4.x - 7.0):** Ayarlar → "Sertifika hatalarını yoksay".
+- **Çoklu ekranda bazı pencereler açılmıyorsa:** Cihazın donanım video çözücü sayısı sınırlıdır; 2 pencere düzenini kullanın.
+- **Web panele girilemiyorsa:** Cihaz ve telefon aynı ağda olmalı, uygulama açık olmalı. Bazı modemlerde "AP isolation" kapalı olmalı.

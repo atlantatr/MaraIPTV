@@ -130,14 +130,14 @@ public class FavoritesActivity extends BaseActivity {
     private void open(int pos) {
         Object tag = adapter.getItem(pos).tag;
         if (tag instanceof Db.Resume) {
-            PlayerActivity.playResume(this, (Db.Resume) tag);
+            Play.playResume(this, (Db.Resume) tag);
             return;
         }
         Item it = (Item) tag;
         if (it.type == Models.LIVE) {
             List<Item> chans = new ArrayList<>();
             for (Adapters.Row r : adapter.data()) chans.add((Item) r.tag);
-            PlayerActivity.playLive(this, chans, pos);
+            Play.playLive(this, chans, pos);
         } else if (it.type == Models.MOVIE) {
             MovieDetailActivity.open(this, it);
         } else {

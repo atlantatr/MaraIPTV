@@ -31,20 +31,37 @@
             android:textSize="13sp" />
     </LinearLayout>
 
-    <EditText
-        android:id="@+id/search"
+    <LinearLayout
+        android:id="@+id/searchRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:background="@drawable/input_bg"
-        android:hint="Aramak icin yazin (en az 2 harf)"
-        android:imeOptions="actionSearch"
-        android:inputType="text|textNoSuggestions"
-        android:padding="12dp"
-        android:singleLine="true"
-        android:textColor="@color/text"
-        android:textColorHint="@color/text2"
-        android:visibility="gone" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/search"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/input_bg"
+            android:hint="Aramak icin yazin (en az 2 harf)"
+            android:imeOptions="actionSearch"
+            android:inputType="text|textNoSuggestions"
+            android:padding="12dp"
+            android:singleLine="true"
+            android:textColor="@color/text"
+            android:textColorHint="@color/text2" />
+
+        <Button
+            android:id="@+id/btnVoice"
+            style="@style/TvButton"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="0dp"
+            android:text="Sesli ara"
+            android:visibility="gone" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/tabs"

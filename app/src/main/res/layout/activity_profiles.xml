@@ -12,19 +12,22 @@
         android:gravity="center"
         android:orientation="vertical">
 
+        <!-- Logo setinden: acilis gorseli (yoksa koyu gradyan) -->
         <ImageView
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:src="@drawable/ic_launcher" />
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/splash_art" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/app_name"
-            android:textColor="@color/text"
-            android:textSize="30sp"
-            android:textStyle="bold" />
+        <!-- Logo setinden: "Mara IPTV Player" yazi logosu -->
+        <ImageView
+            android:layout_width="260dp"
+            android:layout_height="90dp"
+            android:layout_marginTop="12dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/logo_text" />
 
         <TextView
             android:id="@+id/version"
@@ -32,6 +35,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textColor="@color/text2"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/webInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:textColor="@color/accent"
             android:textSize="14sp" />
     </LinearLayout>
 

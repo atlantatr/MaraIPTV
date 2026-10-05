@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 7.0+ surumune ozel ekler: resim icinde resim (PiP) + coklu ekran -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application>
+        <activity
+            android:name=".ui.PlayerActivity"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true"
+            tools:node="merge" />
+        <activity
+            android:name=".ui.MultiViewActivity"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/PlayerTheme" />
+    </application>
+</manifest>

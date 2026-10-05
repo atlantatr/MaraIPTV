@@ -43,7 +43,24 @@
                 android:textColor="@color/text"
                 android:textColorHint="@color/text2" />
 
-            <TextView style="@style/Header" android:layout_marginTop="10dp" android:padding="2dp" android:text="Sunucu adresi (veya M3U linki yapistirin)" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/typeXtream"
+                    style="@style/TvButton"
+                    android:text="Xtream Codes" />
+
+                <Button
+                    android:id="@+id/typeM3u"
+                    style="@style/TvButton"
+                    android:text="M3U Liste" />
+            </LinearLayout>
+
+            <TextView android:id="@+id/urlLabel" style="@style/Header" android:layout_marginTop="10dp" android:padding="2dp" android:text="Sunucu adresi (veya M3U linki yapistirin)" />
 
             <EditText
                 android:id="@+id/url"
@@ -57,29 +74,50 @@
                 android:textColor="@color/text"
                 android:textColorHint="@color/text2" />
 
-            <TextView style="@style/Header" android:layout_marginTop="10dp" android:padding="2dp" android:text="Kullanici adi" />
+            <LinearLayout
+                android:id="@+id/credBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView style="@style/Header" android:layout_marginTop="10dp" android:padding="2dp" android:text="Kullanici adi" />
+
+                <EditText
+                    android:id="@+id/user"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/input_bg"
+                    android:inputType="text|textNoSuggestions"
+                    android:padding="12dp"
+                    android:singleLine="true"
+                    android:textColor="@color/text" />
+
+                <TextView style="@style/Header" android:layout_marginTop="10dp" android:padding="2dp" android:text="Sifre" />
+
+                <EditText
+                    android:id="@+id/pass"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/input_bg"
+                    android:inputType="textVisiblePassword|textNoSuggestions"
+                    android:padding="12dp"
+                    android:singleLine="true"
+                    android:textColor="@color/text" />
+            </LinearLayout>
+
+            <TextView style="@style/Header" android:layout_marginTop="10dp" android:padding="2dp" android:text="XMLTV EPG adresi (istege bagli)" />
 
             <EditText
-                android:id="@+id/user"
+                android:id="@+id/epgUrl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/input_bg"
-                android:inputType="text|textNoSuggestions"
+                android:hint="Bos birakilirsa sunucunun kendi EPG'si"
+                android:inputType="textUri"
                 android:padding="12dp"
                 android:singleLine="true"
-                android:textColor="@color/text" />
-
-            <TextView style="@style/Header" android:layout_marginTop="10dp" android:padding="2dp" android:text="Sifre" />
-
-            <EditText
-                android:id="@+id/pass"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/input_bg"
-                android:inputType="textVisiblePassword|textNoSuggestions"
-                android:padding="12dp"
-                android:singleLine="true"
-                android:textColor="@color/text" />
+                android:textColor="@color/text"
+                android:textColorHint="@color/text2" />
 
             <TextView
                 android:id="@+id/status"

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Yer tutucu: tools/brand.py logo setinden splash_art.png uretince bu dosya silinir -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient android:angle="315" android:startColor="#FF3A1A05" android:endColor="#FF0D1117" />
+    <corners android:radius="12dp" />
+</shape>

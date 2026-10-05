@@ -18,12 +18,9 @@ import com.atlanta.maraplayer.data.Models.Epg;
 import com.atlanta.maraplayer.data.Models.Item;
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.data.Repo;
-import com.atlanta.maraplayer.player.PlayerFactory;
+import com.atlanta.maraplayer.player.PreviewPlayer;
 import com.atlanta.maraplayer.util.Async;
 import com.atlanta.maraplayer.util.Ui;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +39,8 @@ public class LiveActivity extends BaseActivity {
     private int epgToken;
     private String epgFor;
 
-    private ExoPlayer previewPlayer;
+    private PreviewPlayer previewPlayer;
+    private long currentProgramEnd;
     private String previewId;
 
     private Category pendingCat;
@@ -162,7 +160,7 @@ public class LiveActivity extends BaseActivity {
         Async.run(this, new Async.Task<List<Category>>() {
             @Override
             public List<Category> run() throws Exception {
-                return Repo.categories(Models.LIVE);
+                return Repo.visibleCategories(Models.LIVE);
             }
         }, new Async.Callback<List<Category>>() {
             @Override
@@ -304,7 +302,8 @@ public class LiveActivity extends BaseActivity {
 
     private void channelOptions(final Item it) {
         final boolean fav = Db.get().isFavorite(Repo.pid(), Models.LIVE, it.id);
-        String[] opts = {fav ? "Favorilerden cikar" : "Favorilere ekle", "Yayin akisi" + (it.archive ? " / Geri izle" : ""), "Tam ekran izle"};
+        String[] opts = {fav ? "Favorilerden cikar" : "Favorilere ekle", "Yayin akisi" + (it.archive ? " / Geri izle" : ""),
+                "Tam ekran izle", "Kaydet"};
         Ui.choose(this, it.name, opts, -1, new Ui.Choice() {
             @Override
             public void on(int which) {
@@ -320,9 +319,11 @@ public class LiveActivity extends BaseActivity {
                     }
                 } else if (which == 1) {
                     EpgActivity.open(LiveActivity.this, it);
-                } else {
+                } else if (which == 2) {
                     int pos = chAdapter.data().indexOf(it);
                     if (pos >= 0) fullscreen(pos);
+                } else {
+                    RecordUi.recordNow(LiveActivity.this, it, it.id.equals(epgFor) ? currentProgramEnd : 0);
                 }
             }
         });
@@ -330,7 +331,7 @@ public class LiveActivity extends BaseActivity {
 
     private void fullscreen(int pos) {
         releasePreview();
-        PlayerActivity.playLive(this, chAdapter.data(), pos);
+        Play.playLive(this, chAdapter.data(), pos);
     }
 
     @Override
@@ -366,7 +367,7 @@ public class LiveActivity extends BaseActivity {
         Async.run(this, new Async.Task<List<Epg>>() {
             @Override
             public List<Epg> run() throws Exception {
-                return Repo.api().shortEpg(it.id, 6);
+                return Repo.api().shortEpg(it.id, it.epgId, 6);
             }
         }, new Async.Callback<List<Epg>>() {
             @Override
@@ -388,6 +389,7 @@ public class LiveActivity extends BaseActivity {
         long off = Prefs.epgOffsetSec();
         long now = System.currentTimeMillis() / 1000L - off;
         Epg current = null;
+        currentProgramEnd = 0;
         StringBuilder next = new StringBuilder();
         for (Epg e : list) {
             if (e.stop <= now) continue;
@@ -399,6 +401,7 @@ public class LiveActivity extends BaseActivity {
             next.append(Ui.time(e.start + off)).append("  ").append(e.title);
         }
         if (current != null) {
+            currentProgramEnd = current.stop;
             nowTitle.setText(Ui.time(current.start + off) + " - " + Ui.time(current.stop + off) + "   " + current.title);
             nowDesc.setText(current.description);
             int pct = (int) ((now - current.start) * 100 / Math.max(1, current.stop - current.start));
@@ -419,25 +422,21 @@ public class LiveActivity extends BaseActivity {
         previewId = it.id;
         previewHint.setVisibility(View.GONE);
         previewLoading.setVisibility(View.VISIBLE);
-        previewPlayer = PlayerFactory.create(this, true);
-        previewPlayer.setVideoSurfaceView(preview);
-        previewPlayer.addListener(new Player.Listener() {
+        previewPlayer = new PreviewPlayer(this, preview, new PreviewPlayer.Listener() {
             @Override
-            public void onPlaybackStateChanged(int state) {
-                previewLoading.setVisibility(state == Player.STATE_BUFFERING ? View.VISIBLE : View.GONE);
+            public void onBuffering(boolean b) {
+                previewLoading.setVisibility(b ? View.VISIBLE : View.GONE);
             }
 
             @Override
-            public void onPlayerError(PlaybackException error) {
+            public void onError(String message) {
                 previewLoading.setVisibility(View.GONE);
                 previewHint.setVisibility(View.VISIBLE);
-                previewHint.setText("Yayin acilamadi\n" + error.getErrorCodeName());
+                previewHint.setText("Yayin acilamadi\n" + message);
                 previewId = null;
             }
         });
-        previewPlayer.setMediaSource(PlayerFactory.source(Repo.api().liveUrl(it.id, Prefs.liveFormat())));
-        previewPlayer.setPlayWhenReady(true);
-        previewPlayer.prepare();
+        previewPlayer.play(this, Repo.api().liveUrl(it.id, Prefs.liveFormat()));
         Prefs.setLastChannel(Repo.pid(), it.id);
     }
 

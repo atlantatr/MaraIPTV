@@ -1,6 +1,8 @@
 package com.atlanta.maraplayer.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -30,6 +32,21 @@ public class SearchActivity extends BaseActivity {
 
     public static final String EXTRA_TYPE = "type";
     private static final int MAX_RESULTS = 300;
+    private static final int REQ_VOICE = 41;
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if (req == REQ_VOICE && res == RESULT_OK && data != null) {
+            ArrayList<String> r = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (r != null && !r.isEmpty()) {
+                search.setText(r.get(0));
+                search.setSelection(search.getText().length());
+                runSearch();
+                if (adapter.getCount() > 0) list.requestFocus();
+            }
+        }
+    }
 
     private EditText search;
     private ListView list;
@@ -56,7 +73,26 @@ public class SearchActivity extends BaseActivity {
         filter = getIntent().getIntExtra(EXTRA_TYPE, -1);
         ((TextView) v(R.id.title)).setText("Ara");
         search = v(R.id.search);
-        search.setVisibility(View.VISIBLE);
+        v(R.id.searchRow).setVisibility(View.VISIBLE);
+        // Sesli arama (kumandada mikrofon veya Google ses servisi varsa)
+        final Intent voice = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "tr-TR")
+                .putExtra(RecognizerIntent.EXTRA_PROMPT, "Kanal, film veya dizi adini soyleyin");
+        if (!getPackageManager().queryIntentActivities(voice, 0).isEmpty()) {
+            View btn = v(R.id.btnVoice);
+            btn.setVisibility(View.VISIBLE);
+            btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    try {
+                        startActivityForResult(voice, REQ_VOICE);
+                    } catch (Exception e) {
+                        Ui.toast(SearchActivity.this, "Sesli arama kullanilamiyor");
+                    }
+                }
+            });
+        }
         list = v(R.id.list);
         msg = v(R.id.msg);
         adapter = new Adapters.RowAdapter(this);
@@ -125,7 +161,7 @@ public class SearchActivity extends BaseActivity {
                             chans.add(x);
                         }
                     }
-                    PlayerActivity.playLive(SearchActivity.this, chans, idx);
+                    Play.playLive(SearchActivity.this, chans, idx);
                 } else if (it.type == Models.MOVIE) {
                     MovieDetailActivity.open(SearchActivity.this, it);
                 } else {

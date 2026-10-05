@@ -5,6 +5,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- Android 4.2/4.3'te USB/SD'ye kayit icin (4.4+ uygulama klasoru izinsiz) -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" />
 
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -48,5 +55,32 @@
             android:configChanges="orientation|screenSize|screenLayout|keyboard|keyboardHidden|navigation|smallestScreenSize"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/PlayerTheme" />
+        <activity android:name=".ui.RecordingsActivity" android:screenOrientation="sensorLandscape" />
+
+        <!-- Android TV ana ekran onerileri / "Izlemeye devam" kartlarindan acilis -->
+        <activity
+            android:name=".ui.DeepLinkActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="mara" android:host="play" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".record.RecordingService"
+            android:exported="false" />
+
+        <receiver
+            android:name=".record.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

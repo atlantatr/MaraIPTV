@@ -2,20 +2,67 @@ plugins {
     id 'com.android.application'
 }
 
+// Media3 (Android 5.0+ surumleri) ve FFmpeg ses cozucu (AC3/EAC3/DTS/TrueHD)
+def media3Version = '1.5.0'
+def useFfmpeg = (project.findProperty('mara.ffmpeg') ?: 'true').toString().toBoolean()
+
 android {
     namespace 'com.atlanta.maraplayer'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.atlanta.maraplayer"
-        minSdk 17          // Android 4.2
         targetSdk 28
-        versionCode 1
-        versionName "1.0.0"
         multiDexEnabled true
-        // Not: minSdk < 21 oldugu icin res/drawable icindeki vektor ikonlar derlemede otomatik PNG'ye cevrilir
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86'
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    // ---------------------------------------------------------------
+    // 3 surum: legacy = Android 4.2+, lollipop = Android 5.0+, nougat = Android 7.0+
+    // ---------------------------------------------------------------
+    flavorDimensions 'api'
+    productFlavors {
+        legacy {
+            dimension 'api'
+            minSdk 17
+            versionCode 1200
+            versionName '2.0.0-a42'
+            buildConfigField 'boolean', 'ADVANCED', 'false'
+            buildConfigField 'String', 'EDITION', '"Android 4.2+"'
+        }
+        lollipop {
+            dimension 'api'
+            minSdk 21
+            versionCode 2200
+            versionName '2.0.0-a50'
+            buildConfigField 'boolean', 'ADVANCED', 'true'
+            buildConfigField 'String', 'EDITION', '"Android 5.0+"'
+        }
+        nougat {
+            dimension 'api'
+            minSdk 24
+            versionCode 3200
+            versionName '2.0.0-a70'
+            buildConfigField 'boolean', 'ADVANCED', 'true'
+            buildConfigField 'String', 'EDITION', '"Android 7.0+"'
+        }
+    }
+
+    sourceSets {
+        // lollipop ve nougat ortak "modern" kodu (Media3, coklu ekran, Android TV ana ekran) paylasir
+        lollipop {
+            java.srcDirs += 'src/modern/java'
+            res.srcDirs += 'src/modern/res'
+        }
+        nougat {
+            java.srcDirs += 'src/modern/java'
+            res.srcDirs += 'src/modern/res'
         }
     }
 
@@ -49,24 +96,41 @@ android {
     }
 }
 
-configurations.configureEach {
-    resolutionStrategy {
-        // Android 4.2 (API 17) ile uyumlu son surumlere sabitle
-        force 'com.google.guava:guava:31.1-android'
-        eachDependency { details ->
-            // androidx.core 1.12+ minSdk 19 ister; gelirse 1.9.0'a (minSdk 14) sabitle
-            if (details.requested.group == 'androidx.core' && details.requested.name == 'core') {
-                details.useVersion '1.9.0'
+// Sadece legacy (Android 4.2) surumunde API 17 uyumlu kutuphane surumlerine sabitle
+configurations.configureEach { conf ->
+    if (conf.name.toLowerCase().startsWith('legacy')) {
+        conf.resolutionStrategy {
+            force 'com.google.guava:guava:31.1-android'
+            eachDependency { details ->
+                // androidx.core 1.12+ minSdk 19 ister
+                if (details.requested.group == 'androidx.core' && details.requested.name == 'core') {
+                    details.useVersion '1.9.0'
+                }
             }
         }
     }
 }
 
 dependencies {
-    // ExoPlayer 2.19.1 = minSdk 16'yi destekleyen son ExoPlayer serisi
-    implementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
-    implementation 'com.google.android.exoplayer:exoplayer-hls:2.19.1'
-    // Android 4.2'de TLS 1.2 / modern sifreleme icin
+    // Ortak
     implementation 'org.conscrypt:conscrypt-android:2.5.2'
     implementation 'androidx.multidex:multidex:2.0.1'
+
+    // Android 4.2: ExoPlayer 2.19.1 (minSdk 16 destekleyen son seri)
+    legacyImplementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
+    legacyImplementation 'com.google.android.exoplayer:exoplayer-hls:2.19.1'
+
+    // Android 5.0+ / 7.0+: AndroidX Media3
+    for (String f : ['lollipop', 'nougat']) {
+        add("${f}Implementation", "androidx.media3:media3-exoplayer:$media3Version")
+        add("${f}Implementation", "androidx.media3:media3-exoplayer-hls:$media3Version")
+        add("${f}Implementation", "androidx.media3:media3-exoplayer-dash:$media3Version")
+        add("${f}Implementation", "androidx.media3:media3-ui:$media3Version")
+        add("${f}Implementation", 'androidx.tvprovider:tvprovider:1.0.0')
+        add("${f}Implementation", 'androidx.annotation:annotation-experimental:1.4.1') // @OptIn
+        if (useFfmpeg) {
+            // Jellyfin'in Maven Central'daki hazir FFmpeg eklentisi (AC3, EAC3, DTS, TrueHD, MP2...)
+            add("${f}Implementation", "org.jellyfin.media3:media3-ffmpeg-decoder:$media3Version+1")
+        }
+    }
 }

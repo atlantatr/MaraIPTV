@@ -62,4 +62,22 @@
         <item>2</item>
         <item>3</item>
     </string-array>
+
+    <string-array name="epg_source_names">
+        <item>Otomatik (sunucu, yoksa XMLTV)</item>
+        <item>Sadece XMLTV</item>
+    </string-array>
+    <string-array name="epg_source_values">
+        <item>auto</item>
+        <item>xmltv</item>
+    </string-array>
+
+    <string-array name="rec_storage_names">
+        <item>Otomatik (en cok bos alan: USB / SD dahil)</item>
+        <item>Dahili hafiza</item>
+    </string-array>
+    <string-array name="rec_storage_values">
+        <item>auto</item>
+        <item>internal</item>
+    </string-array>
 </resources>

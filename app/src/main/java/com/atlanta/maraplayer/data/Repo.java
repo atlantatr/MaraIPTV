@@ -18,7 +18,7 @@ public final class Repo {
 
     private static Profile profile;
     private static Account account;
-    private static XtreamApi api;
+    private static Source api;
 
     private static final Map<Integer, List<Category>> categories = new HashMap<>();
     private static final Map<String, List<Item>> items = new HashMap<>();
@@ -30,12 +30,26 @@ public final class Repo {
     private Repo() {
     }
 
-    public static synchronized void setSession(Profile p, Account a) {
-        profile = p;
-        account = a;
-        api = new XtreamApi(p);
-        clearCache();
+    /** login() icin kullanilan kaynak nesnesi tekrar kullanilir (M3U listesi yeniden indirilmesin) */
+    public static void setSession(final Profile p, Account a, Source src) {
+        synchronized (Repo.class) {
+            profile = p;
+            account = a;
+            api = src != null ? src : Sources.create(p);
+            clearCache();
+        }
         Prefs.clearSessionUnlocks();
+        final Source s = api;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                XmlTv.updateIfStale(p, s);
+            }
+        }, "xmltv").start();
+    }
+
+    public static void setSession(Profile p, Account a) {
+        setSession(p, a, null);
     }
 
     public static synchronized void clearCache() {
@@ -56,7 +70,7 @@ public final class Repo {
         return account;
     }
 
-    public static XtreamApi api() {
+    public static Source api() {
         return api;
     }
 
@@ -80,6 +94,15 @@ public final class Repo {
             }
         }
         return c;
+    }
+
+    /** Web panelden gizlenen kategoriler haric */
+    public static List<Category> visibleCategories(int type) throws IOException {
+        List<Category> all = categories(type);
+        List<Category> out = new ArrayList<>(all.size());
+        long pid = pid();
+        for (Category c : all) if (!Prefs.isHidden(pid, type, c.id)) out.add(c);
+        return out;
     }
 
     public static synchronized String categoryName(int type, String id) {
@@ -112,13 +135,14 @@ public final class Repo {
         return l;
     }
 
-    /** Ebeveyn kilidi olan kategorileri disarida birakarak tum liste. */
+    /** Ebeveyn kilidi olan ve gizlenen kategorileri disarida birakarak tum liste. */
     public static List<Item> allUnlocked(int type) throws IOException {
         categories(type);
         List<Item> all = items(type, Category.ALL);
         List<Item> out = new ArrayList<>(all.size());
         long pid = pid();
         for (Item it : all) {
+            if (Prefs.isHidden(pid, type, it.categoryId)) continue;
             if (!Prefs.isLocked(pid, type, it.categoryId, categoryName(type, it.categoryId))) out.add(it);
         }
         return out;

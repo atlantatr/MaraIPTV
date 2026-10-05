@@ -125,7 +125,7 @@ public class VodActivity extends BaseActivity {
         Async.run(this, new Async.Task<List<Category>>() {
             @Override
             public List<Category> run() throws Exception {
-                return Repo.categories(type);
+                return Repo.visibleCategories(type);
             }
         }, new Async.Callback<List<Category>>() {
             @Override

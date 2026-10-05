@@ -1,0 +1,11 @@
+Logo seti bu klasore konur.
+
+1) "Mara IPTV Marka ve Ikon Seti.png" dosyasini bu klasore kopyalayin
+   ve adini  marka-seti.png  yapin.
+2) GitHub Desktop ile commit + push edin.
+   GitHub derlemesi tools/brand.py ile seti otomatik boler:
+   uygulama ikonu, Android TV banner, acilis gorseli, yazi logosu, web panel logosu.
+
+Bilgisayarda (Android Studio ile) derleyecekseniz once bir kez calistirin:
+   pip install pillow
+   python tools\brand.py

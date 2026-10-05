@@ -12,6 +12,8 @@ import com.atlanta.maraplayer.data.Repo;
 import com.atlanta.maraplayer.util.Async;
 import com.atlanta.maraplayer.util.ImageLoader;
 import com.atlanta.maraplayer.util.Ui;
+import com.atlanta.maraplayer.tv.TvHome;
+import com.atlanta.maraplayer.web.WebServer;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -47,7 +49,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
         ((TextView) v(R.id.account)).setText(sb.toString());
 
         int[] ids = {R.id.tLive, R.id.tMovies, R.id.tSeries, R.id.tContinue, R.id.tFav, R.id.tSearch,
-                R.id.tRefresh, R.id.tSettings, R.id.tProfiles};
+                R.id.tRec, R.id.tRefresh, R.id.tSettings, R.id.tProfiles};
         for (int id : ids) v(id).setOnClickListener(this);
         v(R.id.tLive).requestFocus();
     }
@@ -55,7 +57,16 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
     @Override
     protected void onResume() {
         super.onResume();
-        if (clock != null) tick.run();
+        if (clock == null) return;
+        tick.run();
+        String web = WebServer.address();
+        ((TextView) v(R.id.webInfo)).setText(web != null && WebServer.isRunning() ? "Web panel: " + web : "");
+        Async.bg(new Runnable() {
+            @Override
+            public void run() {
+                TvHome.update(getApplicationContext());
+            }
+        });
     }
 
     @Override
@@ -79,6 +90,8 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
             startActivity(new Intent(this, FavoritesActivity.class).putExtra(FavoritesActivity.EXTRA_MODE, FavoritesActivity.MODE_FAV));
         } else if (id == R.id.tSearch) {
             startActivity(new Intent(this, SearchActivity.class));
+        } else if (id == R.id.tRec) {
+            startActivity(new Intent(this, RecordingsActivity.class));
         } else if (id == R.id.tRefresh) {
             Repo.clearCache();
             ImageLoader.get().clearMemory();

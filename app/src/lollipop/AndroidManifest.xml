@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 5.0+ surumune ozel ekler (ana manifest ile birlestirilir) -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name=".ui.MultiViewActivity"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/PlayerTheme" />
+    </application>
+</manifest>

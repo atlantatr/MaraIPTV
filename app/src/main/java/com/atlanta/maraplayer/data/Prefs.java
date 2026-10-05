@@ -61,6 +61,11 @@ public final class Prefs {
         return sp.getBoolean("auto_next", true);
     }
 
+    /** Android 7+ : HOME tusunda canli yayini resim icinde resim olarak surdur */
+    public static boolean pipOnHome() {
+        return sp.getBoolean("pip_home", true);
+    }
+
     public static boolean autoLogin() {
         return sp.getBoolean("auto_login", true);
     }
@@ -81,6 +86,37 @@ public final class Prefs {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    /** EPG kaynagi: "auto" (Xtream, yoksa XMLTV) veya "xmltv" (sadece XMLTV) */
+    public static boolean epgXmltvOnly() {
+        return "xmltv".equals(sp.getString("epg_source", "auto"));
+    }
+
+    /** Xtream profillerde xmltv.php'yi de gunluk indir */
+    public static boolean xmltvAuto() {
+        return sp.getBoolean("xmltv_auto", false);
+    }
+
+    public static long xmltvLast(long pid) {
+        return sp.getLong("xmltv_last_" + pid, 0);
+    }
+
+    public static void setXmltvLast(long pid, long t) {
+        sp.edit().putLong("xmltv_last_" + pid, t).apply();
+    }
+
+    // ------------------------------------------------------------ Web panel / kayit
+
+    public static boolean webPanel() {
+        return sp.getBoolean("web_panel", true);
+    }
+
+    public static final int WEB_PORT = 8765;
+
+    /** "auto" = en cok bos alani olan depolama (USB dahil), "internal" = dahili */
+    public static String recStorage() {
+        return sp.getString("rec_storage", "auto");
     }
 
     public static long lastProfile() {
@@ -115,6 +151,27 @@ public final class Prefs {
 
     public static boolean adultAutoLock() {
         return sp.getBoolean("adult_autolock", true);
+    }
+
+    public static void setParental(boolean on) {
+        sp.edit().putBoolean("parental", on).apply();
+    }
+
+    public static void setAdultAutoLock(boolean on) {
+        sp.edit().putBoolean("adult_autolock", on).apply();
+    }
+
+    // ------------------------------------------------------------ Gizli kategoriler (web panel)
+
+    public static boolean isHidden(long pid, int type, String catId) {
+        return catId != null && set("hidden_" + pid).contains(catKey(type, catId));
+    }
+
+    public static void setHidden(long pid, int type, String catId, boolean hidden) {
+        Set<String> s = set("hidden_" + pid);
+        if (hidden) s.add(catKey(type, catId));
+        else s.remove(catKey(type, catId));
+        sp.edit().putStringSet("hidden_" + pid, s).apply();
     }
 
     public static String pin() {

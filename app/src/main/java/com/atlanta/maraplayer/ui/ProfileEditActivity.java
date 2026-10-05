@@ -10,17 +10,20 @@ import com.atlanta.maraplayer.R;
 import com.atlanta.maraplayer.data.Db;
 import com.atlanta.maraplayer.data.Models.Account;
 import com.atlanta.maraplayer.data.Models.Profile;
+import com.atlanta.maraplayer.data.Sources;
 import com.atlanta.maraplayer.data.XtreamApi;
 import com.atlanta.maraplayer.util.Async;
 import com.atlanta.maraplayer.util.Ui;
 
+/** Xtream veya M3U profili ekleme / duzenleme. */
 public class ProfileEditActivity extends BaseActivity {
 
     public static final String EXTRA_ID = "id";
 
-    private EditText name, url, user, pass;
+    private EditText name, url, user, pass, epgUrl;
     private TextView status;
     private Profile profile = new Profile();
+    private String type = Profile.TYPE_XTREAM;
 
     @Override
     protected boolean needsSession() {
@@ -35,6 +38,7 @@ public class ProfileEditActivity extends BaseActivity {
         url = v(R.id.url);
         user = v(R.id.user);
         pass = v(R.id.pass);
+        epgUrl = v(R.id.epgUrl);
         status = v(R.id.status);
 
         long id = getIntent().getLongExtra(EXTRA_ID, -1);
@@ -42,15 +46,33 @@ public class ProfileEditActivity extends BaseActivity {
             Profile p = Db.get().profile(id);
             if (p != null) {
                 profile = p;
+                type = p.type;
                 ((TextView) v(R.id.title)).setText("Profili Duzenle");
                 name.setText(p.name);
                 url.setText(p.url);
                 user.setText(p.user);
                 pass.setText(p.pass);
+                epgUrl.setText(p.epgUrl);
             }
         }
+        applyType();
 
-        // M3U linki yapistirilirsa kullanici adi / sifreyi otomatik doldur
+        v(R.id.typeXtream).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                type = Profile.TYPE_XTREAM;
+                applyType();
+            }
+        });
+        v(R.id.typeM3u).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                type = Profile.TYPE_M3U;
+                applyType();
+            }
+        });
+
+        // Xtream: M3U linki yapistirilirsa kullanici adi / sifreyi otomatik doldur
         url.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean has) {
@@ -82,7 +104,17 @@ public class ProfileEditActivity extends BaseActivity {
         });
     }
 
+    private void applyType() {
+        boolean m3u = Profile.TYPE_M3U.equals(type);
+        v(R.id.typeXtream).setSelected(!m3u);
+        v(R.id.typeM3u).setSelected(m3u);
+        v(R.id.credBox).setVisibility(m3u ? View.GONE : View.VISIBLE);
+        ((TextView) v(R.id.urlLabel)).setText(m3u ? "M3U calma listesi linki" : "Sunucu adresi (veya M3U linki yapistirin)");
+        url.setHint(m3u ? "http://.../liste.m3u" : "http://sunucu.com:8080");
+    }
+
     private void parseM3uLink() {
+        if (Profile.TYPE_M3U.equals(type)) return;
         String s = url.getText().toString().trim();
         if (!s.contains("username=")) return;
         try {
@@ -99,16 +131,23 @@ public class ProfileEditActivity extends BaseActivity {
 
     private boolean collect() {
         parseM3uLink();
-        String u = XtreamApi.normalizeUrl(url.getText().toString());
-        if (u.isEmpty() || Ui.empty(user.getText().toString()) || Ui.empty(pass.getText().toString())) {
-            Ui.toast(this, "Sunucu, kullanici adi ve sifre zorunlu");
+        boolean m3u = Profile.TYPE_M3U.equals(type);
+        String raw = url.getText().toString().trim();
+        String u = m3u ? raw : XtreamApi.normalizeUrl(raw);
+        if (u.isEmpty() || (!m3u && (Ui.empty(user.getText().toString()) || Ui.empty(pass.getText().toString())))) {
+            Ui.toast(this, m3u ? "M3U linki zorunlu" : "Sunucu, kullanici adi ve sifre zorunlu");
             return false;
         }
+        profile.type = type;
         profile.url = u;
-        profile.user = user.getText().toString().trim();
-        profile.pass = pass.getText().toString().trim();
+        profile.user = m3u ? "" : user.getText().toString().trim();
+        profile.pass = m3u ? "" : pass.getText().toString().trim();
+        profile.epgUrl = epgUrl.getText().toString().trim();
         String n = name.getText().toString().trim();
-        if (n.isEmpty()) n = profile.user + " @ " + Uri.parse(u).getHost();
+        if (n.isEmpty()) {
+            String host = Uri.parse(u.startsWith("http") ? u : "http://" + u).getHost();
+            n = m3u ? "M3U @ " + host : profile.user + " @ " + host;
+        }
         profile.name = n;
         return true;
     }
@@ -119,7 +158,7 @@ public class ProfileEditActivity extends BaseActivity {
         Async.run(this, new Async.Task<Account>() {
             @Override
             public Account run() throws Exception {
-                return new XtreamApi(p).login();
+                return Sources.create(p).login();
             }
         }, new Async.Callback<Account>() {
             @Override

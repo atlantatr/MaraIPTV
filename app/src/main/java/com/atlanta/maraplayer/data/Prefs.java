@@ -1,0 +1,192 @@
+package com.atlanta.maraplayer.data;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+/** Uygulama ayarlari + ebeveyn kilidi. SettingsActivity ayni anahtarlari kullanir. */
+public final class Prefs {
+
+    private static SharedPreferences sp;
+
+    /** Session boyunca PIN ile acilmis kategoriler */
+    private static final Set<String> sessionUnlocked = new HashSet<>();
+
+    private static final Pattern ADULT = Pattern.compile(
+            "(adult|xxx|porn|\\+18|18\\+|erotic|erotik|yeti[sş]kin|for adults|\\bsex)", Pattern.CASE_INSENSITIVE);
+
+    private Prefs() {
+    }
+
+    public static void init(Context c) {
+        sp = PreferenceManager.getDefaultSharedPreferences(c);
+    }
+
+    public static SharedPreferences sp() {
+        return sp;
+    }
+
+    // ------------------------------------------------------------ Oynatici
+
+    public static boolean externalPlayer() {
+        return "external".equals(sp.getString("engine", "exo"));
+    }
+
+    public static String liveFormat() {
+        return sp.getString("live_format", "ts");
+    }
+
+    public static String buffer() {
+        return sp.getString("buffer", "normal");
+    }
+
+    public static int aspect() {
+        try {
+            return Integer.parseInt(sp.getString("aspect", "0"));
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    public static boolean preview() {
+        return sp.getBoolean("preview", true);
+    }
+
+    public static boolean autoNext() {
+        return sp.getBoolean("auto_next", true);
+    }
+
+    public static boolean autoLogin() {
+        return sp.getBoolean("auto_login", true);
+    }
+
+    public static boolean trustAllCerts() {
+        return sp.getBoolean("trust_all", false);
+    }
+
+    public static String userAgent() {
+        String ua = sp.getString("user_agent", "");
+        return ua == null || ua.trim().isEmpty() ? "MaraIPTV/1.0 (Linux; Android)" : ua.trim();
+    }
+
+    /** EPG saat duzeltmesi (saniye) */
+    public static long epgOffsetSec() {
+        try {
+            return Long.parseLong(sp.getString("epg_offset", "0")) * 3600L;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    public static long lastProfile() {
+        return sp.getLong("last_profile", -1);
+    }
+
+    public static void setLastProfile(long id) {
+        sp.edit().putLong("last_profile", id).apply();
+    }
+
+    public static String lastChannel(long pid) {
+        return sp.getString("last_channel_" + pid, null);
+    }
+
+    public static void setLastChannel(long pid, String id) {
+        sp.edit().putString("last_channel_" + pid, id).apply();
+    }
+
+    public static String lastLiveCategory(long pid) {
+        return sp.getString("last_live_cat_" + pid, null);
+    }
+
+    public static void setLastLiveCategory(long pid, String id) {
+        sp.edit().putString("last_live_cat_" + pid, id).apply();
+    }
+
+    // ------------------------------------------------------------ Ebeveyn kilidi
+
+    public static boolean parentalEnabled() {
+        return sp.getBoolean("parental", true);
+    }
+
+    public static boolean adultAutoLock() {
+        return sp.getBoolean("adult_autolock", true);
+    }
+
+    public static String pin() {
+        return sp.getString("pin", "0000");
+    }
+
+    public static void setPin(String pin) {
+        sp.edit().putString("pin", pin).apply();
+    }
+
+    public static boolean checkPin(String p) {
+        return p != null && p.equals(pin());
+    }
+
+    private static String catKey(int type, String catId) {
+        return type + ":" + catId;
+    }
+
+    public static boolean looksAdult(String name) {
+        return name != null && ADULT.matcher(name.toLowerCase(Locale.US)).find();
+    }
+
+    /** Kategori kilitli mi (oturumda acilmis olanlar haric) */
+    public static boolean isLocked(long pid, int type, String catId, String catName) {
+        if (!parentalEnabled() || catId == null) return false;
+        String k = catKey(type, catId);
+        if (sessionUnlocked.contains(pid + "/" + k)) return false;
+        return isLockedPermanent(pid, type, catId, catName);
+    }
+
+    /** Oturum kilidi dikkate alinmadan kalici kilit durumu */
+    public static boolean isLockedPermanent(long pid, int type, String catId, String catName) {
+        if (catId == null) return false;
+        String k = catKey(type, catId);
+        if (set("locked_" + pid).contains(k)) return true;
+        if (adultAutoLock() && looksAdult(catName) && !set("unlocked_" + pid).contains(k)) return true;
+        return false;
+    }
+
+    public static void unlockForSession(long pid, int type, String catId) {
+        sessionUnlocked.add(pid + "/" + catKey(type, catId));
+    }
+
+    public static void clearSessionUnlocks() {
+        sessionUnlocked.clear();
+    }
+
+    /** Kalici kilidi ac/kapat */
+    public static void setLocked(long pid, int type, String catId, String catName, boolean locked) {
+        String k = catKey(type, catId);
+        Set<String> lockedSet = set("locked_" + pid);
+        Set<String> unlockedSet = set("unlocked_" + pid);
+        if (locked) {
+            unlockedSet.remove(k);
+            if (!(adultAutoLock() && looksAdult(catName))) lockedSet.add(k);
+        } else {
+            lockedSet.remove(k);
+            if (adultAutoLock() && looksAdult(catName)) unlockedSet.add(k);
+        }
+        sp.edit().putStringSet("locked_" + pid, lockedSet).putStringSet("unlocked_" + pid, unlockedSet).apply();
+    }
+
+    public static void clearAllLocks() {
+        SharedPreferences.Editor e = sp.edit();
+        for (String k : sp.getAll().keySet()) {
+            if (k.startsWith("locked_") || k.startsWith("unlocked_")) e.remove(k);
+        }
+        e.apply();
+    }
+
+    private static Set<String> set(String key) {
+        // getStringSet'in dondurdugu set degistirilmemeli -> kopya
+        return new HashSet<>(sp.getStringSet(key, new HashSet<String>()));
+    }
+}

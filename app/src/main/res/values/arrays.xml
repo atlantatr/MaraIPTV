@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="engine_names">
+        <item>Dahili oynatici (ExoPlayer)</item>
+        <item>Harici oynatici (VLC, MX Player...)</item>
+    </string-array>
+    <string-array name="engine_values">
+        <item>exo</item>
+        <item>external</item>
+    </string-array>
+
+    <string-array name="format_names">
+        <item>MPEG-TS (.ts) - onerilen</item>
+        <item>HLS (.m3u8)</item>
+    </string-array>
+    <string-array name="format_values">
+        <item>ts</item>
+        <item>m3u8</item>
+    </string-array>
+
+    <string-array name="buffer_names">
+        <item>Dusuk (hizli acilis)</item>
+        <item>Normal</item>
+        <item>Yuksek (zayif internet)</item>
+    </string-array>
+    <string-array name="buffer_values">
+        <item>low</item>
+        <item>normal</item>
+        <item>high</item>
+    </string-array>
+
+    <string-array name="aspect_names">
+        <item>Sigdir (orijinal oran)</item>
+        <item>Ekrani doldur (uzat)</item>
+        <item>Yakinlastir (kirp)</item>
+        <item>16:9</item>
+        <item>4:3</item>
+    </string-array>
+    <string-array name="aspect_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <string-array name="offset_names">
+        <item>-3 saat</item>
+        <item>-2 saat</item>
+        <item>-1 saat</item>
+        <item>0 (duzeltme yok)</item>
+        <item>+1 saat</item>
+        <item>+2 saat</item>
+        <item>+3 saat</item>
+    </string-array>
+    <string-array name="offset_values">
+        <item>-3</item>
+        <item>-2</item>
+        <item>-1</item>
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+</resources>

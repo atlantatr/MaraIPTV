@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="Oynatici">
+        <ListPreference
+            android:defaultValue="exo"
+            android:entries="@array/engine_names"
+            android:entryValues="@array/engine_values"
+            android:key="engine"
+            android:summary="%s"
+            android:title="Oynatici motoru" />
+        <ListPreference
+            android:defaultValue="ts"
+            android:entries="@array/format_names"
+            android:entryValues="@array/format_values"
+            android:key="live_format"
+            android:summary="%s"
+            android:title="Canli yayin formati" />
+        <ListPreference
+            android:defaultValue="normal"
+            android:entries="@array/buffer_names"
+            android:entryValues="@array/buffer_values"
+            android:key="buffer"
+            android:summary="%s"
+            android:title="Tampon (buffer)" />
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/aspect_names"
+            android:entryValues="@array/aspect_values"
+            android:key="aspect"
+            android:summary="%s"
+            android:title="Varsayilan goruntu orani" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="preview"
+            android:summary="Canli TV listesinde kanal onizleme penceresi"
+            android:title="Kanal onizleme" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="auto_next"
+            android:summary="Dizi bolumu bitince siradakini oynat"
+            android:title="Sonraki bolume otomatik gec" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Yayin akisi (EPG)">
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/offset_names"
+            android:entryValues="@array/offset_values"
+            android:key="epg_offset"
+            android:summary="%s"
+            android:title="EPG saat duzeltmesi" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Ebeveyn kilidi">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="parental"
+            android:summary="Kilitli kategoriler PIN ister (varsayilan PIN: 0000)"
+            android:title="Ebeveyn kilidi" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="adult_autolock"
+            android:summary="Adinda Adult / XXX / +18 gecen kategorileri otomatik kilitle"
+            android:title="Yetiskin kategorilerini otomatik kilitle" />
+        <Preference
+            android:key="pin_change"
+            android:summary="4 haneli PIN"
+            android:title="PIN degistir" />
+        <Preference
+            android:key="clear_locks"
+            android:summary="Elle kilitlenen / acilan tum kategori ayarlarini sifirla"
+            android:title="Kategori kilitlerini sifirla" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Baglanti">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="auto_login"
+            android:summary="Uygulama acilinca son profile otomatik baglan"
+            android:title="Otomatik baglan" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="trust_all"
+            android:summary="Android 4.x'te eski kok sertifikalar yuzunden https sunucular acilmiyorsa isaretleyin (daha az guvenli)"
+            android:title="Sertifika hatalarini yoksay" />
+        <EditTextPreference
+            android:key="user_agent"
+            android:summary="Bos birakilirsa: MaraIPTV/1.0. Bazi sunucular belirli bir User-Agent ister."
+            android:title="User-Agent" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Diger">
+        <Preference
+            android:key="clear_cache"
+            android:summary="Resim onbellegini ve liste onbellegini temizle"
+            android:title="Onbellegi temizle" />
+        <Preference
+            android:key="about"
+            android:title="Hakkinda" />
+    </PreferenceCategory>
+</PreferenceScreen>

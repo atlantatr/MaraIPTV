@@ -1,0 +1,17 @@
+-keep class org.conscrypt.** { *; }
+-dontwarn org.conscrypt.**
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn javax.annotation.**
+-dontwarn org.checkerframework.**
+-dontwarn com.google.j2objc.annotations.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+-dontwarn sun.misc.**
+-dontwarn java.lang.ClassValue
+-dontwarn com.google.common.**
+-dontwarn com.android.org.conscrypt.**
+-dontwarn org.apache.harmony.xnet.provider.jsse.**
+-dontwarn dalvik.system.**
+-dontwarn libcore.**
+-keep class com.google.android.exoplayer2.** { *; }
+-keep class com.atlanta.maraplayer.** { *; }

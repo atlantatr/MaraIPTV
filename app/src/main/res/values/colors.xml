@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#FF0D1117</color>
+    <color name="panel">#FF161B24</color>
+    <color name="panel2">#FF1F2633</color>
+    <color name="accent">#FFFF7A1A</color>
+    <color name="accent_dim">#55FF7A1A</color>
+    <color name="text">#FFF2F4F8</color>
+    <color name="text2">#FF9AA4B5</color>
+    <color name="overlay">#CC000000</color>
+    <color name="overlay_light">#99000000</color>
+    <color name="ok">#FF3CCB7F</color>
+    <color name="bad">#FFE5484D</color>
+</resources>

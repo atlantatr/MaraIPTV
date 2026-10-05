@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="28dp">
+
+        <LinearLayout
+            android:layout_width="560dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/panel_bg"
+            android:orientation="vertical"
+            android:padding="22dp">
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                android:text="Yeni Xtream Profili"
+                android:textColor="@color/text"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView style="@style/Header" android:padding="2dp" android:text="Profil adi" />
+
+            <EditText
+                android:id="@+id/name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/input_bg"
+                android:hint="Ornek: Ev"
+                android:inputType="textCapWords"
+                android:nextFocusDown="@+id/url"
+                android:padding="12dp"
+                android:singleLine="true"
+                android:textColor="@color/text"
+                android:textColorHint="@color/text2" />
+
+            <TextView style="@style/Header" android:layout_marginTop="10dp" android:padding="2dp" android:text="Sunucu adresi (veya M3U linki yapistirin)" />
+
+            <EditText
+                android:id="@+id/url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/input_bg"
+                android:hint="http://sunucu.com:8080"
+                android:inputType="textUri"
+                android:padding="12dp"
+                android:singleLine="true"
+                android:textColor="@color/text"
+                android:textColorHint="@color/text2" />
+
+            <TextView style="@style/Header" android:layout_marginTop="10dp" android:padding="2dp" android:text="Kullanici adi" />
+
+            <EditText
+                android:id="@+id/user"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/input_bg"
+                android:inputType="text|textNoSuggestions"
+                android:padding="12dp"
+                android:singleLine="true"
+                android:textColor="@color/text" />
+
+            <TextView style="@style/Header" android:layout_marginTop="10dp" android:padding="2dp" android:text="Sifre" />
+
+            <EditText
+                android:id="@+id/pass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/input_bg"
+                android:inputType="textVisiblePassword|textNoSuggestions"
+                android:padding="12dp"
+                android:singleLine="true"
+                android:textColor="@color/text" />
+
+            <TextView
+                android:id="@+id/status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/text2"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnSave"
+                    style="@style/TvButton"
+                    android:text="Kaydet ve Baglan" />
+
+                <Button
+                    android:id="@+id/btnTest"
+                    style="@style/TvButton"
+                    android:text="Test Et" />
+
+                <Button
+                    android:id="@+id/btnCancel"
+                    style="@style/TvButton"
+                    android:text="Iptal" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

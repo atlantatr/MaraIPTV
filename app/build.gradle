@@ -1,0 +1,72 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.atlanta.maraplayer'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.atlanta.maraplayer"
+        minSdk 17          // Android 4.2
+        targetSdk 28
+        versionCode 1
+        versionName "1.0.0"
+        multiDexEnabled true
+        // Not: minSdk < 21 oldugu icin res/drawable icindeki vektor ikonlar derlemede otomatik PNG'ye cevrilir
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Kendi imza anahtariniz yoksa debug anahtariyla imzalanir (sideload icin yeterli)
+            signingConfig signingConfigs.debug
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+
+    packaging {
+        resources {
+            excludes += ['META-INF/*.kotlin_module', 'META-INF/DEPENDENCIES']
+        }
+    }
+}
+
+configurations.configureEach {
+    resolutionStrategy {
+        // Android 4.2 (API 17) ile uyumlu son surumlere sabitle
+        force 'com.google.guava:guava:31.1-android'
+        eachDependency { details ->
+            // androidx.core 1.12+ minSdk 19 ister; gelirse 1.9.0'a (minSdk 14) sabitle
+            if (details.requested.group == 'androidx.core' && details.requested.name == 'core') {
+                details.useVersion '1.9.0'
+            }
+        }
+    }
+}
+
+dependencies {
+    // ExoPlayer 2.19.1 = minSdk 16'yi destekleyen son ExoPlayer serisi
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
+    implementation 'com.google.android.exoplayer:exoplayer-hls:2.19.1'
+    // Android 4.2'de TLS 1.2 / modern sifreleme icin
+    implementation 'org.conscrypt:conscrypt-android:2.5.2'
+    implementation 'androidx.multidex:multidex:2.0.1'
+}

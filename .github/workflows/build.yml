@@ -19,6 +19,9 @@ jobs:
 
       - name: Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # varsayilan 'tools' paketi artik yok -> sadece gerekenleri kur
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
 
       - name: Gradle 8.7
         uses: gradle/actions/setup-gradle@v4

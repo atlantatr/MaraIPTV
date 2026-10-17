@@ -202,7 +202,11 @@ public class LiveActivity extends BaseActivity {
         String raw = Prefs.recentChannels(pid);
         if (raw == null || raw.isEmpty()) return new ArrayList<Item>();
         Map<String, Item> byId = new HashMap<String, Item>();
-        for (Item it : Repo.allUnlocked(Models.LIVE)) byId.put(it.id, it);
+        try {
+            for (Item it : Repo.allUnlocked(Models.LIVE)) byId.put(it.id, it);
+        } catch (java.io.IOException e) {
+            return new ArrayList<Item>();
+        }
         List<Item> out = new ArrayList<Item>();
         for (String id : raw.split(",")) {
             Item it = byId.get(id);

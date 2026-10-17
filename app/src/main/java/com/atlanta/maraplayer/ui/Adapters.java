@@ -152,7 +152,7 @@ public final class Adapters {
         private final int w, h;
         private final int type;
 
-        private final Map<String, Integer> resumePos = new HashMap<>(); // rkey -> ms
+        private final Map<String, Long> resumePos = new HashMap<String, Long>(); // item_id -> ms
 
         public PosterAdapter(Context c, int type) {
             inf = LayoutInflater.from(c);
@@ -220,7 +220,7 @@ public final class Adapters {
                 r.setVisibility(View.GONE);
             }
             v.findViewById(R.id.fav).setVisibility(favs.contains(it.id) ? View.VISIBLE : View.GONE);
-            Integer ms = resumePos.get(it.id);
+            Long ms = resumePos.get(it.id);
             TextView badge = v.findViewById(R.id.resumeBadge);
             if (ms != null) {
                 badge.setText(v.getContext().getString(R.string.resume_x, Ui.duration(ms)));

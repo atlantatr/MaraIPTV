@@ -80,6 +80,7 @@ public class PlayerActivity extends BaseActivity {
     private final Map<String, Long> epgTime = new HashMap<>();
     private int previousIndex = -1;
     private long currentProgramEnd;
+    private long sleepAt;
 
     private PlayItem cur() {
         return queue.get(index);
@@ -185,6 +186,7 @@ public class PlayerActivity extends BaseActivity {
         Async.MAIN.removeCallbacks(hideOsd);
         Async.MAIN.removeCallbacks(hidePanel);
         Async.MAIN.removeCallbacks(commitNumber);
+        Async.MAIN.removeCallbacks(sleepRunnable);
     }
 
     // ================================================================ Oynatma
@@ -226,6 +228,17 @@ public class PlayerActivity extends BaseActivity {
         @Override
         public void run() {
             if (player != null) replayCurrent();
+        }
+    };
+
+    private final Runnable sleepRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (player != null) {
+                player.setPlayWhenReady(false);
+            }
+            sleepAt = 0;
+            Ui.toast(PlayerActivity.this, "Uyku zamanlayicisi: oynatma durduruldu");
         }
     };
 
@@ -813,6 +826,10 @@ public class PlayerActivity extends BaseActivity {
             labels.add("Kanal listesi");
             actions.add(new Runnable() { @Override public void run() { showPanel(); } });
         }
+        if (!isLive()) {
+            labels.add("Uyku zamanlayicisi" + (sleepAt > 0 ? " (" + Ui.time(sleepAt / 1000) + ")" : ""));
+            actions.add(new Runnable() { @Override public void run() { chooseSleep(); } });
+        }
         labels.add("Yeniden baglan");
         actions.add(new Runnable() { @Override public void run() { retry = 0; replayCurrent(); } });
         labels.add("Yayin bilgisi");
@@ -830,6 +847,25 @@ public class PlayerActivity extends BaseActivity {
 
     private void openEpg() {
         EpgActivity.open(this, Play.toItem(cur()));
+    }
+
+    private void chooseSleep() {
+        final int[] mins = {0, 15, 30, 45, 60, 90, 120};
+        String[] names = {"Kapali", "15 dakika", "30 dakika", "45 dakika", "60 dakika", "90 dakika", "120 dakika"};
+        Ui.choose(this, "Uyku zamanlayicisi", names, -1, new Ui.Choice() {
+            @Override
+            public void on(int which) {
+                Async.MAIN.removeCallbacks(sleepRunnable);
+                if (mins[which] == 0) {
+                    sleepAt = 0;
+                    showOsd("Uyku zamanlayicisi kapatildi");
+                } else {
+                    sleepAt = System.currentTimeMillis() + mins[which] * 60000L;
+                    Async.MAIN.postDelayed(sleepRunnable, mins[which] * 60000L);
+                    showOsd("Oynatma " + mins[which] + " dk sonra duracak");
+                }
+            }
+        });
     }
 
     private void chooseAspect() {

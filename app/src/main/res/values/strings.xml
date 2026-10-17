@@ -111,7 +111,7 @@
     <string name="new_pin_again">Yeni PIN (tekrar)</string>
     <string name="pin_changed">PIN değiştirildi</string>
     <string name="pin_min4">PIN en az 4 haneli olmalı</string>
-    <string name="pin_mismatch">PIN'ler eşleşmiyor</string>
+    <string name="pin_mismatch">PIN\'ler eşleşmiyor</string>
     <string name="wrong_pin">PIN hatalı</string>
     <string name="parental_pin">Ebeveyn PIN</string>
     <string name="locks_reset">Kilitler sıfırlandı</string>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="lang_names">
+        <item>@string/lang_system</item>
+        <item>Türkçe</item>
+        <item>English</item>
+        <item>Deutsch</item>
+        <item>Русский</item>
+        <item>Español</item>
+        <item>Italiano</item>
+    </string-array>
+    <string-array name="engine_names">
+        <item>Lettore integrato</item>
+        <item>Lettore esterno (VLC, MX Player…)</item>
+    </string-array>
+    <string-array name="format_names">
+        <item>MPEG-TS (.ts) - consigliato</item>
+        <item>HLS (.m3u8)</item>
+    </string-array>
+    <string-array name="buffer_names">
+        <item>Basso (avvio rapido)</item>
+        <item>Normale</item>
+        <item>Alto (internet debole)</item>
+    </string-array>
+    <string-array name="aspect_names">
+        <item>Adatta (proporzione originale)</item>
+        <item>Riempisci (scala)</item>
+        <item>Ingrandisci (ritaglia)</item>
+        <item>16:9</item>
+        <item>4:3</item>
+    </string-array>
+    <string-array name="aspect_short">
+        <item>Adatta</item>
+        <item>Riempisci</item>
+        <item>Ingrandisci</item>
+        <item>16:9</item>
+        <item>4:3</item>
+    </string-array>
+    <string-array name="offset_names">
+        <item>−3 h</item>
+        <item>−2 h</item>
+        <item>−1 h</item>
+        <item>0 (nessuna correzione)</item>
+        <item>+1 h</item>
+        <item>+2 h</item>
+        <item>+3 h</item>
+    </string-array>
+    <string-array name="epg_source_names">
+        <item>Auto (server, se no XMLTV)</item>
+        <item>Solo XMLTV</item>
+    </string-array>
+    <string-array name="rec_storage_names">
+        <item>Auto (più spazio libero: USB / SD)</item>
+        <item>Memoria interna</item>
+    </string-array>
+    <string-array name="sort_names">
+        <item>Predefinito</item>
+        <item>A-Z</item>
+        <item>Recenti</item>
+        <item>Valutazione</item>
+    </string-array>
+    <string-array name="sleep_names">
+        <item>Spento</item>
+        <item>15 min</item>
+        <item>30 min</item>
+        <item>45 min</item>
+        <item>60 min</item>
+        <item>90 min</item>
+        <item>120 min</item>
+    </string-array>
+</resources>

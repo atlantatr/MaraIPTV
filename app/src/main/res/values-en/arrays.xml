@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="lang_names">
+        <item>@string/lang_system</item>
+        <item>Türkçe</item>
+        <item>English</item>
+        <item>Deutsch</item>
+        <item>Русский</item>
+        <item>Español</item>
+        <item>Italiano</item>
+    </string-array>
+    <string-array name="engine_names">
+        <item>Built-in player</item>
+        <item>External player (VLC, MX Player…)</item>
+    </string-array>
+    <string-array name="format_names">
+        <item>MPEG-TS (.ts) - recommended</item>
+        <item>HLS (.m3u8)</item>
+    </string-array>
+    <string-array name="buffer_names">
+        <item>Low (fast start)</item>
+        <item>Normal</item>
+        <item>High (weak internet)</item>
+    </string-array>
+    <string-array name="aspect_names">
+        <item>Fit (original ratio)</item>
+        <item>Fill (stretch)</item>
+        <item>Zoom (crop)</item>
+        <item>16:9</item>
+        <item>4:3</item>
+    </string-array>
+    <string-array name="aspect_short">
+        <item>Fit</item>
+        <item>Fill</item>
+        <item>Zoom</item>
+        <item>16:9</item>
+        <item>4:3</item>
+    </string-array>
+    <string-array name="offset_names">
+        <item>-3 h</item>
+        <item>-2 h</item>
+        <item>-1 h</item>
+        <item>0 (no offset)</item>
+        <item>+1 h</item>
+        <item>+2 h</item>
+        <item>+3 h</item>
+    </string-array>
+    <string-array name="epg_source_names">
+        <item>Auto (server, else XMLTV)</item>
+        <item>XMLTV only</item>
+    </string-array>
+    <string-array name="rec_storage_names">
+        <item>Auto (most free space: USB / SD)</item>
+        <item>Internal storage</item>
+    </string-array>
+    <string-array name="sort_names">
+        <item>Default</item>
+        <item>A-Z</item>
+        <item>Recently added</item>
+        <item>Rating</item>
+    </string-array>
+    <string-array name="sleep_names">
+        <item>Off</item>
+        <item>15 min</item>
+        <item>30 min</item>
+        <item>45 min</item>
+        <item>60 min</item>
+        <item>90 min</item>
+        <item>120 min</item>
+    </string-array>
+</resources>

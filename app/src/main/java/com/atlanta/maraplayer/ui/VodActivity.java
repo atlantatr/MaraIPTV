@@ -27,7 +27,7 @@ import java.util.List;
 public class VodActivity extends BaseActivity {
 
     public static final String EXTRA_TYPE = "type";
-    private static final String[] SORTS = {"Varsayilan", "A-Z", "En yeni eklenen", "Puan"};
+    private String[] SORTS;
 
     private int type;
     private ListView cats;
@@ -61,9 +61,12 @@ public class VodActivity extends BaseActivity {
         msg = v(R.id.msg);
         sortInfo = v(R.id.sortInfo);
         loading = v(R.id.loading);
-        ((TextView) v(R.id.title)).setText(type == Models.MOVIE ? "FILMLER" : "DIZILER");
+        SORTS = getResources().getStringArray(R.array.sort_names);
+        ((TextView) v(R.id.title)).setText(type == Models.MOVIE ? R.string.tile_movies : R.string.tile_series);
         sortMode = Prefs.sp().getInt("sort_" + type, 0);
-        sortInfo.setText("MENU: Sirala (" + SORTS[sortMode] + ")");
+        sortInfo.setText(getString(R.string.menu_sort_x, SORTS[sortMode]));
+        ListNav.install(cats);
+        ListNav.install(grid);
 
         catAdapter = new Adapters.CategoryAdapter(this);
         cats.setAdapter(catAdapter);
@@ -132,9 +135,9 @@ public class VodActivity extends BaseActivity {
             public void on(List<Category> list) {
                 loading.setVisibility(View.GONE);
                 List<Category> all = new ArrayList<>();
-                all.add(new Category(Category.SEARCH, "Ara...", type));
-                all.add(new Category(Category.FAV, "Favoriler", type));
-                all.add(new Category(Category.ALL, "Tumu", type));
+                all.add(new Category(Category.SEARCH, getString(R.string.search_dots), type));
+                all.add(new Category(Category.FAV, getString(R.string.favorites), type));
+                all.add(new Category(Category.ALL, getString(R.string.all), type));
                 all.addAll(list);
                 catAdapter.set(all);
                 int idx = all.size() > 3 ? 3 : 2;
@@ -149,7 +152,7 @@ public class VodActivity extends BaseActivity {
             @Override
             public void on(Exception e) {
                 loading.setVisibility(View.GONE);
-                showMsg("Kategoriler yuklenemedi:\n" + Ui.err(e));
+                showMsg(getString(R.string.categories_failed) + "\n" + Ui.err(e));
             }
         });
     }
@@ -164,9 +167,9 @@ public class VodActivity extends BaseActivity {
             currentCat = null;
             adapter.set(new ArrayList<Item>());
             catTitle.setText(c.name);
-            showMsg("Bu kategori kilitli.\nAcmak icin OK'e basip PIN girin.");
+            showMsg(getString(R.string.category_locked_msg));
             if (byClick) {
-                Ui.askPin(this, "Kilitli kategori - PIN", new Runnable() {
+                Ui.askPin(this, getString(R.string.locked_category_pin), new Runnable() {
                     @Override
                     public void run() {
                         Prefs.unlockForSession(Repo.pid(), c.type, c.id);
@@ -205,7 +208,7 @@ public class VodActivity extends BaseActivity {
                 applySort();
                 catTitle.setText(c.name + "  (" + list.size() + ")");
                 if (list.isEmpty()) {
-                    showMsg(c.id.equals(Category.FAV) ? "Favori yok.\nPoster uzerinde MENU > Favorilere ekle" : "Bu kategori bos.");
+                    showMsg(getString(c.id.equals(Category.FAV) ? R.string.no_fav_posters : R.string.category_empty));
                 } else if (byClick) {
                     grid.requestFocus();
                 }
@@ -215,7 +218,7 @@ public class VodActivity extends BaseActivity {
             public void on(Exception e) {
                 if (token != loadToken) return;
                 loading.setVisibility(View.GONE);
-                showMsg("Liste yuklenemedi:\n" + Ui.err(e));
+                showMsg(getString(R.string.list_failed) + "\n" + Ui.err(e));
             }
         });
     }
@@ -233,10 +236,10 @@ public class VodActivity extends BaseActivity {
     private void categoryOptions(final Category c) {
         if (c.isVirtual()) return;
         final boolean locked = Prefs.isLockedPermanent(Repo.pid(), c.type, c.id, c.name);
-        Ui.choose(this, c.name, new String[]{locked ? "Kilidi kaldir" : "Kategoriyi kilitle"}, -1, new Ui.Choice() {
+        Ui.choose(this, c.name, new String[]{getString(locked ? R.string.unlock_category : R.string.lock_category)}, -1, new Ui.Choice() {
             @Override
             public void on(int which) {
-                Ui.askPin(VodActivity.this, "Ebeveyn PIN", new Runnable() {
+                Ui.askPin(VodActivity.this, getString(R.string.parental_pin), new Runnable() {
                     @Override
                     public void run() {
                         Prefs.setLocked(Repo.pid(), c.type, c.id, c.name, !locked);
@@ -252,14 +255,14 @@ public class VodActivity extends BaseActivity {
 
     private void itemOptions(final Item it) {
         final boolean fav = Db.get().isFavorite(Repo.pid(), type, it.id);
-        Ui.choose(this, it.name, new String[]{"Ac", fav ? "Favorilerden cikar" : "Favorilere ekle"}, -1, new Ui.Choice() {
+        Ui.choose(this, it.name, new String[]{getString(R.string.open), getString(fav ? R.string.fav_remove : R.string.fav_add)}, -1, new Ui.Choice() {
             @Override
             public void on(int which) {
                 if (which == 0) {
                     openItem(it);
                 } else {
                     boolean now = Db.get().toggleFavorite(Repo.pid(), it);
-                    Ui.toast(VodActivity.this, now ? "Favorilere eklendi" : "Favorilerden cikarildi");
+                    Ui.toast(VodActivity.this, getString(now ? R.string.fav_added : R.string.fav_removed));
                     adapter.reloadFavs();
                 }
             }
@@ -267,12 +270,12 @@ public class VodActivity extends BaseActivity {
     }
 
     private void chooseSort() {
-        Ui.choose(this, "Sirala", SORTS, sortMode, new Ui.Choice() {
+        Ui.choose(this, getString(R.string.sort), SORTS, sortMode, new Ui.Choice() {
             @Override
             public void on(int which) {
                 sortMode = which;
                 Prefs.sp().edit().putInt("sort_" + type, which).apply();
-                sortInfo.setText("MENU: Sirala (" + SORTS[sortMode] + ")");
+                sortInfo.setText(getString(R.string.menu_sort_x, SORTS[sortMode]));
                 applySort();
             }
         });
@@ -283,12 +286,12 @@ public class VodActivity extends BaseActivity {
         if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_INFO) {
             if (grid.hasFocus() && grid.getSelectedItemPosition() >= 0) {
                 final Item it = adapter.getItem(grid.getSelectedItemPosition());
-                Ui.choose(this, it.name, new String[]{"Favori ekle/cikar", "Sirala"}, -1, new Ui.Choice() {
+                Ui.choose(this, it.name, new String[]{getString(R.string.fav_toggle), getString(R.string.sort)}, -1, new Ui.Choice() {
                     @Override
                     public void on(int which) {
                         if (which == 0) {
                             boolean now = Db.get().toggleFavorite(Repo.pid(), it);
-                            Ui.toast(VodActivity.this, now ? "Favorilere eklendi" : "Favorilerden cikarildi");
+                            Ui.toast(VodActivity.this, getString(now ? R.string.fav_added : R.string.fav_removed));
                             adapter.reloadFavs();
                         } else {
                             chooseSort();

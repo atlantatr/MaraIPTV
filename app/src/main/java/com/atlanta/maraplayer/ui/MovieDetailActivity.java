@@ -84,17 +84,17 @@ public class MovieDetailActivity extends BaseActivity {
         resume = Db.get().resume(Repo.pid(), "movie:" + item.id);
         if (resume != null && (resume.position < 30000 || resume.finished())) resume = null;
         if (resume != null) {
-            btnPlay.setText("Devam Et (" + Ui.duration(resume.position) + ")");
+            btnPlay.setText(getString(R.string.resume_x, Ui.duration(resume.position)));
             btnRestart.setVisibility(View.VISIBLE);
         } else {
-            btnPlay.setText("Oynat");
+            btnPlay.setText(R.string.play);
             btnRestart.setVisibility(View.GONE);
         }
     }
 
     private void updateFav() {
         boolean fav = Db.get().isFavorite(Repo.pid(), Models.MOVIE, item.id);
-        btnFav.setText(fav ? "Favorilerden Cikar" : "Favorilere Ekle");
+        btnFav.setText(fav ? R.string.fav_remove : R.string.fav_add);
     }
 
     private void loadInfo() {
@@ -115,7 +115,7 @@ public class MovieDetailActivity extends BaseActivity {
             @Override
             public void on(Exception e) {
                 v(R.id.loading).setVisibility(View.GONE);
-                ((TextView) v(R.id.plot)).setText("Detay bilgisi alinamadi.");
+                ((TextView) v(R.id.plot)).setText(R.string.details_failed);
             }
         });
     }
@@ -132,8 +132,8 @@ public class MovieDetailActivity extends BaseActivity {
         ((TextView) v(R.id.meta)).setText(meta.toString().trim());
         ((TextView) v(R.id.plot)).setText(info.plot);
         StringBuilder ppl = new StringBuilder();
-        if (!Ui.empty(info.director)) ppl.append("Yonetmen: ").append(info.director).append('\n');
-        if (!Ui.empty(info.cast)) ppl.append("Oyuncular: ").append(info.cast);
+        if (!Ui.empty(info.director)) ppl.append(getString(R.string.director)).append(": ").append(info.director).append('\n');
+        if (!Ui.empty(info.cast)) ppl.append(getString(R.string.cast)).append(": ").append(info.cast);
         ((TextView) v(R.id.people)).setText(ppl.toString().trim());
         if (!Ui.empty(info.image) && Ui.empty(item.icon)) {
             ImageLoader.get().load((ImageView) v(R.id.poster), info.image, R.drawable.ph_poster, dp(200), dp(300));
@@ -154,7 +154,7 @@ public class MovieDetailActivity extends BaseActivity {
         try {
             a.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
         } catch (Exception e) {
-            Ui.toast(a, "Fragmani acacak uygulama yok (YouTube)");
+            Ui.toast(a, a.getString(R.string.no_trailer_app));
         }
     }
 }

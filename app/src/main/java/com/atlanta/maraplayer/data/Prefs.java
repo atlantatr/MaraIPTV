@@ -61,6 +61,11 @@ public final class Prefs {
         return sp.getBoolean("auto_next", true);
     }
 
+    /** Uygulama dili: system, tr, en, de, ru, es, it */
+    public static String language() {
+        return sp.getString("lang", "tr");
+    }
+
     /** Android 7+ : HOME tusunda canli yayini resim icinde resim olarak surdur */
     public static boolean pipOnHome() {
         return sp.getBoolean("pip_home", true);

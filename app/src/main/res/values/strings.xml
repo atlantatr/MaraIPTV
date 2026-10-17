@@ -1,4 +1,195 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Mara IPTV Player</string>
+
+    <!-- Ana ekran / karolar -->
+    <string name="tile_live">Canlı</string>
+    <string name="tile_movies">Filmler</string>
+    <string name="tile_series">Diziler</string>
+    <string name="continue_watching">İzlemeye Devam Et</string>
+    <string name="favorites">Favoriler</string>
+    <string name="search">Ara</string>
+    <string name="settings">Ayarlar</string>
+    <string name="profiles">Profiller</string>
+    <string name="recordings">Kayıtlar</string>
+    <string name="refresh">Yenile</string>
+
+    <!-- Ana ekran başlık / hesap -->
+    <string name="expires">Bitiş</string>
+    <string name="unlimited">Sınırsız</string>
+    <string name="connections">Bağlantı</string>
+    <string name="trial">Deneme</string>
+    <string name="status">Durum</string>
+    <string name="account_status_x">Hesap durumu: %1$s</string>
+    <string name="days_x">%1$d gün</string>
+    <string name="updated_at_x">Güncellendi: %1$s</string>
+    <string name="switching_to_x">%1$s hesabına geçiliyor…</string>
+    <string name="refreshing">Listeler güncelleniyor…</string>
+    <string name="refresh_failed_x">Yenileme başarısız: %1$s</string>
+    <string name="web_account_added">Web panel üzerinden hesap eklendi: %1$s</string>
+
+    <!-- Web panel -->
+    <string name="web_panel_x">Web panel: %1$s</string>
+    <string name="web_panel_hint">Yalnızca aynı cihazdaki ağdan erişilir; giriş şifresi PIN\'dir</string>
+    <string name="pref_web_open_x">Web panel açık: %1$s</string>
+
+    <!-- Canli yayin -->
+    <string name="all_channels">Tüm Kanallar</string>
+    <string name="no_fav_channels">Favorilerde kanal yok</string>
+    <string name="no_channels_in_cat">Bu kategoride kanal yok</string>
+    <string name="categories_failed">Kategoriler alınamadı</string>
+    <string name="channels_failed">Kanal listesi alınamadı</string>
+    <string name="category_locked">Kilitli kategori</string>
+    <string name="category_locked_msg">Bu kategori kilitli, PIN girilerek açılabilir</string>
+    <string name="locked_category_pin">Kilitli kategori için PIN</string>
+    <string name="unlock_category">Kategoriyi kilitle</string>
+    <string name="lock_category">Kategoriyi kilidi kaldır</string>
+    <string name="search_dots">Ara…</string>
+    <string name="watch_fullscreen">Kanalı tam ekran aç</string>
+    <string name="record">Kaydet</string>
+    <string name="epg">Yayın Akışı</string>
+    <string name="epg_and_catchup">Yayın Akışı / Geri İzle</string>
+    <string name="epg_loading">Yayın akışı yükleniyor…</string>
+    <string name="no_epg">Bu kanal için yayın akışı yok</string>
+    <string name="stream_failed">Yayın akışı alınamadı</string>
+    <string name="preview_hint">Kanal önizleme penceresi açıktır; kapatmak için geri tuşu</string>
+    <string name="preview_off_hint">Önizleme kapalı; kanala çift dokunarak açın</string>
+    <string name="fav_add">Favorilere ekle</string>
+    <string name="fav_remove">Favorilerden çıkar</string>
+    <string name="fav_added">Favorilere eklendi</string>
+    <string name="fav_removed">Favorilerden çıkarıldı</string>
+    <string name="fav_toggle">Favori</string>
+
+    <!-- VOD -->
+    <string name="no_fav_posters">Favorilerde film / dizi yok</string>
+    <string name="category_empty">Bu kategoride içerik yok</string>
+    <string name="list_failed">Liste yüklenemedi</string>
+
+    <!-- Dizi / film detay -->
+    <string name="director">Yönetmen</string>
+    <string name="cast">Oynayanlar</string>
+    <string name="season_x">Sezon %1$d</string>
+    <string name="episode_x">Bölüm %1$d</string>
+    <string name="se_short">S%1$d B%2$d</string>
+    <string name="seasons_count_x">%1$d sezon</string>
+    <string name="episodes_count_x">%1$d bölüm</string>
+    <string name="no_episodes">Bu bölüm için kayıt yok</string>
+    <string name="watched">İzlendi</string>
+    <string name="next_x">Sonraki: %1$s</string>
+    <string name="continue_x">Devam et: %1$s</string>
+    <string name="play_x">Oynat: %1$s</string>
+    <string name="play_from_start">Baştan başlat</string>
+    <string name="resume_x">Kaldığın yerden devam et (%1$s)</string>
+    <string name="details_failed">Detaylar alınamadı</string>
+    <string name="series_failed_x">Dizi detayları alınamadı: %1$s</string>
+    <string name="no_trailer_app">Yayın için uygun uygulama yok</string>
+
+    <!-- Bağlantı / hata -->
+    <string name="connect">Bağlan</string>
+    <string name="connecting_x">%1$s hesabına bağlanıyor…</string>
+    <string name="connection_failed">Bağlantı başarısız</string>
+    <string name="connect_profile_first">Önce bir profil ekle / seç</string>
+    <string name="err_404">Sunucuda adres bulunamadı (404)</string>
+    <string name="err_connect">Cihaz sunucuya bağlanamadı</string>
+    <string name="err_ssl">Güvenli bağlantı kurulamadı</string>
+    <string name="err_timeout">İstek zaman aşımına uğradı</string>
+    <string name="err_unknown_host">Sunucu adresi çözülmedi</string>
+    <string name="err_denied_x">Yetkilendirme reddedildi (%1$d)</string>
+    <string name="err_http_x">Sunucu hatası (HTTP %1$d)</string>
+
+    <!-- EPG / XMLTV -->
+    <string name="epg_downloading">Yayın akışı indiriliyor…</string>
+    <string name="epg_failed_x">Yayın akışı indirilemedi: %1$s</string>
+    <string name="epg_saved_x">%1$d kanal için yayın akışı kaydedildi</string>
+    <string name="epg_update_running">Güncelleme zaten çalışıyor</string>
+    <string name="no_xmltv_url">Bu profil için XMLTV adresi yok</string>
+
+    <!-- PIN / ebeveyn kilidi -->
+    <string name="enter_pin">PIN girin</string>
+    <string name="current_pin">Mevcut PIN</string>
+    <string name="new_pin">Yeni PIN</string>
+    <string name="new_pin_again">Yeni PIN (tekrar)</string>
+    <string name="pin_changed">PIN değiştirildi</string>
+    <string name="pin_min4">PIN en az 4 haneli olmalı</string>
+    <string name="pin_mismatch">PIN'ler eşleşmiyor</string>
+    <string name="wrong_pin">PIN hatalı</string>
+    <string name="parental_pin">Ebeveyn PIN</string>
+    <string name="locks_reset">Kilitler sıfırlandı</string>
+
+    <!-- Profil yönetimi -->
+    <string name="edit">Düzenle</string>
+    <string name="delete">Sil</string>
+    <string name="profile_delete_q">Profil silinsin mi?</string>
+    <string name="profile_delete_msg">"%1$s" profili silinecek, bağlı favoriler ve izleme ilerlemesi de kaldırılacak</string>
+    <string name="last_used">Son kullanma</string>
+    <string name="version_x">Uygulama sürümü: %1$s</string>
+
+    <!-- Diyalog / onay -->
+    <string name="ok">Tamam</string>
+    <string name="cancel">İptal</string>
+    <string name="close">Kapat</string>
+    <string name="yes">Evet</string>
+    <string name="no">Hayır</string>
+    <string name="open">Aç</string>
+    <string name="all">Tümü</string>
+    <string name="sort">Sırala</string>
+    <string name="play">Oynat</string>
+
+    <!-- Menüler / sıralama -->
+    <string name="menu_sort_x">Sıralama: %1$s</string>
+
+    <!-- Ayarlar -->
+    <string name="pref_cat_general">Genel</string>
+    <string name="pref_cat_player">Oynatıcı</string>
+    <string name="pref_cat_connection">Bağlantı</string>
+    <string name="pref_cat_epg">Yayın Akışı (EPG)</string>
+    <string name="pref_cat_rec_web">Kayıt ve Web Panel</string>
+    <string name="pref_cat_parental">Ebeveyn Kilidi</string>
+    <string name="pref_cat_other">Diğer</string>
+
+    <string name="pref_language">Uygulama dili</string>
+    <string name="pref_engine">Oynatıcı motoru</string>
+    <string name="pref_live_format">Canlı yayın formatı</string>
+    <string name="pref_buffer">Tampon (buffer)</string>
+    <string name="pref_aspect">Varsayılan görüntü oranı</string>
+    <string name="pref_preview">Kanal önizleme</string>
+    <string name="pref_preview_sum">Canlı TV listesinde kanal önizleme penceresi</string>
+    <string name="pref_auto_next">Sonraki bölüme otomatik geç</string>
+    <string name="pref_auto_next_sum">Dizi bölümü bitince sıradakini oynat</string>
+
+    <string name="pref_epg_offset">EPG saat düzeltmesi</string>
+    <string name="pref_epg_source">EPG kaynağı</string>
+    <string name="pref_xmltv_auto">XMLTV\'yi otomatik güncelle</string>
+    <string name="pref_xmltv_auto_sum">Xtream sunucusunun xmltv.php dosyasını günlük indir (daha zengin EPG, ilk indirme uzun sürebilir)</string>
+    <string name="pref_xmltv_now">EPG\'yi şimdi güncelle</string>
+    <string name="pref_xmltv_now_sum">Aktif profilin XMLTV yayın akışını şimdi indir</string>
+
+    <string name="pref_rec_storage">Kayıt yeri</string>
+    <string name="pref_web_panel">Web panel (port 8765)</string>
+    <string name="pref_web_panel_sum">Yayın paneli: aynı ağdan tarayıcı ile http://CIHAZ_IP:8765 adresine girerek hesap / PIN / kategori yönetimi</string>
+    <string name="pref_pip">Resim içinde resim</string>
+    <string name="pref_pip_sum">Android 7.0+ sürümünde HOME tuşuna basınca canlı yayın küçük pencerede devam eder</string>
+    <string name="pref_parental">Ebeveyn kilidi</string>
+    <string name="pref_parental_sum">Kilitli kategoriler PIN ister (varsayılan PIN: 0000)</string>
+    <string name="pref_pin_change">PIN değiştir</string>
+    <string name="pref_pin_change_sum">Ebeveyn kilidi / PIN girişinde kullanılan 4 haneli kodu değiştir</string>
+    <string name="pref_trust_all">Tüm sertifika oturumlarını kabul et</string>
+    <string name="pref_trust_all_sum">Herkese açık / self-signed sunucuların TLS hatalarını yoksay (güvensiz)</string>
+    <string name="pref_user_agent_sum">Sunucuya isteklerde kullanılması için kullanıcı ajanı (user agent)</string>
+    <string name="pref_clear_cache">Görsel önbelleğini temizle</string>
+    <string name="pref_clear_cache_sum">İndirilmiş kanal/film/dizi görsellerini sil</string>
+    <string name="cache_cleared">Önbellek temizlendi</string>
+    <string name="pref_clear_locks">Kilidi sıfırla</string>
+    <string name="pref_clear_locks_sum">Profil kilidi / ebeveyn PIN\'ini sıfırla</string>
+    <string name="pref_auto_login">Otomotik giriş</string>
+    <string name="pref_auto_login_sum">Son seçilen profille uygulamayı aç</string>
+    <string name="pref_adult">Yetişkin içeriği</string>
+    <string name="pref_adult_sum">Yetişkin kategorilerini gizle / göster</string>
+    <string name="pref_about">Hakkında</string>
+
+    <!-- Dil adları (lang_names dizisi kullanır) -->
+    <string name="lang_system">Sistem dili</string>
+
+    <!-- Kullanılmayan / ileride gerekli olabilecek anahtarlar -->
+    <string name="epg_saved_count_x">%1$d kanal</string>
 </resources>

@@ -65,7 +65,9 @@ public class SeriesDetailActivity extends BaseActivity {
         ((TextView) v(R.id.name)).setText(item.name);
         ImageLoader.get().load((ImageView) v(R.id.poster), item.icon, R.drawable.ph_poster, dp(200), dp(300));
         ((TextView) v(R.id.plot)).setText(item.plot);
-        btnPlay.setText("Oynat");
+        btnPlay.setText(R.string.play);
+        ListNav.install(seasons);
+        ListNav.install(episodes);
 
         seasons.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -138,7 +140,7 @@ public class SeriesDetailActivity extends BaseActivity {
 
     private void updateFav() {
         boolean fav = Db.get().isFavorite(Repo.pid(), Models.SERIES, item.id);
-        btnFav.setText(fav ? "Favorilerden Cikar" : "Favorilere Ekle");
+        btnFav.setText(fav ? R.string.fav_remove : R.string.fav_add);
     }
 
     private void load() {
@@ -159,7 +161,7 @@ public class SeriesDetailActivity extends BaseActivity {
             @Override
             public void on(Exception e) {
                 v(R.id.loading).setVisibility(View.GONE);
-                ((TextView) v(R.id.plot)).setText("Dizi bilgisi alinamadi: " + Ui.err(e));
+                ((TextView) v(R.id.plot)).setText(getString(R.string.series_failed_x, Ui.err(e)));
             }
         });
     }
@@ -170,12 +172,12 @@ public class SeriesDetailActivity extends BaseActivity {
         if (r != null) meta.append("★ ").append(r).append("   ");
         if (info.releaseDate.length() >= 4) meta.append(info.releaseDate.substring(0, 4)).append("   ");
         if (!Ui.empty(info.genre)) meta.append(info.genre).append("   ");
-        meta.append(info.seasons.size()).append(" sezon");
+        meta.append(getString(R.string.seasons_count_x, info.seasons.size()));
         ((TextView) v(R.id.meta)).setText(meta.toString());
         if (!Ui.empty(info.plot)) ((TextView) v(R.id.plot)).setText(info.plot);
         StringBuilder ppl = new StringBuilder();
-        if (!Ui.empty(info.cast)) ppl.append("Oyuncular: ").append(info.cast);
-        else if (!Ui.empty(info.director)) ppl.append("Yonetmen: ").append(info.director);
+        if (!Ui.empty(info.cast)) ppl.append(getString(R.string.cast)).append(": ").append(info.cast);
+        else if (!Ui.empty(info.director)) ppl.append(getString(R.string.director)).append(": ").append(info.director);
         ((TextView) v(R.id.people)).setText(ppl.toString());
         if (!Ui.empty(info.backdrop)) {
             ImageLoader.get().load((ImageView) v(R.id.backdrop), info.backdrop, android.R.color.transparent, dp(640), dp(360));
@@ -184,11 +186,13 @@ public class SeriesDetailActivity extends BaseActivity {
 
         List<Adapters.Row> rows = new ArrayList<>();
         for (Season s : info.seasons) {
-            rows.add(new Adapters.Row(s.name, s.episodes.size() + " bolum", s));
+            String sn = s.name.matches("(?i)^(sezon|season|staffel|сезон|temporada|stagione)\\s*\\d+$") || s.name.isEmpty()
+                    ? getString(R.string.season_x, s.number) : s.name;
+            rows.add(new Adapters.Row(sn, getString(R.string.episodes_count_x, s.episodes.size()), s));
         }
         seasonAdapter.set(rows);
         if (info.seasons.isEmpty()) {
-            ((TextView) v(R.id.people)).setText("Bu dizi icin bolum bulunamadi.");
+            ((TextView) v(R.id.people)).setText(R.string.no_episodes);
             return;
         }
         // son izlenen sezonu ac
@@ -212,7 +216,7 @@ public class SeriesDetailActivity extends BaseActivity {
         List<Adapters.Row> rows = new ArrayList<>();
         for (Episode e : s.episodes) {
             Adapters.Row r = new Adapters.Row();
-            r.title = String.format(Ui.TR, "%02d. ", e.number) + (Ui.empty(e.title) ? "Bolum " + e.number : e.title);
+            r.title = String.format(java.util.Locale.US, "%02d. ", e.number) + (Ui.empty(e.title) ? getString(R.string.episode_x, e.number) : e.title);
             StringBuilder sub = new StringBuilder();
             if (!Ui.empty(e.duration)) sub.append(e.duration).append("  ");
             if (!Ui.empty(e.plot)) sub.append(e.plot);
@@ -223,7 +227,7 @@ public class SeriesDetailActivity extends BaseActivity {
             Db.Resume res = resumes.get(e.id);
             if (res != null) {
                 if (res.finished()) {
-                    r.right = "Izlendi";
+                    r.right = getString(R.string.watched);
                 } else {
                     r.progress = res.percent();
                     r.right = Ui.duration(res.position);
@@ -246,13 +250,14 @@ public class SeriesDetailActivity extends BaseActivity {
                 int[] nx = next(pos);
                 if (nx != null) {
                     Episode n = info.seasons.get(nx[0]).episodes.get(nx[1]);
-                    btnPlay.setText("Sonraki: S" + n.season + " B" + n.number);
+                    btnPlay.setText(getString(R.string.next_x, getString(R.string.se_short, n.season, n.number)));
                     return;
                 }
             }
-            btnPlay.setText("Devam Et: S" + e.season + " B" + e.number);
+            btnPlay.setText(getString(R.string.continue_x, getString(R.string.se_short, e.season, e.number)));
         } else if (!info.seasons.isEmpty()) {
-            btnPlay.setText("Oynat: S" + info.seasons.get(0).number + " B" + info.seasons.get(0).episodes.get(0).number);
+            btnPlay.setText(getString(R.string.play_x, getString(R.string.se_short,
+                    info.seasons.get(0).number, info.seasons.get(0).episodes.get(0).number)));
         }
     }
 
@@ -296,7 +301,8 @@ public class SeriesDetailActivity extends BaseActivity {
         Db.Resume r = resumes.get(e.id);
         if (askResume && r != null && r.position > 30000 && !r.finished()) {
             final long pos = r.position;
-            Ui.choose(this, "S" + e.season + " B" + e.number, new String[]{"Devam et (" + Ui.duration(pos) + ")", "Bastan oynat"}, -1,
+            Ui.choose(this, getString(R.string.se_short, e.season, e.number),
+                    new String[]{getString(R.string.resume_x, Ui.duration(pos)), getString(R.string.play_from_start)}, -1,
                     new Ui.Choice() {
                         @Override
                         public void on(int which) {

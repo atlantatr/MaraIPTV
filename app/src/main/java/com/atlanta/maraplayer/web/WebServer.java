@@ -5,6 +5,7 @@ import android.os.Build;
 import android.util.Log;
 
 import com.atlanta.maraplayer.BuildConfig;
+import com.atlanta.maraplayer.data.AppEvents;
 import com.atlanta.maraplayer.data.Db;
 import com.atlanta.maraplayer.data.Models;
 import com.atlanta.maraplayer.data.Models.Account;
@@ -325,6 +326,7 @@ public final class WebServer {
                 break;
             case "/api/profile/delete":
                 Db.get().deleteProfile(body.getLong("id"));
+                AppEvents.profilesChanged(body.getLong("id"), false);
                 sendJson(out, 200, ok());
                 break;
             case "/api/profile/test":
@@ -458,8 +460,10 @@ public final class WebServer {
         if (!p.isM3u() && (p.user.isEmpty() || p.pass.isEmpty())) return err("Kullanici adi ve sifre gerekli");
         if (p.name.isEmpty()) p.name = p.isM3u() ? "M3U listesi" : p.user;
         if (p.id > 0 && Db.get().profile(p.id) == null) p.id = 0;
+        boolean added = p.id <= 0;
         Db.get().saveProfile(p);
-        if (p.id == Repo.pid()) Repo.clearCache(); // aktif profil degistiyse listeler yeniden yuklensin
+        // Cihazdaki ekranlar: yeni hesap otomatik acilir, aktif hesap degistiyse arka planda yenilenir
+        AppEvents.profilesChanged(p.id, added);
         return ok().put("id", p.id);
     }
 

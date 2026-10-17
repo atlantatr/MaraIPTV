@@ -16,6 +16,12 @@ public abstract class BaseActivity extends Activity {
         return true;
     }
 
+    /** Uygulama ici dil secimini uygula */
+    @Override
+    protected void attachBaseContext(android.content.Context base) {
+        super.attachBaseContext(com.atlanta.maraplayer.util.L.wrap(base));
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

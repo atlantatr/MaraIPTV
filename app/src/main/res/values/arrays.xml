@@ -1,42 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Ceviri notu: *_names / *_short dizileri her dil klasorunde (values-en, values-de ...) cevrilir.
+  *_values dizileri cevrilmez (sadece burada).
+-->
 <resources>
-    <string-array name="engine_names">
-        <item>Dahili oynatici (ExoPlayer)</item>
-        <item>Harici oynatici (VLC, MX Player...)</item>
+    <!-- Dil secimi: isimler her dilde kendi yazilisiyla ayni kalir -->
+    <string-array name="lang_names">
+        <item>@string/lang_system</item>
+        <item>Türkçe</item>
+        <item>English</item>
+        <item>Deutsch</item>
+        <item>Русский</item>
+        <item>Español</item>
+        <item>Italiano</item>
     </string-array>
-    <string-array name="engine_values">
+    <string-array name="lang_values" translatable="false">
+        <item>system</item>
+        <item>tr</item>
+        <item>en</item>
+        <item>de</item>
+        <item>ru</item>
+        <item>es</item>
+        <item>it</item>
+    </string-array>
+
+    <string-array name="engine_names">
+        <item>Dahili oynatıcı</item>
+        <item>Harici oynatıcı (VLC, MX Player…)</item>
+    </string-array>
+    <string-array name="engine_values" translatable="false">
         <item>exo</item>
         <item>external</item>
     </string-array>
 
     <string-array name="format_names">
-        <item>MPEG-TS (.ts) - onerilen</item>
+        <item>MPEG-TS (.ts) - önerilen</item>
         <item>HLS (.m3u8)</item>
     </string-array>
-    <string-array name="format_values">
+    <string-array name="format_values" translatable="false">
         <item>ts</item>
         <item>m3u8</item>
     </string-array>
 
     <string-array name="buffer_names">
-        <item>Dusuk (hizli acilis)</item>
+        <item>Düşük (hızlı açılış)</item>
         <item>Normal</item>
-        <item>Yuksek (zayif internet)</item>
+        <item>Yüksek (zayıf internet)</item>
     </string-array>
-    <string-array name="buffer_values">
+    <string-array name="buffer_values" translatable="false">
         <item>low</item>
         <item>normal</item>
         <item>high</item>
     </string-array>
 
     <string-array name="aspect_names">
-        <item>Sigdir (orijinal oran)</item>
-        <item>Ekrani doldur (uzat)</item>
-        <item>Yakinlastir (kirp)</item>
+        <item>Sığdır (orijinal oran)</item>
+        <item>Ekranı doldur (uzat)</item>
+        <item>Yakınlaştır (kırp)</item>
         <item>16:9</item>
         <item>4:3</item>
     </string-array>
-    <string-array name="aspect_values">
+    <string-array name="aspect_short">
+        <item>Sığdır</item>
+        <item>Doldur</item>
+        <item>Yakınlaştır</item>
+        <item>16:9</item>
+        <item>4:3</item>
+    </string-array>
+    <string-array name="aspect_values" translatable="false">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -48,12 +79,12 @@
         <item>-3 saat</item>
         <item>-2 saat</item>
         <item>-1 saat</item>
-        <item>0 (duzeltme yok)</item>
+        <item>0 (düzeltme yok)</item>
         <item>+1 saat</item>
         <item>+2 saat</item>
         <item>+3 saat</item>
     </string-array>
-    <string-array name="offset_values">
+    <string-array name="offset_values" translatable="false">
         <item>-3</item>
         <item>-2</item>
         <item>-1</item>
@@ -67,17 +98,34 @@
         <item>Otomatik (sunucu, yoksa XMLTV)</item>
         <item>Sadece XMLTV</item>
     </string-array>
-    <string-array name="epg_source_values">
+    <string-array name="epg_source_values" translatable="false">
         <item>auto</item>
         <item>xmltv</item>
     </string-array>
 
     <string-array name="rec_storage_names">
-        <item>Otomatik (en cok bos alan: USB / SD dahil)</item>
-        <item>Dahili hafiza</item>
+        <item>Otomatik (en çok boş alan: USB / SD dahil)</item>
+        <item>Dahili hafıza</item>
     </string-array>
-    <string-array name="rec_storage_values">
+    <string-array name="rec_storage_values" translatable="false">
         <item>auto</item>
         <item>internal</item>
+    </string-array>
+
+    <string-array name="sort_names">
+        <item>Varsayılan</item>
+        <item>A-Z</item>
+        <item>En yeni eklenen</item>
+        <item>Puan</item>
+    </string-array>
+
+    <string-array name="sleep_names">
+        <item>Kapalı</item>
+        <item>15 dakika</item>
+        <item>30 dakika</item>
+        <item>45 dakika</item>
+        <item>60 dakika</item>
+        <item>90 dakika</item>
+        <item>120 dakika</item>
     </string-array>
 </resources>

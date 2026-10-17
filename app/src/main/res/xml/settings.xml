@@ -1,138 +1,148 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="Oynatici">
+    <PreferenceCategory android:title="@string/pref_cat_general">
+        <ListPreference
+            android:defaultValue="tr"
+            android:entries="@array/lang_names"
+            android:entryValues="@array/lang_values"
+            android:key="lang"
+            android:summary="%s"
+            android:title="@string/pref_language" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_cat_player">
         <ListPreference
             android:defaultValue="exo"
             android:entries="@array/engine_names"
             android:entryValues="@array/engine_values"
             android:key="engine"
             android:summary="%s"
-            android:title="Oynatici motoru" />
+            android:title="@string/pref_engine" />
         <ListPreference
             android:defaultValue="ts"
             android:entries="@array/format_names"
             android:entryValues="@array/format_values"
             android:key="live_format"
             android:summary="%s"
-            android:title="Canli yayin formati" />
+            android:title="@string/pref_live_format" />
         <ListPreference
             android:defaultValue="normal"
             android:entries="@array/buffer_names"
             android:entryValues="@array/buffer_values"
             android:key="buffer"
             android:summary="%s"
-            android:title="Tampon (buffer)" />
+            android:title="@string/pref_buffer" />
         <ListPreference
             android:defaultValue="0"
             android:entries="@array/aspect_names"
             android:entryValues="@array/aspect_values"
             android:key="aspect"
             android:summary="%s"
-            android:title="Varsayilan goruntu orani" />
+            android:title="@string/pref_aspect" />
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="preview"
-            android:summary="Canli TV listesinde kanal onizleme penceresi"
-            android:title="Kanal onizleme" />
+            android:summary="@string/pref_preview_sum"
+            android:title="@string/pref_preview" />
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="auto_next"
-            android:summary="Dizi bolumu bitince siradakini oynat"
-            android:title="Sonraki bolume otomatik gec" />
+            android:summary="@string/pref_auto_next_sum"
+            android:title="@string/pref_auto_next" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Yayin akisi (EPG)">
+    <PreferenceCategory android:title="@string/pref_cat_epg">
         <ListPreference
             android:defaultValue="0"
             android:entries="@array/offset_names"
             android:entryValues="@array/offset_values"
             android:key="epg_offset"
             android:summary="%s"
-            android:title="EPG saat duzeltmesi" />
+            android:title="@string/pref_epg_offset" />
         <ListPreference
             android:defaultValue="auto"
             android:entries="@array/epg_source_names"
             android:entryValues="@array/epg_source_values"
             android:key="epg_source"
             android:summary="%s"
-            android:title="EPG kaynagi" />
+            android:title="@string/pref_epg_source" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="xmltv_auto"
-            android:summary="Xtream sunucusunun xmltv.php dosyasini da gunluk indir (daha zengin EPG, ilk indirme uzun surebilir)"
-            android:title="XMLTV'yi otomatik guncelle" />
+            android:summary="@string/pref_xmltv_auto_sum"
+            android:title="@string/pref_xmltv_auto" />
         <Preference
             android:key="xmltv_now"
-            android:summary="Aktif profilin XMLTV yayin akisini simdi indir"
-            android:title="EPG'yi simdi guncelle" />
+            android:summary="@string/pref_xmltv_now_sum"
+            android:title="@string/pref_xmltv_now" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Kayit ve web panel">
+    <PreferenceCategory android:title="@string/pref_cat_rec_web">
         <ListPreference
             android:defaultValue="auto"
             android:entries="@array/rec_storage_names"
             android:entryValues="@array/rec_storage_values"
             android:key="rec_storage"
             android:summary="%s"
-            android:title="Kayit yeri" />
+            android:title="@string/pref_rec_storage" />
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="web_panel"
-            android:summary="Ayni agdan tarayici ile http://CIHAZ_IP:8765 adresine girerek hesap / PIN / kategori yonetimi"
-            android:title="Web panel (port 8765)" />
+            android:summary="@string/pref_web_panel_sum"
+            android:title="@string/pref_web_panel" />
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="pip_home"
-            android:summary="Android 7.0+ surumunde HOME tusuna basinca canli yayin kucuk pencerede devam eder"
-            android:title="Resim icinde resim" />
+            android:summary="@string/pref_pip_sum"
+            android:title="@string/pref_pip" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Ebeveyn kilidi">
+    <PreferenceCategory android:title="@string/pref_cat_parental">
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="parental"
-            android:summary="Kilitli kategoriler PIN ister (varsayilan PIN: 0000)"
-            android:title="Ebeveyn kilidi" />
+            android:summary="@string/pref_parental_sum"
+            android:title="@string/pref_parental" />
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="adult_autolock"
-            android:summary="Adinda Adult / XXX / +18 gecen kategorileri otomatik kilitle"
-            android:title="Yetiskin kategorilerini otomatik kilitle" />
+            android:summary="@string/pref_adult_sum"
+            android:title="@string/pref_adult" />
         <Preference
             android:key="pin_change"
-            android:summary="4 haneli PIN"
-            android:title="PIN degistir" />
+            android:summary="@string/pref_pin_change_sum"
+            android:title="@string/pref_pin_change" />
         <Preference
             android:key="clear_locks"
-            android:summary="Elle kilitlenen / acilan tum kategori ayarlarini sifirla"
-            android:title="Kategori kilitlerini sifirla" />
+            android:summary="@string/pref_clear_locks_sum"
+            android:title="@string/pref_clear_locks" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Baglanti">
+    <PreferenceCategory android:title="@string/pref_cat_connection">
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="auto_login"
-            android:summary="Uygulama acilinca son profile otomatik baglan"
-            android:title="Otomatik baglan" />
+            android:summary="@string/pref_auto_login_sum"
+            android:title="@string/pref_auto_login" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="trust_all"
-            android:summary="Android 4.x'te eski kok sertifikalar yuzunden https sunucular acilmiyorsa isaretleyin (daha az guvenli)"
-            android:title="Sertifika hatalarini yoksay" />
+            android:summary="@string/pref_trust_all_sum"
+            android:title="@string/pref_trust_all" />
         <EditTextPreference
             android:key="user_agent"
-            android:summary="Bos birakilirsa: MaraIPTV/1.0. Bazi sunucular belirli bir User-Agent ister."
+            android:summary="@string/pref_user_agent_sum"
             android:title="User-Agent" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Diger">
+    <PreferenceCategory android:title="@string/pref_cat_other">
         <Preference
             android:key="clear_cache"
-            android:summary="Resim onbellegini ve liste onbellegini temizle"
-            android:title="Onbellegi temizle" />
+            android:summary="@string/pref_clear_cache_sum"
+            android:title="@string/pref_clear_cache" />
         <Preference
             android:key="about"
-            android:title="Hakkinda" />
+            android:title="@string/pref_about" />
     </PreferenceCategory>
 </PreferenceScreen>

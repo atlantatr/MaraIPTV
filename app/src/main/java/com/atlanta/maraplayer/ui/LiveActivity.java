@@ -81,10 +81,10 @@ public class LiveActivity extends BaseActivity {
         cats.setAdapter(catAdapter);
         chAdapter = new Adapters.ChannelAdapter(this);
         channels.setAdapter(chAdapter);
+        ListNav.install(cats);
+        ListNav.install(channels);
 
-        if (!Prefs.preview()) {
-            previewHint.setText("Onizleme kapali\nOK: Tam ekran");
-        }
+        previewHint.setText(Prefs.preview() ? R.string.preview_hint : R.string.preview_off_hint);
 
         cats.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -167,9 +167,9 @@ public class LiveActivity extends BaseActivity {
             public void on(List<Category> list) {
                 loading.setVisibility(View.GONE);
                 List<Category> all = new ArrayList<>();
-                all.add(new Category(Category.SEARCH, "Ara...", Models.LIVE));
-                all.add(new Category(Category.FAV, "Favoriler", Models.LIVE));
-                all.add(new Category(Category.ALL, "Tum Kanallar", Models.LIVE));
+                all.add(new Category(Category.SEARCH, getString(R.string.search_dots), Models.LIVE));
+                all.add(new Category(Category.FAV, getString(R.string.favorites), Models.LIVE));
+                all.add(new Category(Category.ALL, getString(R.string.all_channels), Models.LIVE));
                 all.addAll(list);
                 catAdapter.set(all);
                 // son kategoriyi ac
@@ -189,7 +189,7 @@ public class LiveActivity extends BaseActivity {
             @Override
             public void on(Exception e) {
                 loading.setVisibility(View.GONE);
-                showMsg("Kategoriler yuklenemedi:\n" + Ui.err(e));
+                showMsg(getString(R.string.categories_failed) + "\n" + Ui.err(e));
             }
         });
     }
@@ -204,9 +204,9 @@ public class LiveActivity extends BaseActivity {
             currentCat = null;
             chAdapter.set(new ArrayList<Item>());
             catTitle.setText(c.name);
-            showMsg("Bu kategori kilitli.\nAcmak icin OK'e basip PIN girin.");
+            showMsg(getString(R.string.category_locked_msg));
             if (byClick) {
-                Ui.askPin(this, "Kilitli kategori - PIN", new Runnable() {
+                Ui.askPin(this, getString(R.string.locked_category_pin), new Runnable() {
                     @Override
                     public void run() {
                         Prefs.unlockForSession(Repo.pid(), c.type, c.id);
@@ -247,8 +247,8 @@ public class LiveActivity extends BaseActivity {
                 catTitle.setText(c.name + "  (" + list.size() + ")");
                 if (list.isEmpty()) {
                     showMsg(c.id.equals(Category.FAV)
-                            ? "Favori kanaliniz yok.\nKanal uzerinde MENU > Favorilere ekle"
-                            : "Bu kategoride kanal yok.");
+                            ? getString(R.string.no_fav_channels)
+                            : getString(R.string.no_channels_in_cat));
                     return;
                 }
                 // son izlenen kanali sec
@@ -265,7 +265,7 @@ public class LiveActivity extends BaseActivity {
             public void on(Exception e) {
                 if (token != loadToken) return;
                 loading.setVisibility(View.GONE);
-                showMsg("Kanallar yuklenemedi:\n" + Ui.err(e));
+                showMsg(getString(R.string.channels_failed) + "\n" + Ui.err(e));
             }
         });
     }
@@ -278,15 +278,15 @@ public class LiveActivity extends BaseActivity {
     private void categoryOptions(final Category c) {
         if (c.isVirtual()) return;
         final boolean locked = Prefs.isLockedPermanent(Repo.pid(), c.type, c.id, c.name);
-        Ui.choose(this, c.name, new String[]{locked ? "Kilidi kaldir" : "Kategoriyi kilitle"}, -1, new Ui.Choice() {
+        Ui.choose(this, c.name, new String[]{getString(locked ? R.string.unlock_category : R.string.lock_category)}, -1, new Ui.Choice() {
             @Override
             public void on(int which) {
-                Ui.askPin(LiveActivity.this, "Ebeveyn PIN", new Runnable() {
+                Ui.askPin(LiveActivity.this, getString(R.string.parental_pin), new Runnable() {
                     @Override
                     public void run() {
                         Prefs.setLocked(Repo.pid(), c.type, c.id, c.name, !locked);
                         if (!locked) {
-                            Ui.toast(LiveActivity.this, "Kategori kilitlendi");
+                            Ui.toast(LiveActivity.this, getString(R.string.category_locked));
                             Prefs.clearSessionUnlocks();
                         }
                         catAdapter.notifyDataSetChanged();
@@ -302,14 +302,15 @@ public class LiveActivity extends BaseActivity {
 
     private void channelOptions(final Item it) {
         final boolean fav = Db.get().isFavorite(Repo.pid(), Models.LIVE, it.id);
-        String[] opts = {fav ? "Favorilerden cikar" : "Favorilere ekle", "Yayin akisi" + (it.archive ? " / Geri izle" : ""),
-                "Tam ekran izle", "Kaydet"};
+        String[] opts = {getString(fav ? R.string.fav_remove : R.string.fav_add),
+                getString(it.archive ? R.string.epg_and_catchup : R.string.epg),
+                getString(R.string.watch_fullscreen), getString(R.string.record)};
         Ui.choose(this, it.name, opts, -1, new Ui.Choice() {
             @Override
             public void on(int which) {
                 if (which == 0) {
                     boolean now = Db.get().toggleFavorite(Repo.pid(), it);
-                    Ui.toast(LiveActivity.this, now ? "Favorilere eklendi" : "Favorilerden cikarildi");
+                    Ui.toast(LiveActivity.this, getString(now ? R.string.fav_added : R.string.fav_removed));
                     if (currentCat != null && currentCat.id.equals(Category.FAV)) {
                         Category c = currentCat;
                         currentCat = null;
@@ -359,7 +360,7 @@ public class LiveActivity extends BaseActivity {
         if (it.id.equals(epgFor)) return;
         epgFor = it.id;
         chName.setText(it.name);
-        nowTitle.setText("Yayin akisi yukleniyor...");
+        nowTitle.setText(R.string.epg_loading);
         nowDesc.setText("");
         nextList.setText("");
         nowProgress.setVisibility(View.INVISIBLE);
@@ -380,7 +381,7 @@ public class LiveActivity extends BaseActivity {
             public void on(Exception e) {
                 if (token != epgToken) return;
                 epgFor = null;
-                nowTitle.setText("Yayin akisi yok");
+                nowTitle.setText(R.string.no_epg);
             }
         });
     }
@@ -408,7 +409,7 @@ public class LiveActivity extends BaseActivity {
             nowProgress.setProgress(pct);
             nowProgress.setVisibility(View.VISIBLE);
         } else {
-            nowTitle.setText(list.isEmpty() ? "Yayin akisi yok" : "");
+            nowTitle.setText(list.isEmpty() ? getString(R.string.no_epg) : "");
             nowDesc.setText("");
             nowProgress.setVisibility(View.INVISIBLE);
         }
@@ -432,7 +433,7 @@ public class LiveActivity extends BaseActivity {
             public void onError(String message) {
                 previewLoading.setVisibility(View.GONE);
                 previewHint.setVisibility(View.VISIBLE);
-                previewHint.setText("Yayin acilamadi\n" + message);
+                previewHint.setText(getString(R.string.stream_failed) + "\n" + message);
                 previewId = null;
             }
         });
@@ -448,7 +449,7 @@ public class LiveActivity extends BaseActivity {
         previewId = null;
         if (previewHint != null) {
             previewHint.setVisibility(View.VISIBLE);
-            previewHint.setText(Prefs.preview() ? "OK: Onizleme\nTekrar OK: Tam ekran" : "Onizleme kapali\nOK: Tam ekran");
+            previewHint.setText(Prefs.preview() ? R.string.preview_hint : R.string.preview_off_hint);
             previewLoading.setVisibility(View.GONE);
         }
     }

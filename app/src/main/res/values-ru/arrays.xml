@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="lang_names">
+        <item>@string/lang_system</item>
+        <item>Türkçe</item>
+        <item>English</item>
+        <item>Deutsch</item>
+        <item>Русский</item>
+        <item>Español</item>
+        <item>Italiano</item>
+    </string-array>
+    <string-array name="engine_names">
+        <item>Встроенный плеер</item>
+        <item>Внешний плеер (VLC, MX Player…)</item>
+    </string-array>
+    <string-array name="format_names">
+        <item>MPEG-TS (.ts) - рекомендуемый</item>
+        <item>HLS (.m3u8)</item>
+    </string-array>
+    <string-array name="buffer_names">
+        <item>Малый (быстрый старт)</item>
+        <item>Обычный</item>
+        <item>Большой (слабая сеть)</item>
+    </string-array>
+    <string-array name="aspect_names">
+        <item>Вписать (оригинальное)</item>
+        <item>Растянуть</item>
+        <item>Приблизить</item>
+        <item>16:9</item>
+        <item>4:3</item>
+    </string-array>
+    <string-array name="aspect_short">
+        <item>Вписать</item>
+        <item>Растянуть</item>
+        <item>Приблизить</item>
+        <item>16:9</item>
+        <item>4:3</item>
+    </string-array>
+    <string-array name="offset_names">
+        <item>−3 ч</item>
+        <item>−2 ч</item>
+        <item>−1 ч</item>
+        <item>0 (без смещения)</item>
+        <item>+1 ч</item>
+        <item>+2 ч</item>
+        <item>+3 ч</item>
+    </string-array>
+    <string-array name="epg_source_names">
+        <item>Авто (сервер, иначе XMLTV)</item>
+        <item>Только XMLTV</item>
+    </string-array>
+    <string-array name="rec_storage_names">
+        <item>Авто (наибольший свободный: USB / SD)</item>
+        <item>Встроенная память</item>
+    </string-array>
+    <string-array name="sort_names">
+        <item>По умолчанию</item>
+        <item>А-Я</item>
+        <item>Новые</item>
+        <item>Рейтинг</item>
+    </string-array>
+    <string-array name="sleep_names">
+        <item>Выкл</item>
+        <item>15 мин</item>
+        <item>30 мин</item>
+        <item>45 мин</item>
+        <item>60 мин</item>
+        <item>90 мин</item>
+        <item>120 мин</item>
+    </string-array>
+</resources>

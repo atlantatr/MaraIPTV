@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.atlanta.maraplayer.R;
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.net.Http;
 
@@ -31,6 +32,7 @@ public final class Ui {
     private Ui() {
     }
 
+    /** Turkce kucuk harf / arama normallestirmesi icin */
     public static final Locale TR = new Locale("tr", "TR");
 
     public static void toast(Context c, String msg) {
@@ -71,18 +73,18 @@ public final class Ui {
         };
         if (checked >= 0) b.setSingleChoiceItems(items, checked, l);
         else b.setItems(items, l);
-        b.setNegativeButton("Kapat", null).show();
+        b.setNegativeButton(R.string.close, null).show();
     }
 
     public static void confirm(Context c, String title, String msg, final Runnable yes) {
         dialog(c).setTitle(title).setMessage(msg)
-                .setPositiveButton("Evet", new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface d, int w) {
                         yes.run();
                     }
                 })
-                .setNegativeButton("Hayir", null).show();
+                .setNegativeButton(R.string.no, null).show();
     }
 
     public interface TextCb {
@@ -96,13 +98,13 @@ public final class Ui {
         et.setText(initial == null ? "" : initial);
         et.setSelection(et.getText().length());
         final AlertDialog d = dialog(c).setTitle(title).setView(et)
-                .setPositiveButton("Tamam", new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dd, int w) {
                         cb.on(et.getText().toString());
                     }
                 })
-                .setNegativeButton("Iptal", null).create();
+                .setNegativeButton(R.string.cancel, null).create();
         et.setImeOptions(EditorInfo.IME_ACTION_DONE);
         et.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -120,32 +122,32 @@ public final class Ui {
 
     /** PIN sorar, dogruysa ok calisir. */
     public static void askPin(final Context c, String title, final Runnable ok) {
-        input(c, title == null ? "PIN girin" : title, "",
+        input(c, title == null ? c.getString(R.string.enter_pin) : title, "",
                 InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD, new TextCb() {
                     @Override
                     public void on(String text) {
                         if (Prefs.checkPin(text.trim())) ok.run();
-                        else toast(c, "PIN hatali");
+                        else toast(c, c.getString(R.string.wrong_pin));
                     }
                 });
     }
 
-    // ------------------------------------------------------------ Bicimlendirme
+    // ------------------------------------------------------------ Bicimlendirme (secili dile gore)
 
     public static String time(long unixSec) {
-        return new SimpleDateFormat("HH:mm", TR).format(new Date(unixSec * 1000L));
+        return new SimpleDateFormat("HH:mm", L.locale()).format(new Date(unixSec * 1000L));
     }
 
     public static String dayTime(long unixSec) {
-        return new SimpleDateFormat("EEE d MMM  HH:mm", TR).format(new Date(unixSec * 1000L));
+        return new SimpleDateFormat("EEE d MMM  HH:mm", L.locale()).format(new Date(unixSec * 1000L));
     }
 
     public static String day(long unixSec) {
-        return new SimpleDateFormat("EEEE, d MMMM", TR).format(new Date(unixSec * 1000L));
+        return new SimpleDateFormat("EEEE, d MMMM", L.locale()).format(new Date(unixSec * 1000L));
     }
 
     public static String date(long unixSec) {
-        return new SimpleDateFormat("dd.MM.yyyy", TR).format(new Date(unixSec * 1000L));
+        return new SimpleDateFormat("dd.MM.yyyy", L.locale()).format(new Date(unixSec * 1000L));
     }
 
     public static String duration(long ms) {
@@ -155,10 +157,14 @@ public final class Ui {
         return String.format(Locale.US, "%02d:%02d", m, sec);
     }
 
+    /** Arama icin: buyuk/kucuk harf ve Turkce/aksanli harf farkini kaldirir */
     public static String norm(String s) {
         if (s == null) return "";
         return s.toLowerCase(TR).replace('ı', 'i').replace('ş', 's').replace('ğ', 'g')
-                .replace('ü', 'u').replace('ö', 'o').replace('ç', 'c');
+                .replace('ü', 'u').replace('ö', 'o').replace('ç', 'c')
+                .replace('ä', 'a').replace('ß', 's').replace('é', 'e').replace('è', 'e')
+                .replace('á', 'a').replace('í', 'i').replace('ó', 'o').replace('ú', 'u').replace('ñ', 'n')
+                .replace('à', 'a').replace('ò', 'o').replace('ù', 'u').replace('ё', 'е');
     }
 
     public static boolean empty(String s) {
@@ -167,16 +173,15 @@ public final class Ui {
 
     /** Kullaniciya anlasilir hata mesaji */
     public static String err(Exception e) {
-        if (e instanceof UnknownHostException) return "Sunucu bulunamadi. Adresi ve internet baglantisini kontrol edin.";
-        if (e instanceof SocketTimeoutException) return "Sunucu zaman asimina ugradi.";
-        if (e instanceof ConnectException) return "Sunucuya baglanilamadi.";
-        if (e instanceof SSLException)
-            return "Guvenli baglanti (SSL) hatasi. Ayarlar > 'Sertifika hatalarini yoksay' secenegini deneyin.";
-        if (e instanceof FileNotFoundException) return "Adres bulunamadi (404).";
+        if (e instanceof UnknownHostException) return L.t(R.string.err_unknown_host);
+        if (e instanceof SocketTimeoutException) return L.t(R.string.err_timeout);
+        if (e instanceof ConnectException) return L.t(R.string.err_connect);
+        if (e instanceof SSLException) return L.t(R.string.err_ssl);
+        if (e instanceof FileNotFoundException) return L.t(R.string.err_404);
         if (e instanceof Http.HttpException) {
             int code = ((Http.HttpException) e).code;
-            if (code == 401 || code == 403) return "Erisim reddedildi (" + code + "). Hesap suresi veya bilgiler hatali olabilir.";
-            return "Sunucu hatasi: HTTP " + code;
+            if (code == 401 || code == 403) return L.t(R.string.err_denied_x, code);
+            return L.t(R.string.err_http_x, code);
         }
         String m = e.getMessage();
         return m == null ? e.getClass().getSimpleName() : m;

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Liste / izgara adaptorleri. */
@@ -172,7 +173,7 @@ public final class Adapters {
             resumePos.clear();
             if (type != Models.MOVIE && type != Models.EPISODE) return;
             for (Item it : data) {
-                String key = it.resumeKey();
+                String key = it.key(); // "movie:123" / "episode:456" -> resume.rkey ile eslesir
                 if (key == null) continue;
                 Db.Resume r = Db.get().resume(Repo.pid(), key);
                 if (r != null && !r.finished() && r.position > 30000) resumePos.put(it.id, r.position);

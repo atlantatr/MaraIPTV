@@ -11,13 +11,16 @@ import android.widget.TextView;
 
 import com.atlanta.maraplayer.R;
 import com.atlanta.maraplayer.data.Db;
+import com.atlanta.maraplayer.data.Models;
 import com.atlanta.maraplayer.data.Models.Category;
 import com.atlanta.maraplayer.data.Models.Item;
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.data.Repo;
 import com.atlanta.maraplayer.util.ImageLoader;
+import com.atlanta.maraplayer.util.Ui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -148,6 +151,8 @@ public final class Adapters {
         private final int w, h;
         private final int type;
 
+        private final Map<String, Integer> resumePos = new HashMap<>(); // rkey -> ms
+
         public PosterAdapter(Context c, int type) {
             inf = LayoutInflater.from(c);
             this.type = type;
@@ -159,6 +164,20 @@ public final class Adapters {
             data.clear();
             data.addAll(l);
             reloadFavs();
+            loadResume();
+        }
+
+        /** Listeye gore yarida kalan pozisyonlari bir kez sorgula (poster rozeti icin). */
+        private void loadResume() {
+            resumePos.clear();
+            if (type != Models.MOVIE && type != Models.EPISODE) return;
+            for (Item it : data) {
+                String key = it.resumeKey();
+                if (key == null) continue;
+                Db.Resume r = Db.get().resume(Repo.pid(), key);
+                if (r != null && !r.finished() && r.position > 30000) resumePos.put(it.id, r.position);
+            }
+            notifyDataSetChanged();
         }
 
         public void reloadFavs() {
@@ -200,6 +219,14 @@ public final class Adapters {
                 r.setVisibility(View.GONE);
             }
             v.findViewById(R.id.fav).setVisibility(favs.contains(it.id) ? View.VISIBLE : View.GONE);
+            Integer ms = resumePos.get(it.id);
+            TextView badge = v.findViewById(R.id.resumeBadge);
+            if (ms != null) {
+                badge.setText(v.getContext().getString(R.string.resume_x, Ui.duration(ms)));
+                badge.setVisibility(View.VISIBLE);
+            } else {
+                badge.setVisibility(View.GONE);
+            }
             ImageLoader.get().load((ImageView) v.findViewById(R.id.poster), it.icon, R.drawable.ph_poster, w, h);
             return v;
         }

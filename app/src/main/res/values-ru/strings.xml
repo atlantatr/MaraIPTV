@@ -159,4 +159,5 @@
     <string name="pref_about">О приложении</string>
     <string name="lang_system">Язык системы</string>
     <string name="epg_saved_count_x">%1$d каналов</string>
+    <string name="recently_watched">Недавние каналы</string>
 </resources>

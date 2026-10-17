@@ -122,6 +122,7 @@
     <string name="profile_delete_q">Profil silinsin mi?</string>
     <string name="profile_delete_msg">"%1$s" profili silinecek, bağlı favoriler ve izleme ilerlemesi de kaldırılacak</string>
     <string name="last_used">Son kullanma</string>
+    <string name="recently_watched">Son izlenen kanallar</string>
     <string name="version_x">Uygulama sürümü: %1$s</string>
 
     <!-- Diyalog / onay -->

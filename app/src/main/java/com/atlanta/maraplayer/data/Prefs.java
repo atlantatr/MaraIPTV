@@ -148,6 +148,23 @@ public final class Prefs {
         sp.edit().putString("last_live_cat_" + pid, id).apply();
     }
 
+    /** Son izlenen kanaller (yeni -> eski, JSON benzeri basit list) */
+    public static String recentChannels(long pid) {
+        return sp.getString("recent_channels_" + pid, "");
+    }
+
+    public static void addRecentChannel(long pid, String id) {
+        if (id == null || id.isEmpty()) return;
+        String[] cur = sp.getString("recent_channels_" + pid, "").split(",");
+        StringBuilder sb = new StringBuilder();
+        for (String c : cur) {
+            if (c.equals(id) || c.isEmpty()) continue;
+            if (sb.length() > 0) sb.append(',');
+            sb.append(c);
+        }
+        sp.edit().putString("recent_channels_" + pid, sb.length() > 0 ? id + "," + sb : id).apply();
+    }
+
     // ------------------------------------------------------------ Ebeveyn kilidi
 
     public static boolean parentalEnabled() {

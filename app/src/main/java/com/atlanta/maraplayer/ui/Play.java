@@ -143,7 +143,10 @@ public final class Play {
         if (q.isEmpty()) return;
         index = Math.max(0, Math.min(index, q.size() - 1));
         PlayItem p = q.get(index);
-        if (p.type == Models.LIVE) Prefs.setLastChannel(Repo.pid(), p.id);
+        if (p.type == Models.LIVE) {
+            Prefs.setLastChannel(Repo.pid(), p.id);
+            Prefs.addRecentChannel(Repo.pid(), p.id);
+        }
         // Yerel kayit dosyalari her zaman dahili oynaticida (file:// baska uygulamaya verilemez)
         if (Prefs.externalPlayer() && p.type != Models.RECORDING) {
             openExternal(a, p);

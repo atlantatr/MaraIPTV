@@ -159,4 +159,5 @@
     <string name="pref_about">Acerca de</string>
     <string name="lang_system">Idioma del sistema</string>
     <string name="epg_saved_count_x">%1$d canales</string>
+    <string name="recently_watched">Canales vistos recientemente</string>
 </resources>

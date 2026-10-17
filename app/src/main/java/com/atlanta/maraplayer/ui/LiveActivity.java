@@ -23,7 +23,9 @@ import com.atlanta.maraplayer.util.Async;
 import com.atlanta.maraplayer.util.Ui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LiveActivity extends BaseActivity {
 
@@ -168,6 +170,7 @@ public class LiveActivity extends BaseActivity {
                 loading.setVisibility(View.GONE);
                 List<Category> all = new ArrayList<>();
                 all.add(new Category(Category.SEARCH, getString(R.string.search_dots), Models.LIVE));
+                all.add(new Category(Category.RECENT, getString(R.string.recently_watched), Models.LIVE));
                 all.add(new Category(Category.FAV, getString(R.string.favorites), Models.LIVE));
                 all.add(new Category(Category.ALL, getString(R.string.all_channels), Models.LIVE));
                 all.addAll(list);
@@ -192,6 +195,20 @@ public class LiveActivity extends BaseActivity {
                 showMsg(getString(R.string.categories_failed) + "\n" + Ui.err(e));
             }
         });
+    }
+
+    /** Son izlenen kanallar (recent first, unlocked only) */
+    private List<Item> recentChannels(long pid) {
+        String raw = Prefs.recentChannels(pid);
+        if (raw == null || raw.isEmpty()) return new ArrayList<Item>();
+        Map<String, Item> byId = new HashMap<String, Item>();
+        for (Item it : Repo.allUnlocked(Models.LIVE)) byId.put(it.id, it);
+        List<Item> out = new ArrayList<Item>();
+        for (String id : raw.split(",")) {
+            Item it = byId.get(id);
+            if (it != null) out.add(it);
+        }
+        return out;
     }
 
     private void openCategory(final Category c, boolean byClick) {
@@ -236,6 +253,7 @@ public class LiveActivity extends BaseActivity {
             public List<Item> run() throws Exception {
                 if (c.id.equals(Category.FAV)) return Db.get().favorites(Repo.pid(), Models.LIVE);
                 if (c.id.equals(Category.ALL)) return Repo.allUnlocked(Models.LIVE);
+                if (c.id.equals(Category.RECENT)) return recentChannels(Repo.pid());
                 return Repo.items(Models.LIVE, c.id);
             }
         }, new Async.Callback<List<Item>>() {

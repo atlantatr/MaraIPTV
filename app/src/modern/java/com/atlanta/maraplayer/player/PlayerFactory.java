@@ -33,14 +33,12 @@ public final class PlayerFactory {
     }
 
     public static ExoPlayer create(Context c, boolean live) {
+        // canli TV + FHD'de donma takilma sorunu icin decoder fallback'i devre disi,
+        // donanim MediaCodec + FFmpeg extension sadece codec desteklenmezse devreye girer.
         DefaultRenderersFactory rf = new DefaultRenderersFactory(c)
-                .setEnableDecoderFallback(true)
-                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
+                .setEnableDecoderFallback(false)
+                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_FALLBACK);
 
-        // Jellyfin media3-ffmpeg-decoder (mara.ffmpeg=true): cihazin MediaCodec'su
-        // cozemedigi AC3/EAC3/DTS/TrueHD/MP2 sesleri FFmpeg ile yazilimda cozer.
-        // DefaultRenderersFactory extension paketi classpath'te var otomatik kullanir;
-        // yoksa (build'de kapali) MediaCodec fallback'i devreye girer.
         ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
 
         int[] b = bufferMs(live);
@@ -72,22 +70,22 @@ public final class PlayerFactory {
             case "high":
                 min = 30000; max = 90000; start = 4000; rebuffer = 8000;
                 break;
-            default:
-                min = 15000; max = 50000; start = 2000; rebuffer = 4000;
-                break;
-            // FHD/H.265 canli kanallarda donarak oynatma (Amlogic vb.) sorunu icin
-            // "normal" buffer'yu artirir; ayri bir "FHD yukseltilmis" modu
             case "fhd":
                 min = 20000; max = 60000; start = 3000; rebuffer = 6000;
                 break;
+            default:
+                // "normal": canli TV donme sorununu onlemek icin tamponu bol tutar,
+                // ilk baslangic hiza odaklidir; donarsa Ayarlar'dan "FHD" sec.
+                min = 20000; max = 60000; start = 2000; rebuffer = 4000;
+                break;
         }
         if (live) {
-            // Canlı TV: aninda baslatma icin baslangic esigi asgariye duşur,
-            // tamponu sonradan doldurur. (MertStream tarzı "tikladigin gibi acilir")
-            max = Math.min(max, 30000);
+            // Canlı TV'de tamponu 45s ile sinirle, gecikme artmasin;
+            // baslangic eşiği 1.5s (aninda acilir, donme engellenir)
+            max = Math.min(max, 45000);
             min = Math.min(min, max);
-            start = Math.min(start, 1000);
-            rebuffer = Math.min(rebuffer, 1500);
+            start = Math.min(start, 1500);
+            rebuffer = Math.min(rebuffer, 3000);
         }
         return new int[]{min, max, start, rebuffer};
     }

@@ -27,7 +27,7 @@
             android:summary="%s"
             android:title="@string/pref_live_format" />
         <ListPreference
-            android:defaultValue="low"
+            android:defaultValue="normal"
             android:entries="@array/buffer_names"
             android:entryValues="@array/buffer_values"
             android:key="buffer"

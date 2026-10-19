@@ -61,19 +61,19 @@ public final class PlayerFactory {
             case "high":
                 min = 30000; max = 90000; start = 4000; rebuffer = 8000;
                 break;
-            default:
-                min = 15000; max = 50000; start = 2000; rebuffer = 4000;
-                break;
             case "fhd":
                 min = 20000; max = 60000; start = 3000; rebuffer = 6000;
                 break;
+            default:
+                // normal: canli TV donme sorununu onlemek icin tamponu bol
+                min = 20000; max = 60000; start = 2000; rebuffer = 4000;
+                break;
         }
         if (live) {
-            // Canlı TV: aninda baslatma icin baslangic esigi asgariye duşur
-            max = Math.min(max, 30000);
+            max = Math.min(max, 45000);
             min = Math.min(min, max);
-            start = Math.min(start, 1000);
-            rebuffer = Math.min(rebuffer, 1500);
+            start = Math.min(start, 1500);
+            rebuffer = Math.min(rebuffer, 3000);
         }
         return new int[]{min, max, start, rebuffer};
     }

@@ -339,9 +339,13 @@ function loadCats() {
   $('catMsg').textContent = 'Kategoriler sunucudan aliniyor...';
   $('cats').innerHTML = '';
   api('/api/categories?pid=' + pid + '&type=' + $('catType').value).then(function (r) {
-    if (!r.ok) { $('catMsg').textContent = 'Hata: ' + r.error; return; }
-    cats = r.categories;
+    if (!r.ok) { $('catMsg').textContent = 'Hata: ' + (r.error || 'bilinmeyen'); return; }
+    cats = r.categories || [];
+    $('catMsg').textContent = r.count !== undefined ? r.count + ' kategori (yalnizca cihazin bildigi kaynak)' : '';
     renderCats();
+  }).catch(function (e) {
+    $('catMsg').textContent = 'Cihaza ulasilamadi: ' + e;
+    $('cats').innerHTML = '';
   });
 }
 

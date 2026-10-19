@@ -117,8 +117,11 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
 
     // Android 4.2: ExoPlayer 2.19.1 (minSdk 16 destekleyen son seri)
+    // ffmpeg-encoder-decoder extension: AC3/EAC3/DTS/TrueHD/MP2 seslerini
+    // cihazin MediaCodec'su cozemezse yazilimla (FFmpeg) cozer.
     legacyImplementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
     legacyImplementation 'com.google.android.exoplayer:exoplayer-hls:2.19.1'
+    legacyImplementation 'com.google.android.exoplayer:extension-ffmpeg:2.19.1'
 
     // Android 5.0+ / 7.0+: AndroidX Media3
     for (String f : ['lollipop', 'nougat']) {

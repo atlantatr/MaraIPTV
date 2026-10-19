@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.ArrayList;
 
 /**
  * Yerel ag web paneli: http://CIHAZ_IP:8765
@@ -347,7 +348,23 @@ public final class WebServer {
                 sendJson(out, 200, ok());
                 break;
             case "/api/categories":
-                sendJson(out, 200, categories(XtreamApi.toInt(r.query.get("pid")), XtreamApi.toInt(r.query.get("type"))));
+                try {
+                    long dpid = XtreamApi.toInt(r.query.get("pid"));
+                    int dtype = XtreamApi.toInt(r.query.get("type"));
+                    List<Category> cats = loadCategories(dpid, dtype);
+                    if (cats == null) cats = new ArrayList<Category>();
+                    JSONArray carr = new JSONArray();
+                    for (Category c : cats) {
+                        carr.put(ok().put("id", c.id).put("name", c.name)
+                                .put("hidden", Prefs.isHidden(dpid, dtype, c.id))
+                                .put("locked", Prefs.isLockedPermanent(dpid, dtype, c.id, c.name))
+                                .put("adult", Prefs.looksAdult(c.name)));
+                    }
+                    sendJson(out, 200, ok().put("categories", carr).put("count", cats.size()));
+                } catch (Exception ex) {
+                    Log.e(TAG, "kategori hatasi: pid=" + r.query.get("pid") + " type=" + r.query.get("type"), ex);
+                    sendJson(out, 500, err("Kategori alinamadi: " + (ex.getMessage() == null ? ex.toString() : ex.getMessage())));
+                }
                 break;
             case "/api/category":
                 sendJson(out, 200, setCategory(body));
@@ -517,20 +534,6 @@ public final class WebServer {
         return c;
     }
 
-    private JSONObject categories(long pid, int type) throws Exception {
-        List<Category> cats = loadCategories(pid, type);
-        JSONArray arr = new JSONArray();
-        for (Category c : cats) {
-            JSONObject j = new JSONObject();
-            j.put("id", c.id);
-            j.put("name", c.name);
-            j.put("hidden", Prefs.isHidden(pid, type, c.id));
-            j.put("locked", Prefs.isLockedPermanent(pid, type, c.id, c.name));
-            j.put("adult", Prefs.looksAdult(c.name));
-            arr.put(j);
-        }
-        return ok().put("categories", arr);
-    }
 
     private JSONObject setCategory(JSONObject b) throws Exception {
         long pid = b.getLong("pid");

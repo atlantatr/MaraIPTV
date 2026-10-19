@@ -23,10 +23,32 @@ public final class PlayerFactory {
     private PlayerFactory() {
     }
 
+    private static final boolean ffmpegDecoderLoaded;
+
+    static {
+        // ExoPlayer 2.19.1 icin extension-ffmpeg (AC3/EAC3/DTS/TrueHD/MP2 yazilim cozeni)
+        boolean ok = false;
+        try {
+            Class<?> cls = Class.forName("com.google.android.exoplayer2.ext.ffmpeg.FfmpegDecoder");
+            try {
+                cls.getMethod("init").invoke(null);
+                ok = true;
+            } catch (Exception ignored) {
+                // eski API'de init yok olabilir
+                ok = true;
+            }
+        } catch (Throwable ignored) {
+            // extension-ffmpeg paketi yok -> MediaCodec fallback yeter
+        }
+        ffmpegDecoderLoaded = ok;
+    }
+
     public static ExoPlayer create(Context c, boolean live) {
         DefaultRenderersFactory rf = new DefaultRenderersFactory(c)
                 .setEnableDecoderFallback(true)
-                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
+                .setExtensionRendererMode(ffmpegDecoderLoaded
+                        ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+                        : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
 
         int[] b = bufferMs(live);
         DefaultLoadControl lc = new DefaultLoadControl.Builder()

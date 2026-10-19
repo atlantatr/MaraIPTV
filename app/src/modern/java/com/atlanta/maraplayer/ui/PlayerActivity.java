@@ -433,6 +433,12 @@ public class PlayerActivity extends BaseActivity {
         errorShown = true;
         String msg = "Yayin oynatilamadi.\n\n" + e.getErrorCodeName();
         if (e.getCause() != null && e.getCause().getMessage() != null) msg += "\n" + e.getCause().getMessage();
+        String cm = e.getCause() != null ? e.getCause().toString() : "";
+        if (cm.contains("EAC-3") || cm.contains("AC-3") || cm.contains("ac3") || cm.contains("eac3")
+                || cm.contains("DTS") || cm.contains("TrueHD") || cm.contains("mp2")) {
+            msg += "\n\nSes codec'i (AC-3/EAC-3/DTS) bu cihazda cozulamadi. "
+                    + "Ayarlar > Oynatici: Harici oynatici (VLC/MX) secin veya su anahtari kapat: \nmara.ffmpeg=false";
+        }
         if (e.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED
                 || e.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED
                 || e.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED) {

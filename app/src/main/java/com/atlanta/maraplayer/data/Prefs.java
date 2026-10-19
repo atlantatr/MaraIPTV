@@ -165,6 +165,56 @@ public final class Prefs {
         sp.edit().putString("recent_channels_" + pid, sb.length() > 0 ? id + "," + sb : id).apply();
     }
 
+    /** EPG hatirlatmalari: key = "epg_rem_" + pid + "_" + streamId + "_" + startSec */
+    public static String reminderKey(long pid, String streamId, long startSec) {
+        return "epg_rem_" + pid + "_" + streamId + "_" + startSec;
+    }
+
+    public static boolean hasReminder(long pid, String streamId, long startSec) {
+        return sp.getBoolean(reminderKey(pid, streamId, startSec), false);
+    }
+
+    public static void setReminder(long pid, String streamId, long startSec, boolean on) {
+        sp.edit().putBoolean(reminderKey(pid, streamId, startSec), on).apply();
+    }
+
+    /** Hatirlatilmak istenen programlar: [(streamId, startSec, stopSec)] - boot'ta kontrol */
+    public static java.util.List<long[]> reminders(long pid) {
+        java.util.List<long[]> out = new java.util.ArrayList<long[]>();
+        String raw = sp.getString("epg_rem_list_" + pid, "");
+        if (raw.isEmpty()) return out;
+        for (String t : raw.split(",")) {
+            String[] p = t.split("_");
+            if (p.length == 3) {
+                try {
+                    out.add(new long[]{0, Long.parseLong(p[1]), Long.parseLong(p[2])});
+                } catch (NumberFormatException e) { }
+            }
+        }
+        return out;
+    }
+
+    public static void addReminderList(long pid, String streamId, long start, long stop) {
+        String raw = sp.getString("epg_rem_list_" + pid, "");
+        StringBuilder sb = new StringBuilder(raw);
+        if (sb.length() > 0) sb.append(';');
+        sb.append(streamId).append('_').append(start).append('_').append(stop);
+        sp.edit().putString("epg_rem_list_" + pid, sb.toString()).apply();
+    }
+
+    public static void removeReminderList(long pid, String streamId, long start) {
+        String raw = sp.getString("epg_rem_list_" + pid, "");
+        if (raw.isEmpty()) return;
+        String key = streamId + "_" + start + "_";
+        StringBuilder sb = new StringBuilder();
+        for (String t : raw.split(";")) {
+            if (t.startsWith(key)) continue;
+            if (sb.length() > 0) sb.append(';');
+            sb.append(t);
+        }
+        sp.edit().putString("epg_rem_list_" + pid, sb.toString()).apply();
+    }
+
     // ------------------------------------------------------------ Ebeveyn kilidi
 
     public static boolean parentalEnabled() {

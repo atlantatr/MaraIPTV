@@ -50,6 +50,22 @@ public class EpgGridActivity extends BaseActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        // Alt activity (LiveActivity) var, task'i koru: oncekine don
+        if (isTaskRoot() && !isChangingConfigurations()) {
+            finish();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    /** Task'i bozmamak icin bu activity task root'u degilse super.onBackPressed() -> finish() yeterli */
+    @Override
+    public boolean isTaskRoot() {
+        return super.isTaskRoot();
+    }
+
+    @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         if (sessionLost) return;
@@ -108,24 +124,28 @@ public class EpgGridActivity extends BaseActivity {
 
     private void build() {
         long off = Prefs.epgOffsetSec();
+        // Epg.start/stop = sunucu saatinde (yapilanma saati, raw unix).
+        // "Bugun" cizgisi: yapilanma saatine gore gece yarisi.
+        // bugun (raw) = sistem bugun (raw) + off  (yerel gece yarisi, yapilanma cizgisine cevirmek icin +off)
         Calendar c = Calendar.getInstance();
         c.set(Calendar.HOUR_OF_DAY, 0);
         c.set(Calendar.MINUTE, 0);
         c.set(Calendar.SECOND, 0);
         c.set(Calendar.MILLISECOND, 0);
-        long today = c.getTimeInMillis() / 1000L;
+        long todayUtc = c.getTimeInMillis() / 1000L;
+        long todayRaw = todayUtc + off;   // raw unix, sunucu saat cizgisi
         dayStart = new long[DAYS];
         dayName = new String[DAYS];
         SimpleDateFormat nameFmt = new SimpleDateFormat("EEE", Ui.TR);
         for (int d = 0; d < DAYS; d++) {
-            dayStart[d] = today + d * 86400L;
+            dayStart[d] = todayRaw + d * 86400L;
+            // Gosterim zamani = yapilanma cizgisi: raw - off (sistem saatine geri don)
             dayName[d] = nameFmt.format(new Date((dayStart[d] - off) * 1000L));
         }
         adapter.days = dayName;
         adapter.notifyDataSetChanged();
-        // simdi cizilen satira git
-        long now = System.currentTimeMillis() / 1000L - off;
-        int slot = (int) Math.min(SLOTS - 1, Math.max(0, (now - today) / (2 * 3600L)));
+        long nowRaw = System.currentTimeMillis() / 1000L - off;
+        int slot = (int) Math.min(SLOTS - 1, Math.max(0, (nowRaw - todayRaw) / (2 * 3600L)));
         list.setSelection(slot);
         list.requestFocus();
         showDetailSlot(slot, 0);
@@ -133,8 +153,11 @@ public class EpgGridActivity extends BaseActivity {
 
     private void showDetailSlot(int slot, int day) {
         Epg e = adapter.cellFor(day, slot);
-        if (e != null) detail.setText(Ui.time(e.start) + " " + e.title + "\n" + e.description);
-        else detail.setText("");
+        if (e != null) {
+            detail.setText(Ui.time(e.start) + " " + e.title + "\n" + e.description);
+        } else {
+            detail.setText("");
+        }
     }
 
     private void click(final Epg e) {
@@ -143,15 +166,18 @@ public class EpgGridActivity extends BaseActivity {
         if (e.isNow(now)) {
             Ui.choose(this, e.title, new String[]{
                     getString(R.string.watch_fullscreen),
-                    getString(R.string.schedule_rec)}, -1, new Ui.Choice() {
+                    getString(R.string.schedule_rec),
+                    Prefs.hasReminder(Repo.pid(), channel.id, e.start) ? "Hatirlatmayi kaldir" : "Hatirlat"}, -1, new Ui.Choice() {
                 @Override
                 public void on(int which) {
                     if (which == 0) {
                         List<Item> one = new ArrayList<Item>();
                         one.add(channel);
                         Play.playLive(EpgGridActivity.this, one, 0);
-                    } else {
+                    } else if (which == 1) {
                         RecordUi.recordNow(EpgGridActivity.this, channel, e.stop);
+                    } else {
+                        RecordUi.toggleReminder(EpgGridActivity.this, channel, e);
                     }
                 }
             });
@@ -196,8 +222,9 @@ public class EpgGridActivity extends BaseActivity {
             SimpleDateFormat tFmt = new SimpleDateFormat("HH:mm", Ui.TR);
             long nowSec = System.currentTimeMillis() / 1000L - off;
 
+            // Saat etiketi: dilimin baslangici (raw) -> gosterim saati (raw - off)
             ((TextView) v.findViewById(R.id.hour)).setText(
-                    hFmt.format(new Date(((dayStart[0] + slot * 2 * 3600L) - off) * 1000L)));
+                    hFmt.format(new Date((dayStart[0] + slot * 2 * 3600L - off) * 1000L)));
 
             // gun basliklari yalnizca ilk satirda
             if (slot == 0) {
@@ -220,21 +247,26 @@ public class EpgGridActivity extends BaseActivity {
                         sb.append("-").append(tFmt.format(new Date((cell.stop - off) * 1000L)));
                     }
                     sb.append('\n').append(cell.title);
-                    if (cell.isNow(nowSec)) sb.append("\n► ").append(getString(R.string.now));
+                    long nowRaw = System.currentTimeMillis() / 1000L - off;
+                    if (cell.isNow(nowRaw)) sb.append("\n► ").append(getString(R.string.now));
                     blk.setText(sb.toString());
                 }
             }
             return v;
         }
 
-        /** Bu gunun (d) bu slotundaki ilk program */
+        /**
+         * Bu gunun (d) bu slotundaki ilk program.
+         * Tum kesim [s0, s1) raw unix (sunucu cizgisi) olarak alinir;
+         * Epg.start/stop da zaten raw sunucu cizgisindedir.
+         */
         Epg cellFor(int d, int slot) {
             if (programs == null || dayStart == null) return null;
-            long off = Prefs.epgOffsetSec();
-            long s0 = dayStart[d] + slot * 2 * 3600L - off;
+            long s0 = dayStart[d] + slot * 2 * 3600L;
             long s1 = s0 + 2 * 3600L;
             Epg best = null;
             for (Epg e : programs) {
+                // dilimle kesişiyor mu
                 if (e.stop > s0 && e.start < s1) {
                     if (best == null || e.start < best.start) best = e;
                 }

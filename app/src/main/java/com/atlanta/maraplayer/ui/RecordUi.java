@@ -66,4 +66,20 @@ public final class RecordUi {
             }
         });
     }
+
+    /** EPG'deki programa hatirlatma (bildirim) ekler / kaldirir */
+    public static void toggleReminder(final Activity a, final Item ch, final Epg e) {
+        final long off = Prefs.epgOffsetSec();
+        final long pid = Repo.pid();
+        final String label = ch.name + "  ·  " + e.title + "\n" + Ui.dayTime(e.start + off);
+        boolean on = !Prefs.hasReminder(pid, ch.id, e.start);
+        Prefs.setReminder(pid, ch.id, e.start, on);
+        if (on) {
+            Prefs.addReminderList(pid, ch.id, e.start, e.stop);
+            Ui.toast(a, "Hatirlatildi: " + e.title);
+        } else {
+            Prefs.removeReminderList(pid, ch.id, e.start);
+            Ui.toast(a, "Hatirlatma kaldirildi");
+        }
+    }
 }

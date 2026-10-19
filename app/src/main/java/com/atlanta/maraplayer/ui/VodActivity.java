@@ -309,9 +309,16 @@ public class VodActivity extends BaseActivity {
             chooseSort();
             return true;
         }
-        if (keyCode == KeyEvent.KEYCODE_BACK && grid.hasFocus()) {
-            cats.requestFocus();
-            return true;
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (grid.hasFocus()) {
+                cats.requestFocus();
+                return true;
+            }
+            if (cats.hasFocus()) {
+                startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                finish();
+                return true;
+            }
         }
         return super.onKeyDown(keyCode, event);
     }

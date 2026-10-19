@@ -372,9 +372,23 @@ public class LiveActivity extends BaseActivity {
                 return true;
             }
         }
-        if (keyCode == KeyEvent.KEYCODE_BACK && channels.hasFocus()) {
-            cats.requestFocus();
-            return true;
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            // 1) önizleme acikken geri -> onizlemeyi kapat, sayfada kal
+            if (previewPlayer != null) {
+                releasePreview();
+                channels.requestFocus();
+                return true;
+            }
+            if (channels.hasFocus()) {
+                cats.requestFocus();
+                return true;
+            }
+            if (cats.hasFocus()) {
+                // Kategori odakliyken geri -> home'a don (yukaridan acilmis ise), yoksa kapanir
+                startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                finish();
+                return true;
+            }
         }
         return super.onKeyDown(keyCode, event);
     }

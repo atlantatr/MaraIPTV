@@ -150,14 +150,17 @@ public class EpgActivity extends BaseActivity {
         long off = Prefs.epgOffsetSec();
         long now = System.currentTimeMillis() / 1000L - off;
         if (e.isNow(now)) {
-            Ui.choose(this, e.title, new String[]{"Canli izle", "Kaydet (program sonuna kadar)"}, -1, new Ui.Choice() {
+            Ui.choose(this, e.title, new String[]{"Canli izle", "Kaydet (program sonuna kadar)",
+                    Prefs.hasReminder(Repo.pid(), channel.id, e.start) ? "Hatirlatmayi kaldir" : "Hatirlat"}, -1, new Ui.Choice() {
                 @Override
                 public void on(int which) {
                     if (which == 0) {
                         List<Item> one = Collections.singletonList(channel);
                         Play.playLive(EpgActivity.this, new ArrayList<>(one), 0);
-                    } else {
+                    } else if (which == 1) {
                         RecordUi.recordNow(EpgActivity.this, channel, e.stop);
+                    } else {
+                        RecordUi.toggleReminder(EpgActivity.this, channel, e);
                     }
                 }
             });

@@ -120,6 +120,11 @@ public final class Http {
         return stream(open(url, 15000));
     }
 
+    /** Otomatik giris icin kullanilir: sunucu yanit vermeyince beklemeden hata doner */
+    public static InputStream getStreamFast(String url) throws IOException {
+        return stream(open(url, 5000));
+    }
+
     public static String getString(String url) throws IOException {
         InputStream in = getStream(url);
         try {

@@ -34,6 +34,13 @@ public abstract class BaseActivity extends Activity {
         }
     }
 
+    /** Acik diyaloglar kapatilir (window leak onleme); cagri yapanlarin onunde override yok */
+    @Override
+    protected void onDestroy() {
+        com.atlanta.maraplayer.util.Ui.dismissAllDialogs();
+        super.onDestroy();
+    }
+
     @SuppressWarnings("unchecked")
     protected <T extends View> T v(int id) {
         return (T) findViewById(id);

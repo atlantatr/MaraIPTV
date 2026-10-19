@@ -62,6 +62,9 @@ public final class Ui {
         void on(int which);
     }
 
+    /** Acik diyaloglari tutar; activity onDestroy'de kapatilir (window leak onleme) */
+    private static final java.util.List<AlertDialog> openDialogs = new java.util.ArrayList<AlertDialog>();
+
     public static void choose(Context c, String title, String[] items, int checked, final Choice cb) {
         AlertDialog.Builder b = dialog(c).setTitle(title);
         DialogInterface.OnClickListener l = new DialogInterface.OnClickListener() {
@@ -73,18 +76,47 @@ public final class Ui {
         };
         if (checked >= 0) b.setSingleChoiceItems(items, checked, l);
         else b.setItems(items, l);
-        b.setNegativeButton(R.string.close, null).show();
+        b.setNegativeButton(R.string.close, null);
+        trackDialog(b.create(), b);
     }
 
     public static void confirm(Context c, String title, String msg, final Runnable yes) {
-        dialog(c).setTitle(title).setMessage(msg)
+        AlertDialog.Builder b = dialog(c).setTitle(title).setMessage(msg)
                 .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface d, int w) {
                         yes.run();
                     }
                 })
-                .setNegativeButton(R.string.no, null).show();
+                .setNegativeButton(R.string.no, null);
+        trackDialog(b.create(), b);
+    }
+
+    /** Dialog'i olustur, acik liste takibine ekle, gosterir; kapatil listeden silinir */
+    private static void trackDialog(final AlertDialog dlg, AlertDialog.Builder b) {
+        dlg.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface d) {
+                synchronized (openDialogs) { openDialogs.remove(dlg); }
+            }
+        });
+        // builder'a set edilen listener'lar create() ile birlikte dlg'ye gecmez;
+        // builder'dan alinip dlg'ye atanlar zaten set'li -> sadece show
+        synchronized (openDialogs) { openDialogs.add(dlg); }
+        dlg.show();
+    }
+
+    /** BaseActivity.onDestroy'de cagirilir; acik diyaloglari kapatir (window leak onleme) */
+    public static void dismissAllDialogs() {
+        synchronized (openDialogs) {
+            for (AlertDialog d : openDialogs) {
+                try {
+                    if (d.isShowing()) d.dismiss();
+                } catch (Exception ignored) {
+                }
+            }
+            openDialogs.clear();
+        }
     }
 
     public interface TextCb {

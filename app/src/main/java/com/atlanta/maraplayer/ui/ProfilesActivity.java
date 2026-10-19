@@ -14,9 +14,10 @@ import com.atlanta.maraplayer.BuildConfig;
 import com.atlanta.maraplayer.R;
 import com.atlanta.maraplayer.data.AppEvents;
 import com.atlanta.maraplayer.data.Db;
-import com.atlanta.maraplayer.data.Models.Account;
+
 import com.atlanta.maraplayer.data.Models.Profile;
 import com.atlanta.maraplayer.data.Prefs;
+import com.atlanta.maraplayer.data.Models.Account;
 import com.atlanta.maraplayer.data.Repo;
 import com.atlanta.maraplayer.data.Source;
 import com.atlanta.maraplayer.data.Sources;
@@ -92,7 +93,7 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
             } else if (Prefs.autoLogin() && Prefs.lastProfile() > 0) {
                 p = Db.get().profile(Prefs.lastProfile());
             }
-            if (p != null) doLogin(p);
+            if (p != null) fastLogin(p);
         }
     }
 
@@ -142,6 +143,41 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
             @Override
             public void run() {
                 loggingIn = false;
+            }
+        });
+    }
+
+    /** Otomatik giris: sunucu yavarsa beklemeden ekran acilir, hata bildirir */
+    private void fastLogin(final Profile p) {
+        if (loggingIn) return;
+        loggingIn = true;
+        final Source src = Sources.create(p);
+        final ProgressDialog pd = Ui.progress(this, getString(R.string.connecting_x, p.name));
+        Async.run(this, new Async.Task<Account>() {
+            @Override
+            public Account run() throws Exception {
+                return src.loginFast();
+            }
+        }, new Async.Callback<Account>() {
+            @Override
+            public void on(Account acc) {
+                Ui.dismiss(pd);
+                loggingIn = false;
+                Repo.setSession(p, acc, src);
+                Db.get().touchProfile(p.id);
+                Prefs.setLastProfile(p.id);
+                Intent i = new Intent(ProfilesActivity.this, HomeActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+                finish();
+            }
+        }, new Async.Callback<Exception>() {
+            @Override
+            public void on(Exception e) {
+                Ui.dismiss(pd);
+                loggingIn = false;
+                reload();
+                Ui.toast(ProfilesActivity.this, getString(R.string.connection_failed) + ": " + Ui.err(e));
             }
         });
     }

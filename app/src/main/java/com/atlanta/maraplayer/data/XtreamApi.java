@@ -111,6 +111,53 @@ public class XtreamApi implements Source {
 
     // ---------------------------------------------------------------- Istekler
 
+    /**
+     * Otomatik giris icin hizli login: sunucu yanit vermiyorsa 5sn bekleyip
+     * hatayi dondur (UI'da bekletilmez, kullanici tekrar girebilir).
+     */
+    public Account loginFast() throws IOException {
+        InputStream in = Http.getStreamFast(api(null, null));
+        JsonReader r = new JsonReader(new InputStreamReader(in, "UTF-8"));
+        r.setLenient(true);
+        try {
+            if (r.peek() != JsonToken.BEGIN_OBJECT) throw new IOException("Gecersiz sunucu yaniti");
+            Account a = new Account();
+            boolean auth = false;
+            r.beginObject();
+            while (r.hasNext()) {
+                String n = r.nextName();
+                if ("user_info".equals(n) && r.peek() == JsonToken.BEGIN_OBJECT) {
+                    r.beginObject();
+                    while (r.hasNext()) {
+                        String k = r.nextName();
+                        String v = str(r);
+                        switch (k) {
+                            case "auth": auth = "1".equals(v) || "true".equals(v); break;
+                            case "username": a.user = v; break;
+                            case "status": a.status = v; break;
+                            case "exp_date": a.expDate = toLong(v); break;
+                            case "is_trial": a.trial = "1".equals(v); break;
+                            case "max_connections": a.maxConnections = toInt(v); break;
+                            case "active_cons": a.activeConnections = toInt(v); break;
+                        }
+                    }
+                    r.endObject();
+                } else {
+                    r.skipValue();
+                }
+            }
+            r.endObject();
+            if (!auth) throw new IOException("Oturum acilamadi: yetkisiz hesap");
+            return a;
+        } finally {
+            try {
+                r.close();
+                in.close();
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
     public Account login() throws IOException {
         return readUrl(api(null, null), new ObjReader<Account>() {
             @Override

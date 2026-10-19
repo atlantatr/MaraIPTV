@@ -82,8 +82,12 @@ public final class PlayerFactory {
                 break;
         }
         if (live) {
+            // Canlı TV: aninda baslatma icin baslangic esigi asgariye duşur,
+            // tamponu sonradan doldurur. (MertStream tarzı "tikladigin gibi acilir")
             max = Math.min(max, 30000);
             min = Math.min(min, max);
+            start = Math.min(start, 1000);
+            rebuffer = Math.min(rebuffer, 1500);
         }
         return new int[]{min, max, start, rebuffer};
     }

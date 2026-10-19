@@ -33,11 +33,12 @@ public final class PlayerFactory {
     }
 
     public static ExoPlayer create(Context c, boolean live) {
-        // canli TV + FHD'de donma takilma sorunu icin decoder fallback'i devre disi,
-        // donanim MediaCodec + FFmpeg extension sadece codec desteklenmezse devreye girer.
+        // canli TV + FHD'de donma/takilma sorunu icin FFmpeg extension'u devre disi;
+        // donanim MediaCodec birincil decoder olarak kullanilir. (Media3 1.5.0'ta
+        // EXTENSION_RENDERER_MODE_FALLBACK sabiti yok, OFF = en güvenli mod)
         DefaultRenderersFactory rf = new DefaultRenderersFactory(c)
-                .setEnableDecoderFallback(false)
-                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_FALLBACK);
+                .setEnableDecoderFallback(true)
+                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
 
         ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
 

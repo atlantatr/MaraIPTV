@@ -497,7 +497,8 @@ public class LiveActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         if (chAdapter != null) chAdapter.reloadFavs();
-        // tam ekrandan donuste son izlenen kanali sec
+        // tam ekrandan donuste son izlenen kanali sec + otomatik onizlemeyi ac
+        // (MertStream: tikladigin gibi yayin baslar)
         String last = Prefs.lastChannel(Repo.pid());
         if (last != null && chAdapter != null) {
             List<Item> d = chAdapter.data();
@@ -505,6 +506,9 @@ public class LiveActivity extends BaseActivity {
                 if (d.get(i).id.equals(last)) {
                     channels.setSelection(i);
                     channels.setItemChecked(i, true);
+                    // son izlenen kanali onizlemeye baslat + EPG yukle
+                    if (Prefs.preview() && !Prefs.externalPlayer()) startPreview(d.get(i));
+                    loadEpg(d.get(i));
                     break;
                 }
             }

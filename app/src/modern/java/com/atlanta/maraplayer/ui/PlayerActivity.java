@@ -776,8 +776,7 @@ public class PlayerActivity extends BaseActivity {
                 chPanel.setVisibility(View.GONE);
                 return true;
             }
-            releasePlayer();
-            finish();
+            finish(); // onStop() releasePlayer() cagirir; cift release olmaz
             return true;
         }
         if (player == null) return super.onKeyDown(keyCode, event);

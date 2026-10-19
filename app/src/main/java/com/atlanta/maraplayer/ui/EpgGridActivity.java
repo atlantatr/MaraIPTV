@@ -217,10 +217,19 @@ public class EpgGridActivity extends BaseActivity {
         @Override
         public View getView(int slot, View v, ViewGroup parent) {
             if (v == null) v = getLayoutInflater().inflate(R.layout.item_epg_grid, parent, false);
+            // Data henüz gelmedi (build() cagrilmadi) -> guvenli placeholder
+            if (dayStart == null) {
+                for (int d = 0; d < DAYS; d++) {
+                    TextView blk = v.findViewById(BLK_IDS[d]);
+                    blk.setVisibility(View.INVISIBLE);
+                }
+                ((TextView) v.findViewById(R.id.hour)).setText("  ");
+                return v;
+            }
             long off = Prefs.epgOffsetSec();
             SimpleDateFormat hFmt = new SimpleDateFormat("HH", Ui.TR);
             SimpleDateFormat tFmt = new SimpleDateFormat("HH:mm", Ui.TR);
-            long nowSec = System.currentTimeMillis() / 1000L - off;
+            long nowRaw = System.currentTimeMillis() / 1000L - off;
 
             // Saat etiketi: dilimin baslangici (raw) -> gosterim saati (raw - off)
             ((TextView) v.findViewById(R.id.hour)).setText(
@@ -247,7 +256,6 @@ public class EpgGridActivity extends BaseActivity {
                         sb.append("-").append(tFmt.format(new Date((cell.stop - off) * 1000L)));
                     }
                     sb.append('\n').append(cell.title);
-                    long nowRaw = System.currentTimeMillis() / 1000L - off;
                     if (cell.isNow(nowRaw)) sb.append("\n► ").append(getString(R.string.now));
                     blk.setText(sb.toString());
                 }

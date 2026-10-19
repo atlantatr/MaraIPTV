@@ -29,14 +29,10 @@ public final class PlayerFactory {
         // ExoPlayer 2.19.1 icin extension-ffmpeg (AC3/EAC3/DTS/TrueHD/MP2 yazilim cozeni)
         boolean ok = false;
         try {
-            Class<?> cls = Class.forName("com.google.android.exoplayer2.ext.ffmpeg.FfmpegDecoder");
-            try {
-                cls.getMethod("init").invoke(null);
-                ok = true;
-            } catch (Exception ignored) {
-                // eski API'de init yok olabilir
-                ok = true;
-            }
+            // ExoPlayer 2.19.1 DefaultRenderersFactory, extension-ffmpeg
+            // classpath'te varligrini Class.forName ile otomatik kontrol eder.
+            Class.forName("com.google.android.exoplayer2.ext.ffmpeg.FfmpegDecoder");
+            ok = true;
         } catch (Throwable ignored) {
             // extension-ffmpeg paketi yok -> MediaCodec fallback yeter
         }

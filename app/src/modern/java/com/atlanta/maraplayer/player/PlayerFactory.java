@@ -37,6 +37,12 @@ public final class PlayerFactory {
                 .setEnableDecoderFallback(true)
                 .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
 
+        // Jellyfin media3-ffmpeg-decoder (mara.ffmpeg=true): cihazin MediaCodec'su
+        // cozemedigi AC3/EAC3/DTS/TrueHD/MP2 sesleri FFmpeg ile yazilimda cozer.
+        // DefaultRenderersFactory extension paketi classpath'te var otomatik kullanir;
+        // yoksa (build'de kapali) MediaCodec fallback'i devreye girer.
+        ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
+
         int[] b = bufferMs(live);
         DefaultLoadControl lc = new DefaultLoadControl.Builder()
                 .setBufferDurationsMs(b[0], b[1], b[2], b[3])
@@ -50,7 +56,7 @@ public final class PlayerFactory {
                 .setPreferredAudioLanguage("tr")
                 .setPreferredTextLanguage("tr"));
 
-        return new ExoPlayer.Builder(c, rf)
+        return builder
                 .setLoadControl(lc)
                 .setTrackSelector(ts)
                 .build();

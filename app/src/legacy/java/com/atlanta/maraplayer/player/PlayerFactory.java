@@ -74,6 +74,11 @@ public final class PlayerFactory {
             min = Math.min(min, max);
             start = Math.min(start, 1500);
             rebuffer = Math.min(rebuffer, 3000);
+        } else {
+            // VOD: kesintide daha cesarli bekle, donarak oynatmayi onle
+            min = Math.max(min, 20000);
+            start = Math.min(start, 3000);
+            rebuffer = Math.max(rebuffer, 4000);
         }
         return new int[]{min, max, start, rebuffer};
     }

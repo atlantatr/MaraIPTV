@@ -75,18 +75,23 @@ public final class PlayerFactory {
                 min = 20000; max = 60000; start = 3000; rebuffer = 6000;
                 break;
             default:
-                // "normal": canli TV donme sorununu onlemek icin tamponu bol tutar,
-                // ilk baslangic hiza odaklidir; donarsa Ayarlar'dan "FHD" sec.
+                // "normal": bol tampon, donma onleme icin
                 min = 20000; max = 60000; start = 2000; rebuffer = 4000;
                 break;
         }
         if (live) {
-            // Canlı TV'de tamponu 45s ile sinirle, gecikme artmasin;
-            // baslangic eşiği 1.5s (aninda acilir, donme engellenir)
+            // Canlı TV: tamponu 45s ile sinirle, baslangic eşiği 1.5s
             max = Math.min(max, 45000);
             min = Math.min(min, max);
             start = Math.min(start, 1500);
             rebuffer = Math.min(rebuffer, 3000);
+        } else {
+            // VOD (film/dizi): canli TV'deki sinirlar gecerli degil;
+            // donarak oynatma sorunu icin minimum tamponu asgari 20sn tut,
+            // kesinti olustugunda daha cesarli beklesin
+            min = Math.max(min, 20000);
+            start = Math.min(start, 3000);
+            rebuffer = Math.max(rebuffer, 4000);
         }
         return new int[]{min, max, start, rebuffer};
     }

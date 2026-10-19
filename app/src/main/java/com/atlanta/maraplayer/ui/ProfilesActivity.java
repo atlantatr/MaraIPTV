@@ -34,7 +34,6 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
 
     private Adapters.RowAdapter adapter;
     private ListView list;
-    private static boolean autoTried;
     private boolean loggingIn;
 
     @Override
@@ -82,20 +81,19 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
             }
         });
 
+        // Otomatik giris: kullanici manuel gelmediyse ve oturum henuz yoksa
         boolean manual = getIntent().getBooleanExtra(EXTRA_MANUAL, false);
-        if (!manual && !autoTried) {
-            autoTried = true;
+        if (!manual && !Repo.hasSession()) {
             List<Profile> all = Db.get().profiles();
             Profile p = null;
             if (all.size() == 1) {
-                // tek hesap varsa secim yapmadan dogrudan ac
+                // Tek hesap varsa secim yapmadan dogrudan ac
                 p = all.get(0);
-            } else if (Prefs.autoLogin()) {
+            } else if (Prefs.autoLogin() && Prefs.lastProfile() > 0) {
                 p = Db.get().profile(Prefs.lastProfile());
             }
             if (p != null) doLogin(p);
         }
-        autoTried = true;
     }
 
     @Override

@@ -384,12 +384,11 @@ public class LiveActivity extends BaseActivity {
                 cats.requestFocus();
                 return true;
             }
-            // 3) kategori odaginda ya da baska bir yere -> home'a don (uygulamayi kapatma)
-            if (cats.hasFocus()) {
-                startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                finish();
-                return true;
-            }
+            // 3) kategori odaginda ya da BIR YERE ODAK YOK -> home'a don
+            //    (uygulamayi asla tam kapatma; task'i koru)
+            startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            finish();
+            return true;
         }
         return super.onKeyDown(keyCode, event);
     }

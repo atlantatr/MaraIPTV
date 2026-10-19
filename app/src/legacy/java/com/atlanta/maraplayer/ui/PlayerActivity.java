@@ -655,6 +655,15 @@ public class PlayerActivity extends BaseActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // Geri/EXIT tusu hicbir durumda uygulamayi tam kapatmasin
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (chPanel != null && chPanel.getVisibility() == View.VISIBLE) {
+                chPanel.setVisibility(View.GONE);
+                return true;
+            }
+            finish(); // onPause'da player zaten release edilir
+            return true;
+        }
         if (player == null) return super.onKeyDown(keyCode, event);
 
         if (chPanel.getVisibility() == View.VISIBLE) {
@@ -676,15 +685,6 @@ public class PlayerActivity extends BaseActivity {
         }
 
         switch (keyCode) {
-            case KeyEvent.KEYCODE_BACK:
-                // Kanallari gosteren panel acikken -> paneli kapat, sayfada kal
-                // Panel kapaliyken -> oneaki aktiviteye don (uygulamayi kapatma)
-                if (chPanel.getVisibility() == View.VISIBLE) {
-                    chPanel.setVisibility(View.GONE);
-                    return true;
-                }
-                finish();
-                return true;
             case KeyEvent.KEYCODE_MENU:
             case KeyEvent.KEYCODE_SETTINGS:
                 options();

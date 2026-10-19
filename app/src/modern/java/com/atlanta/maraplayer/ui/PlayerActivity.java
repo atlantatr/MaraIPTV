@@ -773,7 +773,7 @@ public class PlayerActivity extends BaseActivity {
 
         if (chPanel.getVisibility() == View.VISIBLE) {
             bumpPanel();
-            if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 chPanel.setVisibility(View.GONE);
                 return true;
             }
@@ -790,6 +790,15 @@ public class PlayerActivity extends BaseActivity {
         }
 
         switch (keyCode) {
+            case KeyEvent.KEYCODE_BACK:
+                // Kanallari gosteren panel acikken -> paneli kapat, sayfada kal
+                // Panel kapaliyken -> oneaki aktiviteye don (uygulamayi kapatma)
+                if (chPanel.getVisibility() == View.VISIBLE) {
+                    chPanel.setVisibility(View.GONE);
+                    return true;
+                }
+                finish();
+                return true;
             case KeyEvent.KEYCODE_MENU:
             case KeyEvent.KEYCODE_SETTINGS:
                 options();

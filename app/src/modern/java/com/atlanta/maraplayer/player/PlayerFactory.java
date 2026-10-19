@@ -50,13 +50,11 @@ public final class PlayerFactory {
                 .build();
 
         DefaultTrackSelector ts = new DefaultTrackSelector(c);
-        androidx.media3.exoplayer.trackselection.TrackSelectionParameters.Builder tb
-                = ts.buildUponParameters()
+        ts.setParameters(ts.buildUponParameters()
                 .setExceedRendererCapabilitiesIfNecessary(true)
                 .setExceedVideoConstraintsIfNecessary(true)
                 .setPreferredAudioLanguage("tr")
-                .setPreferredTextLanguage("tr");
-        ts.setParameters(tb.build());
+                .setPreferredTextLanguage("tr"));
 
         return builder
                 .setLoadControl(lc)

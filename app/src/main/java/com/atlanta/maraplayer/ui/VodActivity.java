@@ -310,10 +310,12 @@ public class VodActivity extends BaseActivity {
             return true;
         }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+            // 1) film/dizi listesi odaginda -> kategoriye don
             if (grid.hasFocus()) {
                 cats.requestFocus();
                 return true;
             }
+            // 2) kategori odaginda -> home'a don (uygulamayi kapatma)
             if (cats.hasFocus()) {
                 startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                 finish();

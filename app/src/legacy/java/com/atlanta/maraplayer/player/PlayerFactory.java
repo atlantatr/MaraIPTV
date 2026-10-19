@@ -63,6 +63,10 @@ public final class PlayerFactory {
                 break;
             default:
                 min = 15000; max = 50000; start = 2000; rebuffer = 4000;
+                break;
+            case "fhd":
+                min = 20000; max = 60000; start = 3000; rebuffer = 6000;
+                break;
         }
         if (live) {
             max = Math.min(max, 30000);

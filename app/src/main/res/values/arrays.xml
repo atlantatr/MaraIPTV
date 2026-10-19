@@ -46,11 +46,13 @@
         <item>Düşük (hızlı açılış)</item>
         <item>Normal</item>
         <item>Yüksek (zayıf internet)</item>
+        <item>FHD yükseltilmiş (donanıksız kutu)</item>
     </string-array>
     <string-array name="buffer_values" translatable="false">
         <item>low</item>
         <item>normal</item>
         <item>high</item>
+        <item>fhd</item>
     </string-array>
 
     <string-array name="aspect_names">

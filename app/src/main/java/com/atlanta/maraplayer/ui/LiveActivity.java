@@ -379,12 +379,13 @@ public class LiveActivity extends BaseActivity {
                 channels.requestFocus();
                 return true;
             }
+            // 2) kanal listesi odaginda -> kategoriye don
             if (channels.hasFocus()) {
                 cats.requestFocus();
                 return true;
             }
+            // 3) kategori odaginda ya da baska bir yere -> home'a don (uygulamayi kapatma)
             if (cats.hasFocus()) {
-                // Kategori odakliyken geri -> home'a don (yukaridan acilmis ise), yoksa kapanir
                 startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                 finish();
                 return true;

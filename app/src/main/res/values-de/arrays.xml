@@ -21,7 +21,8 @@
         <item>Niedrig (schneller Start)</item>
         <item>Normal</item>
         <item>Hoch (schwaches Internet)</item>
-    </string-array>
+            <item>FHD erhoht (langsames Gerat)</item>
+</string-array>
     <string-array name="aspect_names">
         <item>Einpassen (Originalverhältnis)</item>
         <item>Füllen (strecken)</item>

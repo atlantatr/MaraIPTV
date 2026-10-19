@@ -21,7 +21,8 @@
         <item>Basso (avvio rapido)</item>
         <item>Normale</item>
         <item>Alto (internet debole)</item>
-    </string-array>
+            <item>FHD potenziato (box lento)</item>
+</string-array>
     <string-array name="aspect_names">
         <item>Adatta (proporzione originale)</item>
         <item>Riempisci (scala)</item>

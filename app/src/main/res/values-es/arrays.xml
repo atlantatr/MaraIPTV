@@ -21,7 +21,8 @@
         <item>Bajo (arranque rápido)</item>
         <item>Normal</item>
         <item>Alto (internet débil)</item>
-    </string-array>
+            <item>FHD mejorado (caja lenta)</item>
+</string-array>
     <string-array name="aspect_names">
         <item>Ajustar (proporción original)</item>
         <item>Rellenar (estirar)</item>

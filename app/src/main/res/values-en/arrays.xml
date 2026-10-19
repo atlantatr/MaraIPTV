@@ -21,7 +21,8 @@
         <item>Low (fast start)</item>
         <item>Normal</item>
         <item>High (weak internet)</item>
-    </string-array>
+            <item>FHD enhanced (slow box)</item>
+</string-array>
     <string-array name="aspect_names">
         <item>Fit (original ratio)</item>
         <item>Fill (stretch)</item>

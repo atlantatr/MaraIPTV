@@ -42,6 +42,8 @@ public final class Prefs {
     }
 
     public static String buffer() {
+        // "fhd" = FHD/H.265 canli kanallarda donarak oynatma sorunu icin yukseltilmis
+        // buffer modu; Amlogic vb. donanimsiz kutularda kullanilir.
         return sp.getString("buffer", "normal");
     }
 

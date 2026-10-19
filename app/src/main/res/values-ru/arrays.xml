@@ -21,7 +21,8 @@
         <item>Малый (быстрый старт)</item>
         <item>Обычный</item>
         <item>Большой (слабая сеть)</item>
-    </string-array>
+            <item>FHD усиленный (слабый тюнер)</item>
+</string-array>
     <string-array name="aspect_names">
         <item>Вписать (оригинальное)</item>
         <item>Растянуть</item>

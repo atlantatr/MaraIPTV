@@ -50,11 +50,13 @@ public final class PlayerFactory {
                 .build();
 
         DefaultTrackSelector ts = new DefaultTrackSelector(c);
-        ts.setParameters(ts.buildUponParameters()
+        androidx.media3.exoplayer.trackselection.TrackSelectionParameters.Builder tb
+                = ts.buildUponParameters()
                 .setExceedRendererCapabilitiesIfNecessary(true)
                 .setExceedVideoConstraintsIfNecessary(true)
                 .setPreferredAudioLanguage("tr")
-                .setPreferredTextLanguage("tr"));
+                .setPreferredTextLanguage("tr");
+        ts.setParameters(tb.build());
 
         return builder
                 .setLoadControl(lc)
@@ -74,6 +76,12 @@ public final class PlayerFactory {
                 break;
             default:
                 min = 15000; max = 50000; start = 2000; rebuffer = 4000;
+                break;
+            // FHD/H.265 canli kanallarda donarak oynatma (Amlogic vb.) sorunu icin
+            // "normal" buffer'yu artirir; ayri bir "FHD yukseltilmis" modu
+            case "fhd":
+                min = 20000; max = 60000; start = 3000; rebuffer = 6000;
+                break;
         }
         if (live) {
             max = Math.min(max, 30000);

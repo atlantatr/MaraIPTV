@@ -23,28 +23,14 @@ public final class PlayerFactory {
     private PlayerFactory() {
     }
 
-    private static final boolean ffmpegDecoderLoaded;
-
-    static {
-        // ExoPlayer 2.19.1 icin extension-ffmpeg (AC3/EAC3/DTS/TrueHD/MP2 yazilim cozeni)
-        boolean ok = false;
-        try {
-            // ExoPlayer 2.19.1 DefaultRenderersFactory, extension-ffmpeg
-            // classpath'te varligrini Class.forName ile otomatik kontrol eder.
-            Class.forName("com.google.android.exoplayer2.ext.ffmpeg.FfmpegDecoder");
-            ok = true;
-        } catch (Throwable ignored) {
-            // extension-ffmpeg paketi yok -> MediaCodec fallback yeter
-        }
-        ffmpegDecoderLoaded = ok;
-    }
-
     public static ExoPlayer create(Context c, boolean live) {
+        // ExoPlayer 2.19.1 icin FFmpeg audio extension artifact'i Maven'da yok;
+        // EAC-3/AC-3/DTS sesleri cihazin MediaCodec donanim cozucusu icinde
+        // (Amlogic vb. kutularda genelde var) cozulur. Cozemiyorsa hata
+        // dialog'u harici oynaticiya yonlendirir.
         DefaultRenderersFactory rf = new DefaultRenderersFactory(c)
                 .setEnableDecoderFallback(true)
-                .setExtensionRendererMode(ffmpegDecoderLoaded
-                        ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                        : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
+                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
 
         int[] b = bufferMs(live);
         DefaultLoadControl lc = new DefaultLoadControl.Builder()

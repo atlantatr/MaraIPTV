@@ -160,4 +160,10 @@
     <string name="lang_system">Lingua di sistema</string>
     <string name="epg_saved_count_x">%1$d canali</string>
     <string name="recently_watched">Canali visualizzati di recente</string>
+    <string name="epg_grid_title">Griglia EPG: %1$s</string>
+    <string name="epg_grid_hint">vista a %1$d giorni</string>
+    <string name="now">Ora</string>
+    <string name="no_archive">Nessun archivio per questo programma</string>
+    <string name="schedule_rec">Registrazione programmata</string>
+    <string name="epg_grid">Griglia a 7 giorni</string>
 </resources>

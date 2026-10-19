@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- EPG kutusu: normal / odakli (simdi izlenen vurgulu) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape>
+            <solid android:color="@color/accent_dim" />
+            <stroke android:width="2dp" android:color="@color/accent" />
+            <corners android:radius="6dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid android:color="@color/panel2" />
+            <corners android:radius="6dp" />
+        </shape>
+    </item>
+</selector>

@@ -160,4 +160,10 @@
     <string name="lang_system">Idioma del sistema</string>
     <string name="epg_saved_count_x">%1$d canales</string>
     <string name="recently_watched">Canales vistos recientemente</string>
+    <string name="epg_grid_title">Cuadrícula EPG: %1$s</string>
+    <string name="epg_grid_hint">vista de %1$d días</string>
+    <string name="now">Ahora</string>
+    <string name="no_archive">No hay archivo para este programa</string>
+    <string name="schedule_rec">Grabación programada</string>
+    <string name="epg_grid">Cuadrícula de 7 días</string>
 </resources>

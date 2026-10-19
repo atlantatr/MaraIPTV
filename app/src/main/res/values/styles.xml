@@ -63,4 +63,34 @@
         <item name="android:scrollbarStyle">outsideOverlay</item>
         <item name="android:fadingEdge">none</item>
     </style>
+
+    <style name="EpgDay">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:paddingLeft">4dp</item>
+        <item name="android:paddingRight">4dp</item>
+        <item name="android:paddingTop">3dp</item>
+        <item name="android:paddingBottom">3dp</item>
+        <item name="android:textColor">@color/text2</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:gravity">center</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <style name="EpgBlock">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_margin">2dp</item>
+        <item name="android:padding">5dp</item>
+        <item name="android:background">@drawable/epg_block_bg</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:maxLines">3</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:focusable">true</item>
+    </style>
 </resources>

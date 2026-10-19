@@ -326,6 +326,7 @@ public class LiveActivity extends BaseActivity {
         final boolean fav = Db.get().isFavorite(Repo.pid(), Models.LIVE, it.id);
         String[] opts = {getString(fav ? R.string.fav_remove : R.string.fav_add),
                 getString(it.archive ? R.string.epg_and_catchup : R.string.epg),
+                getString(R.string.epg_grid),
                 getString(R.string.watch_fullscreen), getString(R.string.record)};
         Ui.choose(this, it.name, opts, -1, new Ui.Choice() {
             @Override
@@ -343,6 +344,8 @@ public class LiveActivity extends BaseActivity {
                 } else if (which == 1) {
                     EpgActivity.open(LiveActivity.this, it);
                 } else if (which == 2) {
+                    EpgGridActivity.open(LiveActivity.this, it);
+                } else if (which == 3) {
                     int pos = chAdapter.data().indexOf(it);
                     if (pos >= 0) fullscreen(pos);
                 } else {

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- EPG ızgara kutusu: sol saat + 7 gunluk 7 program kutusu (gun basligi ustte) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/hour"
+        android:layout_width="44dp"
+        android:layout_height="match_parent"
+        android:gravity="top|right"
+        android:paddingRight="6dp"
+        android:textColor="@color/text2"
+        android:textSize="11sp" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="7">
+
+            <TextView android:id="@+id/d0" style="@style/EpgDay" />
+            <TextView android:id="@+id/d1" style="@style/EpgDay" />
+            <TextView android:id="@+id/d2" style="@style/EpgDay" />
+            <TextView android:id="@+id/d3" style="@style/EpgDay" />
+            <TextView android:id="@+id/d4" style="@style/EpgDay" />
+            <TextView android:id="@+id/d5" style="@style/EpgDay" />
+            <TextView android:id="@+id/d6" style="@style/EpgDay" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="7">
+
+            <TextView android:id="@+id/p0" style="@style/EpgBlock" />
+            <TextView android:id="@+id/p1" style="@style/EpgBlock" />
+            <TextView android:id="@+id/p2" style="@style/EpgBlock" />
+            <TextView android:id="@+id/p3" style="@style/EpgBlock" />
+            <TextView android:id="@+id/p4" style="@style/EpgBlock" />
+            <TextView android:id="@+id/p5" style="@style/EpgBlock" />
+            <TextView android:id="@+id/p6" style="@style/EpgBlock" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

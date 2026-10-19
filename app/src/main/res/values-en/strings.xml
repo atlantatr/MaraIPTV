@@ -160,4 +160,10 @@
     <string name="lang_system">System language</string>
     <string name="epg_saved_count_x">%1$d channels</string>
     <string name="recently_watched">Recently watched channels</string>
+    <string name="epg_grid_title">EPG grid: %1$s</string>
+    <string name="epg_grid_hint">%1$d-day view</string>
+    <string name="now">Now</string>
+    <string name="no_archive">No archive for this program</string>
+    <string name="schedule_rec">Scheduled recording</string>
+    <string name="epg_grid">7-day grid</string>
 </resources>

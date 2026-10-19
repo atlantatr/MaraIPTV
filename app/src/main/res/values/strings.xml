@@ -193,4 +193,10 @@
 
     <!-- Kullanılmayan / ileride gerekli olabilecek anahtarlar -->
     <string name="epg_saved_count_x">%1$d kanal</string>
+    <string name="epg_grid_title">EPG ızgarası: %1$s</string>
+    <string name="epg_grid_hint">%1$d günlük görünüm</string>
+    <string name="now">Şimdi</string>
+    <string name="no_archive">Bu program için arşiv yok</string>
+    <string name="schedule_rec">Zamanlı kayıt</string>
+    <string name="epg_grid">7 günlük ızgara</string>
 </resources>

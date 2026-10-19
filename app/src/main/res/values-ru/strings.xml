@@ -160,4 +160,10 @@
     <string name="lang_system">Язык системы</string>
     <string name="epg_saved_count_x">%1$d каналов</string>
     <string name="recently_watched">Недавние каналы</string>
+    <string name="epg_grid_title">EPG-сетка: %1$s</string>
+    <string name="epg_grid_hint">вид на %1$d дней</string>
+    <string name="now">Сейчас</string>
+    <string name="no_archive">Архив для этой программы отсутствует</string>
+    <string name="schedule_rec">Запланированная запись</string>
+    <string name="epg_grid">Сетка на 7 дней</string>
 </resources>

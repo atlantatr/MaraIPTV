@@ -160,4 +160,10 @@
     <string name="lang_system">Systemsprache</string>
     <string name="epg_saved_count_x">%1$d Kanäle</string>
     <string name="recently_watched">Zuletzt gesehene Kanale</string>
+    <string name="epg_grid_title">EPG-Gitter: %1$s</string>
+    <string name="epg_grid_hint">%1$d-Tage-Ansicht</string>
+    <string name="now">Jetzt</string>
+    <string name="no_archive">Kein Archiv für dieses Programm</string>
+    <string name="schedule_rec">Geplante Aufnahme</string>
+    <string name="epg_grid">7-Tage-Gitter</string>
 </resources>

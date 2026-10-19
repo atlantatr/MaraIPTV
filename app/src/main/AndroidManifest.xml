@@ -47,6 +47,7 @@
         <activity android:name=".ui.MovieDetailActivity" android:screenOrientation="sensorLandscape" />
         <activity android:name=".ui.SeriesDetailActivity" android:screenOrientation="sensorLandscape" />
         <activity android:name=".ui.EpgActivity" android:screenOrientation="sensorLandscape" />
+        <activity android:name=".ui.EpgGridActivity" android:screenOrientation="sensorLandscape" />
         <activity android:name=".ui.SearchActivity" android:screenOrientation="sensorLandscape" android:windowSoftInputMode="stateVisible|adjustPan" />
         <activity android:name=".ui.FavoritesActivity" android:screenOrientation="sensorLandscape" />
         <activity android:name=".ui.SettingsActivity" android:screenOrientation="sensorLandscape" />

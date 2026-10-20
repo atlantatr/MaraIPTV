@@ -367,6 +367,20 @@ public class PlayerActivity extends BaseActivity {
                 player.prepare();
                 return;
             }
+            // VOD'da audio codec cozulmediyse otomatik harici oynaticiye gec
+            // (Hisilicon vb. kutularda AC-3/EAC-3/DTS donanim cozen yok)
+            if (!isLive() && retry >= 2) {
+                String cm = error.getCause() != null ? error.getCause().toString() : "";
+                if (cm.contains("EAC-3") || cm.contains("AC-3") || cm.contains("ac3")
+                        || cm.contains("eac3") || cm.contains("DTS") || cm.contains("TrueHD")
+                        || error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED
+                        || error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED) {
+                    showOsd("Ses codec cozemedi, harici oynatici aciliyor...");
+                    releasePlayer();
+                    Play.openExternal(PlayerActivity.this, cur());
+                    return;
+                }
+            }
             if (retry < (isLive() ? MAX_RETRY : 2)) {
                 retry++;
                 showOsd("Baglanti sorunu, yeniden deneniyor (" + retry + ")...");

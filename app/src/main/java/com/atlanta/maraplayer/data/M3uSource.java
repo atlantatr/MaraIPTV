@@ -51,6 +51,10 @@ public class M3uSource implements Source {
     private synchronized void ensureLoaded() throws IOException {
         if (loaded) return;
         InputStream in = Http.getStream(fullUrl(profile.url));
+        parseStream(in);
+    }
+
+    private synchronized void parseStream(InputStream in) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"), 65536);
         try {
             groups.put(Models.LIVE, new LinkedHashMap<String, String>());
@@ -132,6 +136,19 @@ public class M3uSource implements Source {
     @Override
     public Account login() throws IOException {
         ensureLoaded();
+        return validAccount();
+    }
+
+    @Override
+    public Account loginFast() throws IOException {
+        // Otomatik giris: 5sn timeout; sunucu yavarsa beklemeden hata doner
+        if (loaded) return validAccount();
+        InputStream in = Http.getStreamFast(fullUrl(profile.url));
+        parseStream(in);
+        return validAccount();
+    }
+
+    private Account validAccount() throws IOException {
         if (live.isEmpty() && movies.isEmpty()) throw new IOException("Calma listesi bos veya gecersiz");
         Account a = new Account();
         a.status = "M3U (" + live.size() + " kanal, " + movies.size() + " video)";

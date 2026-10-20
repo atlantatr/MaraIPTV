@@ -45,6 +45,12 @@ public class LiveActivity extends BaseActivity {
     private long currentProgramEnd;
     private String previewId;
 
+    // onResume'da son izlenen kanal ID'si buraya yazilir; kategori listesi
+    // asenkron gelince openCategory callback'i bu ID'ye gore sec + onizleme/EPG
+    // baslatir. Boylece onizleme/EPG icin kanal listesinin hazir olup olmamasi
+    // onemli degil (ilk acilista liste henuz bos olmasina ragmen dogru kanala gider).
+    private String pendingId;
+
     private Category pendingCat;
     private final Runnable catHover = new Runnable() {
         @Override
@@ -280,6 +286,22 @@ public class LiveActivity extends BaseActivity {
                     for (int i = 0; i < list.size(); i++) if (list.get(i).id.equals(last)) { sel = i; break; }
                 }
                 channels.setSelection(sel);
+                // onResume'da bekletilen son izlenen kanal: bu listedeyse sec +
+                // onizleme/EPG baslat (ilk acilis / tam ekrandan donus).
+                if (pendingId != null) {
+                    int p = -1;
+                    for (int i = 0; i < list.size(); i++)
+                        if (list.get(i).id.equals(pendingId)) { p = i; break; }
+                    if (p >= 0) {
+                        sel = p;
+                        channels.setSelection(p);
+                        Item it = list.get(p);
+                        channels.setItemChecked(p, true);
+                        if (Prefs.preview() && !Prefs.externalPlayer()) startPreview(it);
+                        loadEpg(it);
+                    }
+                    pendingId = null;
+                }
                 if (focusAfter) channels.requestFocus();
             }
         }, new Async.Callback<Exception>() {
@@ -500,19 +522,24 @@ public class LiveActivity extends BaseActivity {
         // tam ekrandan donuste son izlenen kanali sec + otomatik onizlemeyi ac
         // (MertStream: tikladigin gibi yayin baslar)
         String last = Prefs.lastChannel(Repo.pid());
-        if (last != null && chAdapter != null) {
-            List<Item> d = chAdapter.data();
-            for (int i = 0; i < d.size(); i++) {
-                if (d.get(i).id.equals(last)) {
-                    channels.setSelection(i);
-                    channels.setItemChecked(i, true);
-                    // son izlenen kanali onizlemeye baslat + EPG yukle
-                    if (Prefs.preview() && !Prefs.externalPlayer()) startPreview(d.get(i));
-                    loadEpg(d.get(i));
-                    break;
-                }
+        if (last == null || chAdapter == null) return;
+        List<Item> d = chAdapter.data();
+        // HIZLI YOL: liste zaten yuklendiyse (tam ekrandan donus, ayni kategori)
+        // su an sec + onizleme/EPG. Bulunamazsa beklet;
+        // openCategory'nin asenkron callback'i pendingId'yi kullaniyor.
+        for (int i = 0; i < d.size(); i++) {
+            if (d.get(i).id.equals(last)) {
+                channels.setSelection(i);
+                channels.setItemChecked(i, true);
+                if (Prefs.preview() && !Prefs.externalPlayer()) startPreview(d.get(i));
+                loadEpg(d.get(i));
+                return;
             }
         }
+        // YOL 2: listede henuz yok (bos liste / ilk acilis / eski kategori) -> beklet;
+        // openCategory'nin asenkron callback'i pendingId'ye gore secimi +
+        // onizlemeyi + EPG'yi tetikleyecek.
+        pendingId = last;
     }
 
     @Override

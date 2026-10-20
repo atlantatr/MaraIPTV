@@ -161,6 +161,7 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
         }, new Async.Callback<Account>() {
             @Override
             public void on(Account acc) {
+                if (isFinishing() || isDestroyed()) { loggingIn = false; return; }
                 Ui.dismiss(pd);
                 loggingIn = false;
                 Repo.setSession(p, acc, src);
@@ -174,6 +175,7 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
         }, new Async.Callback<Exception>() {
             @Override
             public void on(Exception e) {
+                if (isFinishing() || isDestroyed()) { loggingIn = false; return; }
                 Ui.dismiss(pd);
                 loggingIn = false;
                 reload();

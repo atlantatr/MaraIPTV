@@ -2,6 +2,7 @@ package com.atlanta.maraplayer.util;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -43,15 +44,26 @@ public final class Ui {
         return new AlertDialog.Builder(c, AlertDialog.THEME_HOLO_DARK);
     }
 
-    public static ProgressDialog progress(Activity a, String msg) {
-        ProgressDialog d = new ProgressDialog(a, AlertDialog.THEME_HOLO_DARK);
+    public static ProgressDialog progress(final Activity a, String msg) {
+        final ProgressDialog d = new ProgressDialog(a, AlertDialog.THEME_HOLO_DARK);
         d.setMessage(msg);
         d.setCancelable(true);
+        // activity destroyed oldugu hallerde callback'teki Ui.dismiss hata vermesin
+        d.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                synchronized (openDialogs) { openDialogs.remove(d); }
+            }
+        });
+        synchronized (openDialogs) { openDialogs.add(d); }
         d.show();
         return d;
     }
 
     public static void dismiss(DialogInterface d) {
+        if (d instanceof android.app.Dialog) {
+            synchronized (openDialogs) { openDialogs.remove(d); }
+        }
         try {
             if (d != null) d.dismiss();
         } catch (Exception ignored) {
@@ -62,8 +74,8 @@ public final class Ui {
         void on(int which);
     }
 
-    /** Acik diyaloglari tutar; activity onDestroy'de kapatilir (window leak onleme) */
-    private static final java.util.List<AlertDialog> openDialogs = new java.util.ArrayList<AlertDialog>();
+    /** Acik diyalog/progress'leri tutar; activity onDestroy'de kapatilir (window leak onleme) */
+    private static final java.util.List<Dialog> openDialogs = new java.util.ArrayList<Dialog>();
 
     public static void choose(Context c, String title, String[] items, int checked, final Choice cb) {
         AlertDialog.Builder b = dialog(c).setTitle(title);
@@ -93,7 +105,7 @@ public final class Ui {
     }
 
     /** Dialog'i olustur, acik liste takibine ekle, gosterir; kapatil listeden silinir */
-    private static void trackDialog(final AlertDialog dlg, AlertDialog.Builder b) {
+    private static void trackDialog(final Dialog dlg, AlertDialog.Builder b) {
         dlg.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface d) {
@@ -106,10 +118,10 @@ public final class Ui {
         dlg.show();
     }
 
-    /** BaseActivity.onDestroy'de cagirilir; acik diyaloglari kapatir (window leak onleme) */
+    /** BaseActivity.onDestroy'de cagirilir; acik diyalog/progress'leri kapatir (window leak onleme) */
     public static void dismissAllDialogs() {
         synchronized (openDialogs) {
-            for (AlertDialog d : openDialogs) {
+            for (Dialog d : openDialogs) {
                 try {
                     if (d.isShowing()) d.dismiss();
                 } catch (Exception ignored) {
@@ -137,6 +149,13 @@ public final class Ui {
                     }
                 })
                 .setNegativeButton(R.string.cancel, null).create();
+        d.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                synchronized (openDialogs) { openDialogs.remove(d); }
+            }
+        });
+        synchronized (openDialogs) { openDialogs.add(d); }
         et.setImeOptions(EditorInfo.IME_ACTION_DONE);
         et.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override

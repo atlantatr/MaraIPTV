@@ -33,12 +33,16 @@ public final class PlayerFactory {
     }
 
     public static ExoPlayer create(Context c, boolean live) {
-        // canli TV + FHD'de donma/takilma sorunu icin FFmpeg extension'u devre disi;
-        // donanim MediaCodec birincil decoder olarak kullanilir. (Media3 1.5.0'ta
-        // EXTENSION_RENDERER_MODE_FALLBACK sabiti yok, OFF = en güvenli mod)
+        // Canli TV: FFmpeg extension'u KAPALI (donanım MediaCodec) -> donma
+        // engellenir. VOD (film/dizi): AC-3/EAC-3/DTS/TrueHD donanım MediaCodec'ta
+        // cozulmedigi icin FFmpeg yazılım decoder'i aktif -> ses gelir.
+        // (Media3 1.5.0'ta EXTENSION_RENDERER_MODE_FALLBACK sabiti yok; ON/OFF)
+        int mode = live
+                ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+                : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
         DefaultRenderersFactory rf = new DefaultRenderersFactory(c)
                 .setEnableDecoderFallback(true)
-                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
+                .setExtensionRendererMode(mode);
 
         ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
 

@@ -315,12 +315,10 @@ public class VodActivity extends BaseActivity {
                 cats.requestFocus();
                 return true;
             }
-            // 2) kategori odaginda -> home'a don (uygulamayi kapatma)
-            if (cats.hasFocus()) {
-                startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                finish();
-                return true;
-            }
+            // 2) kategori odaginda VEYA odak yok -> home'a don (uygulamayi kapatma)
+            startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            finish();
+            return true;
         }
         return super.onKeyDown(keyCode, event);
     }

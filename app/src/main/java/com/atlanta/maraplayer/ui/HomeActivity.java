@@ -2,6 +2,7 @@ package com.atlanta.maraplayer.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
 
@@ -201,5 +202,16 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
         } else if (id == R.id.tProfiles) {
             openProfiles();
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // Home'da EXIT/geri tusu -> uygulamayi kapatma, task'i arka plana at
+        // (TV kutusu launcher'ina doner, MaraIPTV onizlemesi korunur)
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            moveTaskToBack(true);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }

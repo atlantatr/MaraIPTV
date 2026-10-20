@@ -206,10 +206,11 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // Home'da EXIT/geri tusu -> uygulamayi kapatma, task'i arka plana at
-        // (TV kutusu launcher'ina doner, MaraIPTV onizlemesi korunur)
+        // Home'da EXIT/geri tusu: hicbir seyi yapma, task'i korusun.
+        // TV box'ta launcher'a donmek icin kutunun kendi HOME tusunu kullan.
+        // moveTaskToBack() Amlogic/Hisilicon ROM'larinda task'i kapatip
+        // uygulamayi tamamen donusunden kesebiliyor -> kullanilmiyor.
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            moveTaskToBack(true);
             return true;
         }
         return super.onKeyDown(keyCode, event);

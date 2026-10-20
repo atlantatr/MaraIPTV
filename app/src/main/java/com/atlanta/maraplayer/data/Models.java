@@ -44,6 +44,7 @@ public final class Models {
     }
 
     public static class Account {
+        public String user = "";
         public String status = "";
         public long expDate;          // unix saniye, 0 = sinirsiz
         public int maxConnections;

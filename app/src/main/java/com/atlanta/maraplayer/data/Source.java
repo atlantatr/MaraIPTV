@@ -16,9 +16,7 @@ public interface Source {
     Account login() throws IOException;
 
     /** Hızlı giriş: sunucu yanit vermiyorsa bekletmeden hata doner (auto-login icin) */
-    Account loginFast() throws IOException {
-        return login();
-    }
+    Account loginFast() throws IOException;
 
     List<Category> categories(int type) throws IOException;
 

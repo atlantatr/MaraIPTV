@@ -164,6 +164,12 @@ public class FavoritesActivity extends BaseActivity {
             remove(list.getSelectedItemPosition());
             return true;
         }
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            // home'a don, uygulamayi kapatma
+            startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            finish();
+            return true;
+        }
         return super.onKeyDown(keyCode, event);
     }
 }

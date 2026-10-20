@@ -186,6 +186,12 @@ public class RecordingsActivity extends BaseActivity {
             if (p >= 0) remove(adapter.getItem(p).tag);
             return true;
         }
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            startActivity(new android.content.Intent(this, HomeActivity.class)
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            finish();
+            return true;
+        }
         return super.onKeyDown(keyCode, event);
     }
 }

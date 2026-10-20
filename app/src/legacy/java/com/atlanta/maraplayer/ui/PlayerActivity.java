@@ -678,7 +678,7 @@ public class PlayerActivity extends BaseActivity {
                 chPanel.setVisibility(View.GONE);
                 return true;
             }
-            finish(); // onPause'da player zaten release edilir
+            finish(); // onPause'da player release edilir; task stack'i korunur
             return true;
         }
         if (player == null) return super.onKeyDown(keyCode, event);

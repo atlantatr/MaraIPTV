@@ -65,7 +65,6 @@ public class PlayerActivity extends BaseActivity {
     private float pixelRatio = 1f;
     private int retry;
     private boolean errorShown;
-    private boolean extFallbackDone;
 
     private View videoBox, infoBar, controls, chPanel;
     private SurfaceView surface;
@@ -300,38 +299,6 @@ public class PlayerActivity extends BaseActivity {
             videoH = vs.height;
             pixelRatio = vs.pixelWidthHeightRatio > 0 ? vs.pixelWidthHeightRatio : 1f;
             applyAspect();
-        }
-
-        /**
-         * VOD'da audio track'i geldiiginde: legacy cihazin donanim MediaCodec'i
-         * bu codec'i COZEMEZSE, retry beklemeden otomatik harici oynaticiye gec.
-         * (Hisilicon 4.2 kutuda AC-3/EAC-3/DTS codec'leri genelde yok -> sessiz).
-         */
-        @Override
-        public void onTracksChanged(Tracks tracks, Tracks unused2) {
-            if (player == null || isLive()) return;
-            // audio track'i yoksa bos
-            TrackGroup audioGroup = tracks.getAudioTrackGroup();
-            if (audioGroup == null || audioGroup.length() == 0) return;
-            int sel = player.getSelectedTrackIndex(C.TRACK_TYPE_AUDIO);
-            if (sel < 0 || sel >= audioGroup.length()) return;
-            Format fmt = audioGroup.getFormat(sel);
-            if (fmt.sampleMimeType == null) return;
-            String m = fmt.sampleMimeType;
-            // Donanim cozenin COZEMEYECEGI codec'ler (Hisilicon 4.2 kutu)
-            boolean unsupported =
-                    m.equals(C.MIMETYPE_AUDIO_AC3)
-                 || m.contains("ac3")
-                 || m.contains("eac3")
-                 || m.contains("DTS")
-                 || m.contains("dts")
-                 || m.contains("truehd");
-            if (unsupported && !extFallbackDone) {
-                extFallbackDone = true;
-                showOsd("Ses codec cozemedi (AC-3/DTS), harici oynatici aciliyor...");
-                releasePlayer();
-                Play.openExternal(PlayerActivity.this, cur());
-            }
         }
 
         @Override

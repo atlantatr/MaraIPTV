@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Rational;
 import android.view.KeyEvent;
+import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
@@ -23,6 +24,7 @@ import androidx.media3.common.Format;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.common.TrackGroup;
+import androidx.media3.common.TrackInfo;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.TrackSelectionParameters;
 import androidx.media3.common.Tracks;
@@ -90,6 +92,7 @@ public class PlayerActivity extends BaseActivity {
     private ImageView infoLogo;
     private ListView chList;
     private Adapters.RowAdapter chAdapter;
+    private boolean audioDebugOnce = true;
 
     private final StringBuilder numBuf = new StringBuilder();
     private final Map<String, List<Epg>> epgCache = new HashMap<>();
@@ -349,8 +352,38 @@ public class PlayerActivity extends BaseActivity {
             buffering.setVisibility(state == Player.STATE_BUFFERING ? View.VISIBLE : View.GONE);
             if (state == Player.STATE_READY) {
                 retry = 0;
+                if (!isLive() && audioDebugOnce) {
+                    audioDebugOnce = false;
+                    debugAudioTracks();
+                }
             } else if (state == Player.STATE_ENDED) {
                 onEnded();
+            }
+        }
+
+        private void debugAudioTracks() {
+            try {
+                Tracks tracks = player.getAudioTracks();
+                if (tracks.length == 0) {
+                    Log.w("MaraAudio", "READY ama audio track YOK (media source audio track demoksu basarisiz)");
+                    showOsd("Ses track bulunmadi");
+                    return;
+                }
+                int sel = tracks.getSelectionIndex();
+                StringBuilder sb = new StringBuilder();
+                sb.append("Audio tracks=").append(tracks.length);
+                for (int i = 0; i < tracks.length; i++) {
+                    TrackInfo ti = tracks.get(i);
+                    sb.append("\n  [").append(i).append("] ")
+                      .append(ti.mimeType)
+                      .append(" ")
+                      .append(ti.language != null ? ti.language : "?")
+                      .append(ti.isOptional() ? " (optional)" : "")
+                      .append(i == sel ? " *selected*" : "");
+                }
+                Log.i("MaraAudio", sb.toString());
+            } catch (Exception e) {
+                Log.w("MaraAudio", "track debug hatasi", e);
             }
         }
 

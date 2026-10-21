@@ -57,6 +57,7 @@ public final class PlayerFactory {
                 .setExceedRendererCapabilitiesIfNecessary(true)
                 .setExceedVideoConstraintsIfNecessary(true)
                 .setPreferredAudioLanguage("tr")
+                .setFallbackAudioLanguage(null)
                 .setPreferredTextLanguage("tr"));
 
         return builder

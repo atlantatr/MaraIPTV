@@ -24,7 +24,6 @@ import androidx.media3.common.Format;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.common.TrackGroup;
-import androidx.media3.common.TrackInfo;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.TrackSelectionParameters;
 import androidx.media3.common.Tracks;
@@ -364,21 +363,22 @@ public class PlayerActivity extends BaseActivity {
         private void debugAudioTracks() {
             try {
                 Tracks tracks = player.getAudioTracks();
-                if (tracks.length == 0) {
+                if (tracks.size() == 0) {
                     Log.w("MaraAudio", "READY ama audio track YOK (media source audio track demoksu basarisiz)");
                     showOsd("Ses track bulunmadi");
                     return;
                 }
-                int sel = tracks.getSelectionIndex();
+                int sel = tracks.selection();
                 StringBuilder sb = new StringBuilder();
-                sb.append("Audio tracks=").append(tracks.length);
-                for (int i = 0; i < tracks.length; i++) {
-                    TrackInfo ti = tracks.get(i);
+                sb.append("Audio tracks=").append(tracks.size());
+                for (int i = 0; i < tracks.size(); i++) {
+                    TrackGroup group = tracks.get(i);
+                    Format format = group.get(0);
                     sb.append("\n  [").append(i).append("] ")
-                      .append(ti.mimeType)
+                      .append(format.sampleFormat != null ? format.sampleFormat.sampleMimeType : "?")
                       .append(" ")
-                      .append(ti.language != null ? ti.language : "?")
-                      .append(ti.isOptional() ? " (optional)" : "")
+                      .append(format.language != null ? format.language : "?")
+                      .append(format.isOptional() ? " (optional)" : "")
                       .append(i == sel ? " *selected*" : "");
                 }
                 Log.i("MaraAudio", sb.toString());

@@ -2,7 +2,7 @@ package com.atlanta.maraplayer.ui;
 
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -67,7 +67,7 @@ public class PlayerActivity extends BaseActivity {
     private boolean errorShown;
 
     private View videoBox, infoBar, controls, chPanel;
-    private SurfaceView surface;
+    private TextureView surface;
     private ProgressBar buffering, infoProgress, ctlProgress;
     private TextView subs, osd, numEntry, infoName, infoNow, infoNext, infoClock;
     private TextView ctlTitle, ctlSub, ctlPos, ctlDur, ctlState;
@@ -202,7 +202,7 @@ public class PlayerActivity extends BaseActivity {
         PlayItem p = cur();
         if (player == null) {
             player = PlayerFactory.create(this, p.type == Models.LIVE);
-            player.setVideoSurfaceView(surface);
+            player.setVideoTextureView(surface);
             player.addListener(listener);
         } else {
             player.stop();

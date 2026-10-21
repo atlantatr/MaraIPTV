@@ -84,11 +84,14 @@ public final class PlayerFactory {
                 break;
         }
         if (live) {
-            // Canlı TV: tamponu 45s ile sinirle, baslangic eşiği 1.5s
-            max = Math.min(max, 45000);
+            // Canlı TV: RAM baskisini azaltmak icin max buffer 30s, playbackStart 1s.
+            // 1080p donanim decoder fallback senaryosunda (ion OOM) buffer arttirdikca
+            // yuzu katli gecer; low/normal modu 30s'e sinir, fhd/yuksek 45s'te kalir.
+            int cap = (Prefs.buffer().equals("fhd") || Prefs.buffer().equals("high")) ? 45000 : 30000;
+            max = Math.min(max, cap);
             min = Math.min(min, max);
-            start = Math.min(start, 1500);
-            rebuffer = Math.min(rebuffer, 3000);
+            start = Math.min(start, 1000);
+            rebuffer = Math.min(rebuffer, 2500);
         } else {
             // VOD (film/dizi): canli TV'deki sinirlar gecerli degil;
             // donarak oynatma sorunu icin minimum tamponu asgari 20sn tut,

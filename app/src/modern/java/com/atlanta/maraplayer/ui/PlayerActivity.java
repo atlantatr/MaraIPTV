@@ -353,37 +353,10 @@ public class PlayerActivity extends BaseActivity {
                 retry = 0;
                 if (!isLive() && audioDebugOnce) {
                     audioDebugOnce = false;
-                    debugAudioTracks();
+                    Log.i("MaraAudio", "VOD playback READY (ses durumu logcat taramasi ile izlenir: ExoPlayerImpl / MediaCodecAudioRenderer / audio_hw_primary)");
                 }
             } else if (state == Player.STATE_ENDED) {
                 onEnded();
-            }
-        }
-
-        private void debugAudioTracks() {
-            try {
-                Tracks tracks = player.getAudioTracks();
-                if (tracks.size() == 0) {
-                    Log.w("MaraAudio", "READY ama audio track YOK (media source audio track demoksu basarisiz)");
-                    showOsd("Ses track bulunmadi");
-                    return;
-                }
-                int sel = tracks.selection();
-                StringBuilder sb = new StringBuilder();
-                sb.append("Audio tracks=").append(tracks.size());
-                for (int i = 0; i < tracks.size(); i++) {
-                    TrackGroup group = tracks.get(i);
-                    Format format = group.get(0);
-                    sb.append("\n  [").append(i).append("] ")
-                      .append(format.sampleFormat != null ? format.sampleFormat.sampleMimeType : "?")
-                      .append(" ")
-                      .append(format.language != null ? format.language : "?")
-                      .append(format.isOptional() ? " (optional)" : "")
-                      .append(i == sel ? " *selected*" : "");
-                }
-                Log.i("MaraAudio", sb.toString());
-            } catch (Exception e) {
-                Log.w("MaraAudio", "track debug hatasi", e);
             }
         }
 

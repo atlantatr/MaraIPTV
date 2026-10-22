@@ -25,6 +25,7 @@ import com.atlanta.maraplayer.web.WebServer;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class HomeActivity extends BaseActivity implements View.OnClickListener, AppEvents.Listener {
 
@@ -206,11 +207,25 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // Home'da EXIT/geri tusu: task'i arka plana at (launcher'a don).
-        // moveTaskToBack uygulamayi KAPATMAZ, sadece minimize eder;
-        // process RAM'de kalir, tekrar acilista durum korunur.
+        // Home'da EXIT/geri tusu: bir onceki ekrana (profil secimi) don.
+        // Task bos degilse (LiveActivity/VodActivity/Player altinda Home)
+        // finish() alttaki activity'e doner; task bos ise asla launcher'a
+        // dusmesin -> moveTaskToBack ile arka plana gider, process devam eder.
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            moveTaskToBack(true);
+            int depth = 0;
+            try {
+                @SuppressWarnings("rawtypes")
+                List tasks = ((android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE))
+                        .getAppTasks();
+                if (tasks != null && !tasks.isEmpty())
+                    depth = ((android.app.ActivityManager.AppTask) tasks.get(0)).activityCount;
+            } catch (Throwable ignored) {
+            }
+            if (depth > 1) {
+                finish();
+            } else {
+                moveTaskToBack(true);
+            }
             return true;
         }
         return super.onKeyDown(keyCode, event);

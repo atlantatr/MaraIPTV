@@ -25,7 +25,6 @@ import com.atlanta.maraplayer.web.WebServer;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 public class HomeActivity extends BaseActivity implements View.OnClickListener, AppEvents.Listener {
 
@@ -207,31 +206,11 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // Home'da EXIT/geri tusu: bir onceki ekrana (profil secimi) don.
-        // Task derinligi > 1 ise finish() ile alttaki ekrana don;
-        // derinlik 1 (en altta) ise moveTaskToBack ile launcher'a DUSME.
+        // Home'da EXIT/geri tusu: task'i arka plana at (launcher'a don).
+        // moveTaskToBack donma sorunu cikiyor ise uygulamayi asla kapatmaz;
+        // sadece arka plana gecer, onizleme/PiP durumu korunur.
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            int depth = 1;
-            try {
-                android.app.ActivityManager am =
-                        (android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
-                // API 21+: reflection ile (compile hata vermesin)
-                java.lang.reflect.Method m = am.getClass().getMethod("getAppTasks");
-                java.util.List<?> tasks = (java.util.List<?>) m.invoke(am);
-                if (tasks != null && !tasks.isEmpty()) {
-                    Object t = tasks.get(0);
-                    java.lang.reflect.Method gl = t.getClass().getMethod("getActivityList");
-                    java.util.List<?> al = (java.util.List<?>) gl.invoke(t);
-                    depth = al != null ? al.size() : 1;
-                }
-            } catch (Throwable ignored) {
-                // API 17-20 veya hata -> moveTaskToBack
-            }
-            if (depth > 1) {
-                finish();
-            } else {
-                moveTaskToBack(true);
-            }
+            moveTaskToBack(true);
             return true;
         }
         return super.onKeyDown(keyCode, event);

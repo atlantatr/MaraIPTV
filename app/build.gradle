@@ -129,8 +129,11 @@ dependencies {
         add("${f}Implementation", 'androidx.tvprovider:tvprovider:1.0.0')
         add("${f}Implementation", 'androidx.annotation:annotation-experimental:1.4.1') // @OptIn
         if (useFfmpeg) {
-            // Jellyfin'in Maven Central'daki hazir FFmpeg eklentisi (AC3, EAC3, DTS, TrueHD, MP2...)
-            add("${f}Implementation", "org.jellyfin.media3:media3-ffmpeg-decoder:$media3Version+1")
+            // Jellyfin'in hazir FFmpeg eklentisi (AC3, EAC3, DTS, TrueHD, MP2...)
+            // Not: versiyon "+1" build sayisi icerir; Groovy'da dogru yazilmazsa
+            // string concatenation ("1.5.01") olur ve dependency cözümlenemez.
+            def ffmpegVer = media3Version + '+1'
+            add("${f}Implementation", "org.jellyfin.media3:media3-ffmpeg-decoder:${ffmpegVer}")
         }
     }
 }

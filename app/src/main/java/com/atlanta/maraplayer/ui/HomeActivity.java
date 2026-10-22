@@ -214,11 +214,13 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             int depth = 0;
             try {
-                @SuppressWarnings("rawtypes")
-                List tasks = ((android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE))
-                        .getAppTasks();
-                if (tasks != null && !tasks.isEmpty())
-                    depth = ((android.app.ActivityManager.AppTask) tasks.get(0)).activityCount;
+                android.app.ActivityManager am =
+                        (android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
+                List<android.app.ActivityManager.AppTask> tasks = am.getAppTasks();
+                if (tasks != null && !tasks.isEmpty()) {
+                    android.app.ActivityManager.AppTask t = tasks.get(0);
+                    depth = t.getActivityList() != null ? t.getActivityList().size() : 1;
+                }
             } catch (Throwable ignored) {
             }
             if (depth > 1) {

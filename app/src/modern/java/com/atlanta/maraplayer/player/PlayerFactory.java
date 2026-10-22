@@ -1,6 +1,7 @@
 package com.atlanta.maraplayer.player;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.OptIn;
 import androidx.media3.common.MediaItem;
@@ -17,9 +18,13 @@ import androidx.media3.exoplayer.source.ProgressiveMediaSource;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.extractor.DefaultExtractorsFactory;
 import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory;
+import androidx.media3.exoplayer.Renderer;
 
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.net.Http;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * [Android 5.0 / 7.0 surumleri] AndroidX Media3 oynatici.
@@ -36,13 +41,48 @@ public final class PlayerFactory {
         // Canli TV: FFmpeg extension'u KAPALI (donanım MediaCodec) -> donma
         // engellenir. VOD (film/dizi): AC-3/EAC-3/DTS/TrueHD donanım MediaCodec'ta
         // cozulmedigi icin FFmpeg yazılım decoder'i aktif -> ses gelir.
-        // (Media3 1.5.0'ta EXTENSION_RENDERER_MODE_FALLBACK sabiti yok; ON/OFF)
+        //
+        // Media3 1.5.0'ta DefaultRenderersFactory otomatik olarak Jellyfin'in FFmpeg
+        // decoder'ini keşfedemez (Google'ın exoplayer-extension-ffmpeg paketi
+        // Maven'da yok). Bu yüzden setExtensionRenderersFactory ile manuel bagliyoruz.
         int mode = live
                 ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
                 : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
         DefaultRenderersFactory rf = new DefaultRenderersFactory(c)
                 .setEnableDecoderFallback(true)
                 .setExtensionRendererMode(mode);
+
+        // VOD: Jellyfin'in FFmpeg audio decoder'ini manuel ekle (AC-3, EAC-3, DTS, TrueHD, MP2)
+        if (!live) {
+            try {
+                // Jellyfin'in ffmpeg-decoder kütüphanesi bu sınıfları sunuyor
+                Class<?> loaderClass = Class.forName("com.android.jellyfin.media3.extension.FfmpegLibraryLoader");
+                loaderClass.getMethod("loadNativeLibraries", Context.class).invoke(null, c);
+                Log.i("MaraAudio", "Jellyfin FFmpeg library loaded successfully");
+
+                rf.setExtensionRenderersFactory(new DefaultRenderersFactory.ExtensionRenderersFactory() {
+                    @Override
+                    public List<Renderer> createRenderers(Context context, Object... args) {
+                        List<Renderer> renderers = new ArrayList<Renderer>();
+                        try {
+                            Class<?> audioRendererClass = Class.forName("com.android.jellyfin.media3.extension.FfmpegAudioRenderer");
+                            Renderer audioRenderer = (Renderer) audioRendererClass
+                                    .getConstructor(Context.class)
+                                    .newInstance(context);
+                            renderers.add(audioRenderer);
+                            Log.i("MaraAudio", "Jellyfin FFmpeg audio renderer added");
+                        } catch (Exception e) {
+                            Log.w("MaraAudio", "Jellyfin FFmpeg audio renderer not available", e);
+                        }
+                        return renderers;
+                    }
+                });
+            } catch (ClassNotFoundException e) {
+                Log.w("MaraAudio", "Jellyfin FFmpeg decoder library not found on classpath", e);
+            } catch (Exception e) {
+                Log.w("MaraAudio", "FFmpeg extension setup failed", e);
+            }
+        }
 
         ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
 

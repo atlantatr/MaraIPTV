@@ -207,8 +207,8 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         // Home'da EXIT/geri tusu: task'i arka plana at (launcher'a don).
-        // moveTaskToBack donma sorunu cikiyor ise uygulamayi asla kapatmaz;
-        // sadece arka plana gecer, onizleme/PiP durumu korunur.
+        // moveTaskToBack uygulamayi KAPATMAZ, sadece minimize eder;
+        // process RAM'de kalir, tekrar acilista durum korunur.
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             moveTaskToBack(true);
             return true;

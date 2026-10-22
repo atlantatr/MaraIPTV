@@ -206,11 +206,11 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // Home'da EXIT/geri tusu: hicbir seyi yapma, task'i korusun.
-        // TV box'ta launcher'a donmek icin kutunun kendi HOME tusunu kullan.
-        // moveTaskToBack() Amlogic/Hisilicon ROM'larinda task'i kapatip
-        // uygulamayi tamamen donusunden kesebiliyor -> kullanilmiyor.
+        // Home'da EXIT/geri tusu: task'i arka plana at (launcher'a don).
+        // moveTaskToBack donma sorunu cikiyor ise uygulamayi asla kapatmaz;
+        // sadece arka plana gecer, onizleme/PiP durumu korunur.
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+            moveTaskToBack(true);
             return true;
         }
         return super.onKeyDown(keyCode, event);

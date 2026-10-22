@@ -796,6 +796,14 @@ public class PlayerActivity extends BaseActivity {
                 chPanel.setVisibility(View.GONE);
                 return true;
             }
+            // RAM baskisiyla alt activity kill edilmisse task bos olur,
+            // finish() launcher'a atar. O yüzden VOD'da Home'a gecen bir
+            // intent baslat; CANLI TV'de sadece finish() (altta LiveActivity
+            // zaten vardi, onune don).
+            if (queue != null && queue.get(index).type != Models.LIVE) {
+                startActivity(new Intent(this, HomeActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+            }
             finish(); // onStop() releasePlayer() cagirir; cift release olmaz
             return true;
         }

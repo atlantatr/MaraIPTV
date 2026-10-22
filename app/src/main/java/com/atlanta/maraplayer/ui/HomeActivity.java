@@ -208,20 +208,24 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         // Home'da EXIT/geri tusu: bir onceki ekrana (profil secimi) don.
-        // Task bos degilse (LiveActivity/VodActivity/Player altinda Home)
-        // finish() alttaki activity'e doner; task bos ise asla launcher'a
-        // dusmesin -> moveTaskToBack ile arka plana gider, process devam eder.
+        // Task derinligi > 1 ise finish() ile alttaki ekrana don;
+        // derinlik 1 (en altta) ise moveTaskToBack ile launcher'a DUSME.
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            int depth = 0;
+            int depth = 1;
             try {
                 android.app.ActivityManager am =
                         (android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
-                List<android.app.ActivityManager.AppTask> tasks = am.getAppTasks();
+                // API 21+: reflection ile (compile hata vermesin)
+                java.lang.reflect.Method m = am.getClass().getMethod("getAppTasks");
+                java.util.List<?> tasks = (java.util.List<?>) m.invoke(am);
                 if (tasks != null && !tasks.isEmpty()) {
-                    android.app.ActivityManager.AppTask t = tasks.get(0);
-                    depth = t.getActivityList() != null ? t.getActivityList().size() : 1;
+                    Object t = tasks.get(0);
+                    java.lang.reflect.Method gl = t.getClass().getMethod("getActivityList");
+                    java.util.List<?> al = (java.util.List<?>) gl.invoke(t);
+                    depth = al != null ? al.size() : 1;
                 }
             } catch (Throwable ignored) {
+                // API 17-20 veya hata -> moveTaskToBack
             }
             if (depth > 1) {
                 finish();

@@ -66,27 +66,37 @@ public final class PlayerFactory {
                 .setEnableDecoderFallback(true)
                 .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
 
-        // VOD: FFmpeg audio renderer'ini (EAC-3/AC-3/DTS) renderer dizisinin basina ekle
-        if (!live) {
-            List<Renderer> defaultRenderers = rf.createRenderers(c);
-            List<Renderer> ffmpeg = createFfmpegAudioRenderers(c.getApplicationContext());
-            if (!ffmpeg.isEmpty()) {
-                List<Renderer> all = new ArrayList<Renderer>(ffmpeg.size() + defaultRenderers.size());
-                all.addAll(ffmpeg);
-                all.addAll(defaultRenderers);
-                Renderer[] arr = all.toArray(new Renderer[0]);
-                ExoPlayer player = new ExoPlayer.Builder(c, arr)
-                        .setLoadControl(buildLoadControl(live))
-                        .setTrackSelector(buildTrackSelector(c))
-                        .build();
-                return player;
-            }
-        }
+        ExoPlayer.Builder builder = new ExoPlayer.Builder(c, combinedRenderersFactory(c, rf, live));
 
-        return new ExoPlayer.Builder(c, rf)
+        return builder
                 .setLoadControl(buildLoadControl(live))
                 .setTrackSelector(buildTrackSelector(c))
                 .build();
+    }
+
+    /**
+     * VOD: FFmpeg audio renderer'larini varsayilanlarin ONUNE ekleyerek
+     *(RenderersFactory) dondurur. Donanim decoder EAC-3'u onemsiyor,
+     * onceden calismasini engellemek icin FFmpeg audio baslikta durur.
+     */
+    private static androidx.media3.exoplayer.RenderersFactory combinedRenderersFactory(
+            Context c, DefaultRenderersFactory base, boolean live) {
+        if (live) {
+            return base;
+        }
+        final List<Renderer> ffmpeg = createFfmpegAudioRenderers(c.getApplicationContext());
+        if (ffmpeg.isEmpty()) {
+            return base;
+        }
+        return new androidx.media3.exoplayer.RenderersFactory() {
+            @Override
+            public List<Renderer> createRenderers(Context context) {
+                List<Renderer> all = new ArrayList<Renderer>(ffmpeg.size() + 16);
+                all.addAll(ffmpeg);
+                all.addAll(base.createRenderers(context));
+                return all;
+            }
+        };
     }
 
     private static DefaultLoadControl buildLoadControl(boolean live) {

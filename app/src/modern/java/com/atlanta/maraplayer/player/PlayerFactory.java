@@ -66,32 +66,45 @@ public final class PlayerFactory {
                 .setEnableDecoderFallback(true)
                 .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
 
-        ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
-
         // VOD: FFmpeg audio renderer'ini (EAC-3/AC-3/DTS) renderer dizisinin basina ekle
         if (!live) {
-            for (Renderer r : createFfmpegAudioRenderers(c.getApplicationContext())) {
-                builder.addRenderer(r);
+            List<Renderer> defaultRenderers = rf.createRenderers(c);
+            List<Renderer> ffmpeg = createFfmpegAudioRenderers(c.getApplicationContext());
+            if (!ffmpeg.isEmpty()) {
+                List<Renderer> all = new ArrayList<Renderer>(ffmpeg.size() + defaultRenderers.size());
+                all.addAll(ffmpeg);
+                all.addAll(defaultRenderers);
+                Renderer[] arr = all.toArray(new Renderer[0]);
+                ExoPlayer player = new ExoPlayer.Builder(c, arr)
+                        .setLoadControl(buildLoadControl(live))
+                        .setTrackSelector(buildTrackSelector(c))
+                        .build();
+                return player;
             }
         }
 
+        return new ExoPlayer.Builder(c, rf)
+                .setLoadControl(buildLoadControl(live))
+                .setTrackSelector(buildTrackSelector(c))
+                .build();
+    }
+
+    private static DefaultLoadControl buildLoadControl(boolean live) {
         int[] b = bufferMs(live);
-        DefaultLoadControl lc = new DefaultLoadControl.Builder()
+        return new DefaultLoadControl.Builder()
                 .setBufferDurationsMs(b[0], b[1], b[2], b[3])
                 .setPrioritizeTimeOverSizeThresholds(true)
                 .build();
+    }
 
+    private static DefaultTrackSelector buildTrackSelector(Context c) {
         DefaultTrackSelector ts = new DefaultTrackSelector(c);
         ts.setParameters(ts.buildUponParameters()
                 .setExceedRendererCapabilitiesIfNecessary(true)
                 .setExceedVideoConstraintsIfNecessary(true)
                 .setPreferredAudioLanguage("tr")
                 .setPreferredTextLanguage("tr"));
-
-        return builder
-                .setLoadControl(lc)
-                .setTrackSelector(ts)
-                .build();
+        return ts;
     }
 
     // ================================================================ FFmpeg (jellyfin)

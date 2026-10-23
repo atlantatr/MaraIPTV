@@ -10,6 +10,7 @@ import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.Renderer;
 import androidx.media3.exoplayer.dash.DashMediaSource;
 import androidx.media3.exoplayer.hls.HlsMediaSource;
 import androidx.media3.exoplayer.source.MediaSource;
@@ -20,6 +21,9 @@ import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory;
 
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.net.Http;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * [Android 5.0 / 7.0 surumleri] AndroidX Media3 oynatici.
@@ -44,15 +48,27 @@ public final class PlayerFactory {
                 .setEnableDecoderFallback(true)
                 .setExtensionRendererMode(mode);
 
-        // VOD: Jellyfin FFmpeg decoder'ini (tumu codec: EAC-3/AC-3/DTS/TrueHD/MP2...)
-        // otomatik kesfe baglamadan, sinif adlari ogrenince acik bagla.
-        // Video renderer'i sadece VOD'da eklenir; canli TV'de donma riski
-        // nedeniyle video donanim codec'te kalir, sadece ses FFmpeg'e gider.
+        // VOD: jellyfin FFmpeg renderer'larini (EAC-3/AC-3/DTS/TrueHD/MP2...)
+        // renderer dizisinin BAŞINA ekleyelim ki donanım MediaCodec'e girmeden
+        // yazılım decoder'ına yönlendirilsin. Canlı TV'de FFmpeg kapalı
+        // (donma + RAM baskısı riski).
+        ExoPlayer.Builder builder;
         if (!live) {
-            rf = FfmpegExtension.attach(rf, c, /*video=*/true);
+            List<Renderer> extra = FfmpegExtension.create(c, /*audio=*/true, /*video=*/true);
+            if (extra.isEmpty()) {
+                builder = new ExoPlayer.Builder(c, rf);
+            } else {
+                // Default factory'nin dondurduklari + FFmpeg basina eklenmis
+                List<Renderer> all = new ArrayList<Renderer>();
+                all.addAll(extra);
+                all.addAll(rf.createRenderers(c));
+                ExoPlayer.Builder b = new ExoPlayer.Builder(c);
+                for (Renderer r : all) b.addRenderer(r);
+                builder = b;
+            }
+        } else {
+            builder = new ExoPlayer.Builder(c, rf);
         }
-
-        ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
 
         int[] b = bufferMs(live);
         DefaultLoadControl lc = new DefaultLoadControl.Builder()

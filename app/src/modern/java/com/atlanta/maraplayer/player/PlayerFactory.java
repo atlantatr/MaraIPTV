@@ -44,31 +44,31 @@ public final class PlayerFactory {
         int mode = live
                 ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
                 : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
-        DefaultRenderersFactory rf = new DefaultRenderersFactory(c)
+        DefaultRenderersFactory baseRf = new DefaultRenderersFactory(c)
                 .setEnableDecoderFallback(true)
                 .setExtensionRendererMode(mode);
 
-        // VOD: jellyfin FFmpeg renderer'larini (EAC-3/AC-3/DTS/TrueHD/MP2...)
-        // renderer dizisinin BAŞINA ekleyelim ki donanım MediaCodec'e girmeden
-        // yazılım decoder'ına yönlendirilsin. Canlı TV'de FFmpeg kapalı
-        // (donma + RAM baskısı riski).
-        ExoPlayer.Builder builder;
-        if (!live) {
-            List<Renderer> extra = FfmpegExtension.create(c, /*audio=*/true, /*video=*/true);
-            if (extra.isEmpty()) {
-                builder = new ExoPlayer.Builder(c, rf);
-            } else {
-                // Default factory'nin dondurduklari + FFmpeg basina eklenmis
-                List<Renderer> all = new ArrayList<Renderer>();
-                all.addAll(extra);
-                all.addAll(rf.createRenderers(c));
-                ExoPlayer.Builder b = new ExoPlayer.Builder(c);
-                for (Renderer r : all) b.addRenderer(r);
-                builder = b;
-            }
+        // VOD'da FFmpeg renderer'larini basina alacak RenderersFactory,
+        // canli TV'de dogrudan donanim factory
+        androidx.media3.exoplayer.RenderersFactory rf;
+        if (live) {
+            rf = baseRf;
         } else {
-            builder = new ExoPlayer.Builder(c, rf);
+            final DefaultRenderersFactory captured = baseRf;
+            rf = new androidx.media3.exoplayer.RenderersFactory() {
+                @Override
+                public List<Renderer> createRenderers(Context context) {
+                    List<Renderer> all = new ArrayList<Renderer>();
+                    // FFmpeg audio+video yutuculari donanimdan ONCE
+                    all.addAll(FfmpegExtension.create(context, /*audio=*/true, /*video=*/true));
+                    // Donanim (MediaCodec) yutuculari
+                    all.addAll(captured.createRenderers(context));
+                    return all;
+                }
+            };
         }
+
+        ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
 
         int[] b = bufferMs(live);
         DefaultLoadControl lc = new DefaultLoadControl.Builder()

@@ -44,6 +44,14 @@ public final class PlayerFactory {
                 .setEnableDecoderFallback(true)
                 .setExtensionRendererMode(mode);
 
+        // VOD: Jellyfin FFmpeg decoder'ini (tumu codec: EAC-3/AC-3/DTS/TrueHD/MP2...)
+        // otomatik kesfe baglamadan, sinif adlari ogrenince acik bagla.
+        // Video renderer'i sadece VOD'da eklenir; canli TV'de donma riski
+        // nedeniyle video donanim codec'te kalir, sadece ses FFmpeg'e gider.
+        if (!live) {
+            rf = FfmpegExtension.attach(rf, c, /*video=*/true);
+        }
+
         ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
 
         int[] b = bufferMs(live);

@@ -10,7 +10,6 @@ import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.exoplayer.Renderer;
 import androidx.media3.exoplayer.dash.DashMediaSource;
 import androidx.media3.exoplayer.hls.HlsMediaSource;
 import androidx.media3.exoplayer.source.MediaSource;
@@ -21,9 +20,6 @@ import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory;
 
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.net.Http;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * [Android 5.0 / 7.0 surumleri] AndroidX Media3 oynatici.
@@ -44,57 +40,12 @@ public final class PlayerFactory {
         int mode = live
                 ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
                 : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
-        DefaultRenderersFactory baseRf = new DefaultRenderersFactory(c)
+        DefaultRenderersFactory rf = new DefaultRenderersFactory(c)
                 .setEnableDecoderFallback(true)
                 .setExtensionRendererMode(mode);
 
-        // VOD: FFmpeg audio+video renderer'larini DefaultRenderersFactory'nin
-        // olusturdugu donanim renderer'lari ONUNA ekleyerek, EAC-3/AC-3/DTS/TrueHD
-        // gibi donanim codec'e dusmeyen formatlarin yaziyla cozulmesini garanti et.
-        // DefaultRenderersFactory(1.5.0) icin ExoPlayer.Builder varargs constructor
-        // Renderer[] bekler; DefaultRenderersFactory'nin kendisi RenderersFactory
-        // degil, bir RenderersFactory uretici (factory) objesidir.
-        // VOD: FFmpeg renderer'larini DefaultRenderersFactory'den basina ekleyelim.
-        // Media3 1.5.0'ta RenderersFactory.createRenderers imzası 5 arguman:
-        //   createRenderers(Handler, VideoRendererEventListener,
-        //       AudioRendererEventListener, TextOutput, MetadataOutput)
-        // ExoPlayer.Builder bunlari kendisi saglar; biz DefaultRenderersFactory
-        // icindeki renderer'larin dondurdugu listeye FFmpeg'li renderer'lari
-        // basina ekliyoruz. DefaultRenderersFactory'nin kendisi bu factory'yi
-        // bir RenderersFactory olarak gosterir (builder'e verilir).
-        ExoPlayer.Builder builder;
-        if (live) {
-            builder = new ExoPlayer.Builder(c, baseRf);
-        } else {
-            final DefaultRenderersFactory captured = baseRf;
-            final List<Renderer> extra = FfmpegExtension.create(c, /*audio=*/true, /*video=*/true);
-            if (extra.isEmpty()) {
-                builder = new ExoPlayer.Builder(c, captured);
-            } else {
-                // Media3 1.5.0'ta RenderersFactory imzasi:
-                // createRenderers(Handler, VideoRendererEventListener,
-                //     AudioRendererEventListener, TextOutput, MetadataOutput)
-                androidx.media3.exoplayer.RenderersFactory wrapped =
-                    new androidx.media3.exoplayer.RenderersFactory() {
-                        @Override
-                        public List<Renderer> createRenderers(
-                                android.os.Handler handler,
-                                androidx.media3.exoplayer.video.VideoRendererEventListener videoListener,
-                                androidx.media3.exoplayer.audio.AudioRendererEventListener audioListener,
-                                androidx.media3.exoplayer.text.TextOutput textOutput,
-                                androidx.media3.exoplayer.metadata.MetadataOutput metadataOutput) {
-                            List<Renderer> all = new ArrayList<Renderer>();
-                            // FFmpeg audio+video yutuculari donanım ONCE
-                            all.addAll(extra);
-                            // Donanim (MediaCodec) yutuculari
-                            all.addAll(captured.createRenderers(handler, videoListener, audioListener,
-                                    textOutput, metadataOutput));
-                            return all;
-                        }
-                    };
-                builder = new ExoPlayer.Builder(c, wrapped);
-            }
-        }
+        ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
+
         int[] b = bufferMs(live);
         DefaultLoadControl lc = new DefaultLoadControl.Builder()
                 .setBufferDurationsMs(b[0], b[1], b[2], b[3])

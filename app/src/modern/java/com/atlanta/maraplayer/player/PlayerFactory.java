@@ -71,18 +71,20 @@ public final class PlayerFactory {
             if (extra.isEmpty()) {
                 builder = new ExoPlayer.Builder(c, captured);
             } else {
-                // DefaultRenderersFactory'i RenderersFactory olarak kullanip
-                // FFmpeg renderer'larini basina ekleyen bir wrapper
+                // Media3 1.5.0'ta RenderersFactory imzasi:
+                // createRenderers(Handler, VideoRendererEventListener,
+                //     AudioRendererEventListener, TextOutput, MetadataOutput)
                 androidx.media3.exoplayer.RenderersFactory wrapped =
                     new androidx.media3.exoplayer.RenderersFactory() {
                         @Override
-                        public List<Renderer> createRenderers(android.os.Handler handler,
+                        public List<Renderer> createRenderers(
+                                android.os.Handler handler,
                                 androidx.media3.exoplayer.video.VideoRendererEventListener videoListener,
                                 androidx.media3.exoplayer.audio.AudioRendererEventListener audioListener,
                                 androidx.media3.exoplayer.text.TextOutput textOutput,
                                 androidx.media3.exoplayer.metadata.MetadataOutput metadataOutput) {
                             List<Renderer> all = new ArrayList<Renderer>();
-                            // FFmpeg audio+video yutuculari donanim ONCE
+                            // FFmpeg audio+video yutuculari donanım ONCE
                             all.addAll(extra);
                             // Donanim (MediaCodec) yutuculari
                             all.addAll(captured.createRenderers(handler, videoListener, audioListener,
@@ -93,7 +95,6 @@ public final class PlayerFactory {
                 builder = new ExoPlayer.Builder(c, wrapped);
             }
         }
-
         int[] b = bufferMs(live);
         DefaultLoadControl lc = new DefaultLoadControl.Builder()
                 .setBufferDurationsMs(b[0], b[1], b[2], b[3])

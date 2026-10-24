@@ -54,26 +54,38 @@ public final class PlayerFactory {
         // DefaultRenderersFactory(1.5.0) icin ExoPlayer.Builder varargs constructor
         // Renderer[] bekler; DefaultRenderersFactory'nin kendisi RenderersFactory
         // degil, bir RenderersFactory uretici (factory) objesidir.
-        androidx.media3.exoplayer.RenderersFactory rf = baseRf;
+        // VOD'da DefaultRenderersFactory'yi DefaultRenderersFactory olarak basit
+        // bir wrapper ile geciririz; FFmpeg renderer'larini 5-argumanli
+        // createRenderers(...) icinde basina ekleriz.
         ExoPlayer.Builder builder;
-        if (!live) {
-            List<Renderer> extra = FfmpegExtension.create(c, /*audio=*/true, /*video=*/true);
-            if (!extra.isEmpty()) {
-                // Renderer dizisi: FFmpeg (ses+video) donanimdan ONCE
-                // DefaultRenderersFactory burada RenderersFactory olarak kullanilip
-                // olusturuldugu icin, ExoPlayer.Builder(RenderersFactory) bunu dogrudan kabul eder.
-                rf = new androidx.media3.exoplayer.RenderersFactory() {
-                    @Override
-                    public List<Renderer> createRenderers(Context context) {
-                        List<Renderer> all = new ArrayList<Renderer>();
-                        all.addAll(extra);
-                        all.addAll(((DefaultRenderersFactory) baseRf).createRenderers(context));
-                        return all;
-                    }
-                };
+        if (live) {
+            builder = new ExoPlayer.Builder(c, baseRf);
+        } else {
+            final DefaultRenderersFactory captured = baseRf;
+            final List<Renderer> extra = FfmpegExtension.create(c, /*audio=*/true, /*video=*/true);
+            if (extra.isEmpty()) {
+                builder = new ExoPlayer.Builder(c, captured);
+            } else {
+                androidx.media3.exoplayer.RenderersFactory wrapped =
+                    new androidx.media3.exoplayer.RenderersFactory() {
+                        @Override
+                        public List<Renderer> createRenderers(android.os.Handler handler,
+                                androidx.media3.exoplayer.video.VideoRendererEventListener videoListener,
+                                androidx.media3.exoplayer.audio.AudioRendererEventListener audioListener,
+                                androidx.media3.exoplayer.text.TextOutput textOutput,
+                                androidx.media3.exoplayer.metadata.MetadataOutput metadataOutput) {
+                            List<Renderer> all = new ArrayList<Renderer>();
+                            // FFmpeg audio+video yutuculari donanım ONCE
+                            all.addAll(extra);
+                            // Donanim (MediaCodec) yutuculari
+                            all.addAll(captured.createRenderers(handler, videoListener, audioListener,
+                                    textOutput, metadataOutput));
+                            return all;
+                        }
+                    };
+                builder = new ExoPlayer.Builder(c, wrapped);
             }
         }
-        builder = new ExoPlayer.Builder(c, rf);
 
         int[] b = bufferMs(live);
         DefaultLoadControl lc = new DefaultLoadControl.Builder()

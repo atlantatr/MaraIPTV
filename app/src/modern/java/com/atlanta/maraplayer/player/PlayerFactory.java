@@ -48,27 +48,32 @@ public final class PlayerFactory {
                 .setEnableDecoderFallback(true)
                 .setExtensionRendererMode(mode);
 
-        // VOD'da FFmpeg renderer'larini basina alacak RenderersFactory,
-        // canli TV'de dogrudan donanim factory
-        androidx.media3.exoplayer.RenderersFactory rf;
-        if (live) {
-            rf = baseRf;
-        } else {
-            final DefaultRenderersFactory captured = baseRf;
-            rf = new androidx.media3.exoplayer.RenderersFactory() {
-                @Override
-                public List<Renderer> createRenderers(Context context) {
-                    List<Renderer> all = new ArrayList<Renderer>();
-                    // FFmpeg audio+video yutuculari donanimdan ONCE
-                    all.addAll(FfmpegExtension.create(context, /*audio=*/true, /*video=*/true));
-                    // Donanim (MediaCodec) yutuculari
-                    all.addAll(captured.createRenderers(context));
-                    return all;
-                }
-            };
+        // VOD: FFmpeg audio+video renderer'larini DefaultRenderersFactory'nin
+        // olusturdugu donanim renderer'lari ONUNA ekleyerek, EAC-3/AC-3/DTS/TrueHD
+        // gibi donanim codec'e dusmeyen formatlarin yaziyla cozulmesini garanti et.
+        // DefaultRenderersFactory(1.5.0) icin ExoPlayer.Builder varargs constructor
+        // Renderer[] bekler; DefaultRenderersFactory'nin kendisi RenderersFactory
+        // degil, bir RenderersFactory uretici (factory) objesidir.
+        androidx.media3.exoplayer.RenderersFactory rf = baseRf;
+        ExoPlayer.Builder builder;
+        if (!live) {
+            List<Renderer> extra = FfmpegExtension.create(c, /*audio=*/true, /*video=*/true);
+            if (!extra.isEmpty()) {
+                // Renderer dizisi: FFmpeg (ses+video) donanimdan ONCE
+                // DefaultRenderersFactory burada RenderersFactory olarak kullanilip
+                // olusturuldugu icin, ExoPlayer.Builder(RenderersFactory) bunu dogrudan kabul eder.
+                rf = new androidx.media3.exoplayer.RenderersFactory() {
+                    @Override
+                    public List<Renderer> createRenderers(Context context) {
+                        List<Renderer> all = new ArrayList<Renderer>();
+                        all.addAll(extra);
+                        all.addAll(((DefaultRenderersFactory) baseRf).createRenderers(context));
+                        return all;
+                    }
+                };
+            }
         }
-
-        ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
+        builder = new ExoPlayer.Builder(c, rf);
 
         int[] b = bufferMs(live);
         DefaultLoadControl lc = new DefaultLoadControl.Builder()

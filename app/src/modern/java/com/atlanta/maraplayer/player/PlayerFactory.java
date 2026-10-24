@@ -44,6 +44,13 @@ public final class PlayerFactory {
                 .setEnableDecoderFallback(true)
                 .setExtensionRendererMode(mode);
 
+        // VOD: Jellyfin FFmpeg audio renderer'ini manuel bagla (EAC-3/AC-3/DTS/TrueHD/MP2).
+        // Media3 otomatik kesfi jellyfin fork'u class adlarini tanimadigi icin sessizce
+        // bos doner; probe saf reflection ile dener, build'i bozmaz, teshis loglar.
+        if (!live) {
+            FfmpegAudioProbe.attach(rf, c);
+        }
+
         ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
 
         int[] b = bufferMs(live);

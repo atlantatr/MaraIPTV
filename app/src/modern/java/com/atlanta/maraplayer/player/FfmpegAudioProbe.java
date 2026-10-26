@@ -33,16 +33,14 @@ public final class FfmpegAudioProbe {
     private static final String TAG = "MaraFfmpeg";
 
     private static final String[] LOADER_CLASS_CANDIDATES = {
+            "androidx.media3.decoder.ffmpeg.FfmpegLibrary",
             "com.android.jellyfin.media3.extension.FfmpegLibraryLoader",
-            "com.android.jellyfin.media3.extension.FfmpegExtensionLoader",
-            "org.jellyfin.media3.extension.FfmpegLibraryLoader",
             "com.google.android.exoplayer2.ffmpeg.FfmpegLibraryLoader",
     };
 
     private static final String[] AUDIO_RENDERER_CLASS_CANDIDATES = {
+            "androidx.media3.decoder.ffmpeg.FfmpegAudioRenderer",
             "com.android.jellyfin.media3.extension.FfmpegAudioRenderer",
-            "com.android.jellyfin.media3.ffmpeg.FfmpegAudioRenderer",
-            "org.jellyfin.media3.extension.FfmpegAudioRenderer",
             "com.google.android.exoplayer2.ffmpeg.FfmpegAudioRenderer",
     };
 
@@ -159,13 +157,35 @@ public final class FfmpegAudioProbe {
 
     private static Object instantiate(Class<?> cls, Context ctx) {
         try {
+            // 1) Context argumanli constructor
             try {
                 Constructor<?> c = cls.getConstructor(Context.class);
-                return c.newInstance(ctx);
-            } catch (NoSuchMethodException e) {
-                Constructor<?> c = cls.getConstructor();
-                return c.newInstance();
+                Object inst = c.newInstance(ctx);
+                Log.i(TAG, "constructor (Context) kullandim: " + cls.getName());
+                return inst;
+            } catch (NoSuchMethodException ignored) {
             }
+            // 2) Argumansiz constructor
+            try {
+                Constructor<?> c = cls.getConstructor();
+                Object inst = c.newInstance();
+                Log.i(TAG, "argumansiz constructor kullandim: " + cls.getName());
+                return inst;
+            } catch (NoSuchMethodException ignored) {
+            }
+            // 3) Farkli imzalar olabilir — constructorlari logla
+            StringBuilder sb = new StringBuilder("uymayan constructorlar(").append(cls.getName()).append("):");
+            for (Constructor<?> c : cls.getConstructors()) {
+                StringBuilder ps = new StringBuilder();
+                Class<?>[] ptypes = c.getParameterTypes();
+                for (int i = 0; i < ptypes.length; i++) {
+                    if (i > 0) ps.append(", ");
+                    ps.append(ptypes[i].getSimpleName());
+                }
+                sb.append(" (").append(ps).append(")");
+            }
+            Log.w(TAG, sb.toString());
+            return null;
         } catch (Throwable t) {
             Log.w(TAG, "constructor uretilmedi: " + cls.getName(), t);
             return null;

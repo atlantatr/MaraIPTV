@@ -32,7 +32,7 @@ import java.util.Set;
 
 /**
  * [Android 5.0 / 7.0 surumleri] Android TV ana ekran entegrasyonu.
- * Android 8.0+ : "Izlemeye devam" (Watch Next) satirina yarim kalan film/bolumleri ekler.
+ * Android 8.0+ : "İzlemeye devam" (Watch Next) satirina yarim kalan film/bolumleri ekler.
  * Android 5.0 - 7.1 : Android TV "Oneriler" satirina kart olarak ekler.
  * Karta basilinca mara://play baglantisi ile dogrudan kaldigi yerden oynatir.
  */
@@ -125,7 +125,7 @@ public final class TvHome {
             @SuppressWarnings("deprecation")
             Notification.Builder b = new Notification.Builder(c)
                     .setContentTitle(title(r))
-                    .setContentText(r.type == Models.EPISODE ? r.subtitle + "  " + r.name : "Izlemeye devam et")
+                    .setContentText(r.type == Models.EPISODE ? r.subtitle + "  " + r.name : "İzlemeye devam et")
                     .setSmallIcon(R.drawable.ic_notif)
                     .setLocalOnly(true)
                     .setOngoing(true)

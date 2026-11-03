@@ -20,6 +20,17 @@ public final class Prefs {
     private static final Pattern ADULT = Pattern.compile(
             "(adult|xxx|porn|\\+18|18\\+|erotic|erotik|yeti[sş]kin|for adults|\\bsex)", Pattern.CASE_INSENSITIVE);
 
+    /**
+     * Cocuk modu: yalnizca bu anahtar kelimeleri tasiyan kategoriler gorunur.
+     * Saglandan gelen kategori adlari Turkce/Ingilizce olabildigi icin genis tutuldu.
+     */
+    private static final Pattern KIDS = Pattern.compile(
+            "(cocuk|çocuk|kids?|cartoon|çizgi|cizgi|animasyon|animation|junior|baby|bebek|minika|" +
+            "disney|nickelodeon|nick jr|boomerang|cartoon network|trt cocuk|trt çocuk|" +
+            "cocuklar|çocuklar|family|aile|masal|fabrika|pijamaskeliler|kukuli|niloya|rafadan|" +
+            "pepee|ege ile gaga|elif'in|kral şakir|kral sakir|toon|anime|cocomelon|paw patrol|" +
+            "peppa|dora|sünger|spongebob|temel reis|tom ve jerry|looney)", Pattern.CASE_INSENSITIVE);
+
     private Prefs() {
     }
 
@@ -82,8 +93,19 @@ public final class Prefs {
     }
 
     public static String userAgent() {
-        String ua = sp.getString("user_agent", "");
-        return ua == null || ua.trim().isEmpty() ? "MaraIPTV/1.0 (Linux; Android)" : ua.trim();
+        String v = sp.getString("user_agent", "default");
+        if (v == null) v = "";
+        v = v.trim();
+        if (v.isEmpty()) return "MaraIPTV/2.0 (Linux; Android)";
+        // Eski surumlerde serbest metin olarak girilmis UA degerini koru
+        if (v.indexOf(' ') >= 0 || v.indexOf('/') >= 0 || v.indexOf('(') >= 0) return v;
+        if ("vlc".equals(v)) return "VLC/3.0.20 LibVLC/3.0.20";
+        if ("kodi".equals(v)) return "Kodi/20.5 (Linux; Android 11) Android/11.0.0 Sys_CPU/armv7l App_Bitness/32";
+        if ("chrome".equals(v)) return "Mozilla/5.0 (Linux; Android 11; SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+        if ("smarters".equals(v)) return "IPTVSmarters/1.0.0 (Linux; Android 9) ExoPlayerLib/2.13.2";
+        if ("tivimate".equals(v)) return "TiviMate/4.7.0 (Linux; Android 9)";
+        if ("exoplayer".equals(v)) return "ExoPlayerLib/2.19.1";
+        return "MaraIPTV/2.0 (Linux; Android)";
     }
 
     /** EPG saat duzeltmesi (saniye) */
@@ -139,7 +161,18 @@ public final class Prefs {
     }
 
     public static void setLastChannel(long pid, String id) {
-        sp.edit().putString("last_channel_" + pid, id).apply();
+        setLastChannel(pid, id, null);
+    }
+
+    public static void setLastChannel(long pid, String id, String name) {
+        SharedPreferences.Editor e = sp.edit().putString("last_channel_" + pid, id);
+        if (name != null && !name.isEmpty()) e.putString("last_channel_name_" + pid, name);
+        e.apply();
+    }
+
+    /** Son izlenen kanalin gosterilecek adi (ana ekrandaki kisayol icin). */
+    public static String lastChannelName(long pid) {
+        return sp.getString("last_channel_name_" + pid, null);
     }
 
     public static String lastLiveCategory(long pid) {
@@ -233,6 +266,127 @@ public final class Prefs {
 
     public static void setAdultAutoLock(boolean on) {
         sp.edit().putBoolean("adult_autolock", on).apply();
+    }
+
+    // ------------------------------------------------------------ Cocuk modu
+
+    /** Yalnizca cocuk kategorileri gorunur (kapatmak icin PIN gerekir). */
+    public static boolean kidsMode() {
+        return sp.getBoolean("kids_mode", false);
+    }
+
+    public static void setKidsMode(boolean on) {
+        sp.edit().putBoolean("kids_mode", on).apply();
+    }
+
+    public static boolean looksKids(String name) {
+        return name != null && KIDS.matcher(name).find();
+    }
+
+    // ------------------------------------------------------------ Spor: takip edilen takimlar
+
+    public static Set<String> favoriteTeams() {
+        return set("fav_teams");
+    }
+
+    public static boolean isFavoriteTeam(String name) {
+        return name != null && !name.isEmpty() && favoriteTeams().contains(name);
+    }
+
+    // ------------------------------------------------------------ Spor: mac zamanlayicisi
+
+    public static void setMatchAlarm(long at, long profileId, String matchKey, String title,
+                                     String channelId, String channelName) {
+        sp.edit().putLong("match_alarm_at", at)
+                .putLong("match_alarm_pid", profileId)
+                .putString("match_alarm_key", safe(matchKey))
+                .putString("match_alarm_title", safe(title))
+                .putString("match_alarm_channel", safe(channelId))
+                .putString("match_alarm_channel_name", safe(channelName))
+                .apply();
+    }
+
+    public static long matchAlarmAt() {
+        return sp.getLong("match_alarm_at", 0);
+    }
+
+    public static long matchAlarmProfile() {
+        return sp.getLong("match_alarm_pid", -1);
+    }
+
+    public static String matchAlarmKey() {
+        return sp.getString("match_alarm_key", "");
+    }
+
+    public static String matchAlarmTitle() {
+        return sp.getString("match_alarm_title", "");
+    }
+
+    public static String matchAlarmChannel() {
+        return sp.getString("match_alarm_channel", "");
+    }
+
+    public static String matchAlarmChannelName() {
+        return sp.getString("match_alarm_channel_name", "");
+    }
+
+    public static void clearMatchAlarm() {
+        sp.edit().remove("match_alarm_at").remove("match_alarm_pid").remove("match_alarm_key")
+                .remove("match_alarm_title").remove("match_alarm_channel")
+                .remove("match_alarm_channel_name").apply();
+    }
+
+    // ------------------------------------------------------------ Spor: mac hatirlatmalari
+
+    public static Set<String> matchReminders() {
+        return set("match_reminders");
+    }
+
+    /** Takip edilen takimlarin maclarina otomatik "10 dk once" hatirlatmasi kurulsun mu. */
+    public static boolean autoTeamReminders() {
+        return sp.getBoolean("auto_team_remind", true);
+    }
+
+    public static void setAutoTeamReminders(boolean on) {
+        sp.edit().putBoolean("auto_team_remind", on).apply();
+    }
+
+    /**
+     * Yayinci adi -> IPTV kanali elle eslestirmeleri.
+     * Bicim: "normalizeYayinci\u0001kanalId\u0001kanalAdi"
+     */
+    public static Set<String> channelLinks() {
+        return set("bc_channel_links");
+    }
+
+    public static void setChannelLinks(Set<String> items) {
+        sp.edit().putStringSet("bc_channel_links",
+                items == null ? new HashSet<String>() : new HashSet<>(items)).apply();
+    }
+
+    public static void setMatchReminders(Set<String> items) {
+        sp.edit().putStringSet("match_reminders",
+                items == null ? new HashSet<String>() : new HashSet<>(items)).apply();
+    }
+
+    private static String safe(String s) {
+        return s == null ? "" : s;
+    }
+
+    /** Takibi ac/kapat; yeni durum true ise takip ediliyor demektir. */
+    public static boolean toggleFavoriteTeam(String name) {
+        if (name == null || name.isEmpty()) return false;
+        Set<String> s = favoriteTeams();
+        boolean on;
+        if (s.contains(name)) {
+            s.remove(name);
+            on = false;
+        } else {
+            s.add(name);
+            on = true;
+        }
+        sp.edit().putStringSet("fav_teams", s).apply();
+        return on;
     }
 
     // ------------------------------------------------------------ Gizli kategoriler (web panel)

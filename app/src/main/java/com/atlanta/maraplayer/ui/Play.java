@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.atlanta.maraplayer.BuildConfig;
 import com.atlanta.maraplayer.data.Db;
 import com.atlanta.maraplayer.data.Models;
 import com.atlanta.maraplayer.data.Models.Epg;
@@ -32,6 +33,8 @@ public final class Play {
 
     public static final String EXTRA_INDEX = "index";
     public static final String EXTRA_START = "start";
+    /** Onizleme oynaticisi tam ekrana devredildi (Media3 surumleri) */
+    public static final String EXTRA_HANDOFF = "handoff";
 
     private Play() {
     }
@@ -52,14 +55,64 @@ public final class Play {
         return p;
     }
 
-    public static void playLive(Activity a, List<Item> channels, int index) {
-        List<PlayItem> q = new ArrayList<>();
-        for (int i = 0; i < channels.size(); i++) q.add(liveItem(channels.get(i), i + 1));
-        launch(a, q, index, 0);
+    /** Canli yayin adresi: kanal kaydediliyorsa yerel aktarim (tek baglanti). */
+    public static String resolveUrl(PlayItem p) {
+        if (!BuildConfig.LITE && p != null && p.type == Models.LIVE) {
+            String relay = com.atlanta.maraplayer.record.Recorder.relayUrl(p.id);
+            if (relay != null) return relay;
+        }
+        return p == null ? null : p.url;
     }
 
-    public static void playMovie(Activity a, Item it, long startMs) {
+    public static void playLive(Activity a, List<Item> channels, int index) {
+        playLive(a, channels, index, 0);
+    }
+
+    /**
+     * Canli TV'yi acar. {@code startMs > 0} ise ilk konum oradan baslar; kucuk
+     * onizlemeden tam ekrana gecerken "kaldigi yerden devam" icin kullanilir.
+     */
+    public static void playLive(Activity a, List<Item> channels, int index, long startMs) {
+        playLive(a, channels, index, startMs, false);
+    }
+
+    /**
+     * @param handoff true ise onizleme oynaticisi devralinir (yayin yeniden
+     *                baslamaz, ayni oynatici tam ekranda surer).
+     */
+    public static void playLive(Activity a, List<Item> channels, int index, long startMs,
+                                boolean handoff) {
+        List<PlayItem> q = new ArrayList<PlayItem>();
+        for (int i = 0; i < channels.size(); i++) q.add(liveItem(channels.get(i), i + 1));
+        launch(a, q, index, startMs, handoff);
+    }
+
+    /**
+     * Tek bir canli kanali kimliginden acar. Mac zamanlayicisi ve dis
+     * kaynaklardan (Context) baslatmak icin kullanilir.
+     */
+    public static void playLiveById(Context c, String id, String name) {
+        if (c == null || id == null || id.isEmpty() || Repo.api() == null) return;
         PlayItem p = new PlayItem();
+        p.type = Models.LIVE;
+        p.id = id;
+        p.title = name == null ? "" : name;
+        p.url = Repo.api().liveUrl(id, Prefs.liveFormat());
+        List<PlayItem> q = new ArrayList<PlayItem>();
+        q.add(p);
+        Prefs.setLastChannel(Repo.pid(), id, name);
+        Prefs.addRecentChannel(Repo.pid(), id);
+        Repo.playQueue = q;
+        Intent i = new Intent(c, PlayerActivity.class)
+                .putExtra(EXTRA_INDEX, 0)
+                .putExtra(EXTRA_START, 0L)
+                .putExtra(EXTRA_HANDOFF, false)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        if (!(c instanceof Activity)) i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        c.startActivity(i);
+    }
+
+    public static void playMovie(Activity a, Item it, long startMs) {        PlayItem p = new PlayItem();
         p.type = Models.MOVIE;
         p.id = it.id;
         p.title = it.name;
@@ -79,7 +132,7 @@ public final class Play {
             PlayItem p = new PlayItem();
             p.type = Models.EPISODE;
             p.id = e.id;
-            p.title = Ui.empty(e.title) ? "Bolum " + e.number : e.title;
+            p.title = Ui.empty(e.title) ? "Bölüm " + e.number : e.title;
             p.subtitle = "S" + e.season + " B" + e.number;
             p.icon = Ui.empty(e.image) ? cover : e.image;
             p.ext = e.ext;
@@ -140,11 +193,16 @@ public final class Play {
     }
 
     public static void launch(Activity a, List<PlayItem> q, int index, long startMs) {
+        launch(a, q, index, startMs, false);
+    }
+
+    public static void launch(Activity a, List<PlayItem> q, int index, long startMs,
+                              boolean handoff) {
         if (q.isEmpty()) return;
         index = Math.max(0, Math.min(index, q.size() - 1));
         PlayItem p = q.get(index);
         if (p.type == Models.LIVE) {
-            Prefs.setLastChannel(Repo.pid(), p.id);
+            Prefs.setLastChannel(Repo.pid(), p.id, p.title);
             Prefs.addRecentChannel(Repo.pid(), p.id);
         }
         // Yerel kayit dosyalari her zaman dahili oynaticida (file:// baska uygulamaya verilemez)
@@ -153,23 +211,26 @@ public final class Play {
             return;
         }
         Repo.playQueue = q;
-        a.startActivity(new Intent(a, PlayerActivity.class).putExtra(EXTRA_INDEX, index).putExtra(EXTRA_START, startMs));
+        a.startActivity(new Intent(a, PlayerActivity.class)
+                .putExtra(EXTRA_INDEX, index)
+                .putExtra(EXTRA_START, startMs)
+                .putExtra(EXTRA_HANDOFF, handoff));
     }
 
     public static void openExternal(Context a, PlayItem p) {
         if (p.type == Models.RECORDING) {
-            Ui.toast(a, "Kayit dosyalari sadece dahili oynaticida acilir");
+            Ui.toast(a, "Kayıt dosyaları sadece dahili oynatıcıda açılır");
             return;
         }
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setDataAndType(Uri.parse(p.url), "video/*");
         i.putExtra("title", p.title);
-        Intent chooser = Intent.createChooser(i, "Oynatici secin");
+        Intent chooser = Intent.createChooser(i, "Oynatıcı seçin");
         if (!(a instanceof Activity)) chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         try {
             a.startActivity(chooser);
         } catch (ActivityNotFoundException e) {
-            Ui.toast(a, "Harici oynatici bulunamadi. VLC veya MX Player kurun.");
+            Ui.toast(a, "Harici oynatıcı bulunamadı. VLC veya MX Player kurun.");
         }
     }
 

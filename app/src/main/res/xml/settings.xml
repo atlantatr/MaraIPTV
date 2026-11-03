@@ -100,6 +100,11 @@
 
     <PreferenceCategory android:title="@string/pref_cat_parental">
         <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="kids_mode"
+            android:summary="@string/pref_kids_sum"
+            android:title="@string/pref_kids" />
+        <CheckBoxPreference
             android:defaultValue="true"
             android:key="parental"
             android:summary="@string/pref_parental_sum"
@@ -130,10 +135,35 @@
             android:key="trust_all"
             android:summary="@string/pref_trust_all_sum"
             android:title="@string/pref_trust_all" />
-        <EditTextPreference
+        <ListPreference
+            android:defaultValue="default"
+            android:entries="@array/ua_names"
+            android:entryValues="@array/ua_values"
             android:key="user_agent"
-            android:summary="@string/pref_user_agent_sum"
-            android:title="User-Agent" />
+            android:summary="%s"
+            android:title="@string/pref_user_agent" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_cat_update">
+        <Preference
+            android:key="update_check"
+            android:summary="@string/pref_update_check_sum"
+            android:title="@string/pref_update_check" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_cat_backup">
+        <Preference
+            android:key="backup_now"
+            android:summary="@string/pref_backup_now_sum"
+            android:title="@string/pref_backup_now" />
+        <Preference
+            android:key="backup_restore"
+            android:summary="@string/pref_backup_restore_sum"
+            android:title="@string/pref_backup_restore" />
+        <Preference
+            android:key="backup_web"
+            android:summary="@string/pref_backup_web_sum"
+            android:title="@string/pref_backup_web" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_cat_other">

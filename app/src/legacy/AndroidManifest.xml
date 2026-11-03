@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 4.2 "Lite" surumu.
+
+  Bu surumde kayit (tum zamanli kayitlar, kayit listesi, arka plan servisi ve
+  tek baglanti relay) ile spor rehberi / mac hatirlatici yoktur. Bilesenler
+  ana manifestten tools:node="remove" ile cikarilir; boylece servis/receiver
+  APK'ya hic girmez ve arka planda calismaz.
+
+  BuildConfig.LITE degerini kullanan kod dallari da R8 tarafindan atilir.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Yalnizca kayit / oto-baslatma icin gereken izinler.
+         WRITE_EXTERNAL_STORAGE KALIR: Android 4.2'de yedekleme ve guncelleme
+         indirmesi uygulamanin harici klasorune yazmak icin bu izni ister. -->
+    <uses-permission
+        android:name="android.permission.RECEIVE_BOOT_COMPLETED"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE"
+        tools:node="remove" />
+
+    <application>
+
+        <!-- Spor rehberi ve mac hatirlatici -->
+        <activity
+            android:name=".ui.SportsActivity"
+            tools:node="remove" />
+        <activity
+            android:name=".ui.MatchReminderActivity"
+            tools:node="remove" />
+        <activity
+            android:name=".ui.ChannelPickActivity"
+            tools:node="remove" />
+        <receiver
+            android:name=".sport.MatchAlarmReceiver"
+            tools:node="remove" />
+        <receiver
+            android:name=".sport.MatchReminderReceiver"
+            tools:node="remove" />
+
+        <!-- Kayit -->
+        <activity
+            android:name=".ui.RecordingsActivity"
+            tools:node="remove" />
+        <service
+            android:name=".record.RecordingService"
+            tools:node="remove" />
+        <receiver
+            android:name=".record.BootReceiver"
+            tools:node="remove" />
+
+    </application>
+</manifest>

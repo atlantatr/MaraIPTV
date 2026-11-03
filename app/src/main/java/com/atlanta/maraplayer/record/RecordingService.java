@@ -46,6 +46,8 @@ public class RecordingService extends Service {
     private static final String TAG = "Recorder";
     private static final String CHANNEL = "recording";
     private static final int NOTIF_ID = 8765;
+    private static final int NOTIF_ID_DONE = 8766;
+    private static final String CHANNEL_DONE = "recording_done";
     private static final AtomicLong IDS = new AtomicLong(1);
 
     private PowerManager.WakeLock wakeLock;
@@ -81,25 +83,30 @@ public class RecordingService extends Service {
             if (s != null) {
                 Db.get().deleteSchedule(sid);
                 long stopAt = s.stop * 1000L + 120000L; // 2 dk pay
-                if (stopAt > System.currentTimeMillis()) begin(s.url, s.channel + " - " + s.title, stopAt);
+                if (stopAt > System.currentTimeMillis())
+                    begin(s.streamId, s.url, s.channel + " - " + s.title, stopAt);
             }
         } else if (ACTION_START.equals(action)) {
-            begin(intent.getStringExtra("url"), intent.getStringExtra("title"), intent.getLongExtra("stopAt", 0));
+            begin(intent.getStringExtra("streamId"), intent.getStringExtra("url"),
+                    intent.getStringExtra("title"), intent.getLongExtra("stopAt", 0));
         }
         stopIfIdle();
         return START_NOT_STICKY;
     }
 
-    private void begin(final String url, String title, long stopAt) {
+    private void begin(String streamId, final String url, String title, long stopAt) {
         if (url == null || url.isEmpty()) return;
         final Recorder.Active a = new Recorder.Active();
         a.id = IDS.getAndIncrement();
+        a.streamId = streamId;
+        a.url = url;
         a.title = title == null ? "Kayit" : title;
         a.startedAt = System.currentTimeMillis();
         a.stopAt = stopAt;
         String stamp = new SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(new Date());
         a.file = new File(Recorder.targetDir(this), Recorder.safeName(a.title) + "_" + stamp + ".ts");
         Recorder.ACTIVE.put(a.id, a);
+        LocalRelay.ensureStarted(); // tek baglanti: oynatma kayit akisindan beslenir
         if (wakeLock != null) wakeLock.acquire();
         updateNotification();
         new Thread(new Runnable() {
@@ -109,8 +116,18 @@ public class RecordingService extends Service {
                     record(url, a);
                 } finally {
                     Recorder.ACTIVE.remove(a.id);
-                    if (a.file.exists() && a.file.length() == 0) //noinspection ResultOfMethodCallIgnored
+                    long end = System.currentTimeMillis();
+                    boolean ok = a.file.exists() && a.file.length() > 0;
+                    if (ok) {
+                        long dur = a.stopAt > 0 ? a.stopAt - a.startedAt : end - a.startedAt;
+                        dur = Math.max(0, Math.min(dur, end - a.startedAt));
+                        Recorder.writeMeta(a.file, a.startedAt, dur);
+                    } else {
+                        //noinspection ResultOfMethodCallIgnored
                         a.file.delete();
+                        Recorder.metaFile(a.file).delete();
+                    }
+                    notifyDone(ok, a.title, a.file.length());
                     com.atlanta.maraplayer.util.Async.MAIN.post(new Runnable() {
                         @Override
                         public void run() {
@@ -121,6 +138,42 @@ public class RecordingService extends Service {
                 }
             }
         }, "rec-" + a.id).start();
+    }
+
+    /** Kayit bittiginde (basariyla veya hata ile) kisa bildirim gosterir. */
+    private void notifyDone(final boolean ok, final String title, final long bytes) {
+        Notification b = (ok
+                ? doneNotification("Kayıt tamamlandı: " + title,
+                        bytes > 0 ? "Boyut: " + Recorder.size(bytes) : "")
+                : doneNotification("Kayıt başarısız", title));
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (nm != null) nm.notify(NOTIF_ID_DONE, b);
+    }
+
+    private Notification doneNotification(String title, String text) {
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        Notification.Builder b;
+        if (Build.VERSION.SDK_INT >= 26) {
+            if (nm != null && nm.getNotificationChannel(CHANNEL_DONE) == null) {
+                NotificationChannel ch = new NotificationChannel(CHANNEL_DONE, "Kayıt tamamlandı",
+                        NotificationManager.IMPORTANCE_DEFAULT);
+                nm.createNotificationChannel(ch);
+            }
+            b = new Notification.Builder(this, CHANNEL_DONE);
+        } else {
+            b = new Notification.Builder(this);
+        }
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= 23) flags |= PendingIntent.FLAG_IMMUTABLE;
+        PendingIntent pi = PendingIntent.getActivity(this, 1,
+                new Intent(this, RecordingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), flags);
+        b.setContentTitle(title)
+                .setContentText(text)
+                .setSmallIcon(com.atlanta.maraplayer.R.drawable.ic_notif)
+                .setContentIntent(pi)
+                .setAutoCancel(true);
+        //noinspection deprecation
+        return b.getNotification();
     }
 
     private boolean done(Recorder.Active a) {
@@ -142,7 +195,7 @@ public class RecordingService extends Service {
                     fails = 0;
                 } catch (IOException e) {
                     fails++;
-                    a.status = "Yeniden baglaniyor (" + fails + ")";
+                    a.status = "Yeniden bağlaniyor (" + fails + ")";
                     Log.w(TAG, "kayit kesildi", e);
                     if (a.stopAt == 0 && fails > 30) break; // elle kayit: cok uzun kopuklukta birak
                 }
@@ -289,6 +342,7 @@ public class RecordingService extends Service {
 
     private void stopIfIdle() {
         if (Recorder.ACTIVE.isEmpty()) {
+            LocalRelay.stop();
             if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
             stopForeground(true);
             stopSelf();
@@ -297,6 +351,7 @@ public class RecordingService extends Service {
 
     @Override
     public void onDestroy() {
+        LocalRelay.stop();
         if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
         super.onDestroy();
     }

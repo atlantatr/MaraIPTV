@@ -283,7 +283,7 @@ public final class WebServer {
                 if (c.startsWith("mara=")) return c.substring(5);
             }
         }
-        return null;
+        return r.query.get("t");
     }
 
     // ================================================================ Yonlendirme
@@ -300,6 +300,16 @@ public final class WebServer {
             } catch (IOException e) {
                 send(out, 404, "text/plain", new byte[0], null);
             }
+            return;
+        }
+        if (p.equals("/backup.json")) {
+            String bt = token(r);
+            if (bt == null || !tokens.contains(bt)) {
+                send(out, 401, "text/plain; charset=utf-8",
+                        "Oturum gerekli: once panelden giris yapin".getBytes("UTF-8"), null);
+                return;
+            }
+            backup(out);
             return;
         }
         if (!p.startsWith("/api/")) {
@@ -375,6 +385,9 @@ public final class WebServer {
             case "/api/epg/update":
                 sendJson(out, 200, updateEpg(body));
                 break;
+            case "/api/backup":
+                backup(out);
+                break;
             case "/api/logout":
                 tokens.remove(t);
                 sendJson(out, 200, ok());
@@ -382,6 +395,21 @@ public final class WebServer {
             default:
                 sendJson(out, 404, err("Bilinmeyen istek"));
         }
+    }
+
+    /** Web panelden yedek indirme: taze JSON uretir ve dosya olarak gonderir. */
+    private void backup(OutputStream out) throws Exception {
+        java.io.File f = com.atlanta.maraplayer.data.Backup.write(ctx);
+        java.io.FileInputStream in = new java.io.FileInputStream(f);
+        byte[] data;
+        try {
+            data = Http.readAll(in);
+        } finally {
+            in.close();
+        }
+        send(out, 200, "application/json; charset=utf-8", data,
+                "Content-Disposition: attachment; filename=\"" + com.atlanta.maraplayer.data.Backup.FILE_NAME + "\"\r\n"
+                        + "Cache-Control: no-store\r\n");
     }
 
     private byte[] asset(String name) throws IOException {
@@ -514,7 +542,7 @@ public final class WebServer {
 
     private Source sourceFor(long pid) throws IOException {
         Profile p = Db.get().profile(pid);
-        if (p == null) throw new IOException("Profil bulunamadi");
+        if (p == null) throw new IOException("Profil bulunamadı");
         return Sources.create(p);
     }
 
@@ -566,7 +594,7 @@ public final class WebServer {
     private JSONObject updateEpg(JSONObject b) throws Exception {
         final long pid = b.getLong("pid");
         final Profile p = Db.get().profile(pid);
-        if (p == null) return err("Profil bulunamadi");
+        if (p == null) return err("Profil bulunamadı");
         if (XmlTv.isRunning()) return err("EPG guncellemesi zaten suruyor");
         Source src;
         if (pid == Repo.pid() && Repo.hasSession()) {

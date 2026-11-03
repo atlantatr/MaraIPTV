@@ -95,7 +95,7 @@ public class M3uSource implements Source {
                     n++;
                     String lower = line.toLowerCase();
                     int type = (lower.contains("/movie/") || lower.contains("/series/")) ? Models.MOVIE : Models.LIVE;
-                    if (group.isEmpty()) group = type == Models.LIVE ? "Diger" : "Filmler";
+                    if (group.isEmpty()) group = type == Models.LIVE ? "Diğer" : "Filmler";
                     Item it = new Item();
                     it.type = type;
                     it.id = String.valueOf(n);
@@ -149,7 +149,7 @@ public class M3uSource implements Source {
     }
 
     private Account validAccount() throws IOException {
-        if (live.isEmpty() && movies.isEmpty()) throw new IOException("Calma listesi bos veya gecersiz");
+        if (live.isEmpty() && movies.isEmpty()) throw new IOException("Çalma listesi boş veya geçersiz");
         Account a = new Account();
         a.status = "M3U (" + live.size() + " kanal, " + movies.size() + " video)";
         return a;

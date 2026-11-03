@@ -8,6 +8,7 @@ import com.atlanta.maraplayer.data.Db;
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.net.Http;
 import com.atlanta.maraplayer.record.Recorder;
+import com.atlanta.maraplayer.sport.MatchAlarm;
 import com.atlanta.maraplayer.util.ImageLoader;
 import com.atlanta.maraplayer.util.L;
 import com.atlanta.maraplayer.web.WebServer;
@@ -31,10 +32,17 @@ public class App extends MultiDexApplication {
         ImageLoader.init(this);
         // Yerel ag web paneli: http://CIHAZ_IP:8765
         WebServer.start(this);
-        // Zamanli kayitlarin alarmlarini kur (yeniden baslatma / guncelleme sonrasi)
-        try {
-            Recorder.rescheduleAll(this);
-        } catch (Exception ignored) {
+        if (!BuildConfig.LITE) {
+            // Zamanlı kayıtlarin alarmlarini kur (yeniden baslatma / guncelleme sonrasi)
+            try {
+                Recorder.rescheduleAll(this);
+            } catch (Exception ignored) {
+            }
+            // Mac zamanlayicisini guncelleme sonrasi geri kur
+            try {
+                MatchAlarm.reschedule(this);
+            } catch (Exception ignored) {
+            }
         }
     }
 

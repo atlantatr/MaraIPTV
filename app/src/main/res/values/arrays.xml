@@ -121,6 +121,26 @@
         <item>Puan</item>
     </string-array>
 
+    <!-- User-Agent: kullanici elle yazmaz, hazir seceneklerden secer -->
+    <string-array name="ua_names">
+        <item>Otomatik (Mara IPTV)</item>
+        <item>VLC</item>
+        <item>Kodi</item>
+        <item>Chrome (Android TV)</item>
+        <item>IPTV Smarters</item>
+        <item>TiviMate</item>
+        <item>ExoPlayer</item>
+    </string-array>
+    <string-array name="ua_values" translatable="false">
+        <item>default</item>
+        <item>vlc</item>
+        <item>kodi</item>
+        <item>chrome</item>
+        <item>smarters</item>
+        <item>tivimate</item>
+        <item>exoplayer</item>
+    </string-array>
+
     <string-array name="sleep_names">
         <item>Kapalı</item>
         <item>15 dakika</item>

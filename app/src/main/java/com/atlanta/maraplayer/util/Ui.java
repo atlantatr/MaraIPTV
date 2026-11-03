@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.atlanta.maraplayer.BuildConfig;
 import com.atlanta.maraplayer.R;
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.net.Http;
@@ -41,6 +42,8 @@ public final class Ui {
     }
 
     public static AlertDialog.Builder dialog(Context c) {
+        // Modern surumlerde uygulama temasi (Material) kullanilsin; legacy Holo'da kalir.
+        if (BuildConfig.ADVANCED) return new AlertDialog.Builder(c);
         return new AlertDialog.Builder(c, AlertDialog.THEME_HOLO_DARK);
     }
 

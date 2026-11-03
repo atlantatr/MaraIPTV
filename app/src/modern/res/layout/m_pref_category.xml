@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- [Android 5.0 / 7.0] Ayarlar: bolum basligi -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/title"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:ellipsize="end"
+    android:letterSpacing="0.14"
+    android:paddingBottom="8dp"
+    android:paddingLeft="14dp"
+    android:paddingRight="14dp"
+    android:paddingTop="20dp"
+    android:singleLine="true"
+    android:textColor="@color/m_accent2"
+    android:textSize="12sp"
+    android:textStyle="bold" />

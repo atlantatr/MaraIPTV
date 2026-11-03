@@ -135,7 +135,8 @@ public final class Adapters {
             if (v == null) v = inf.inflate(R.layout.row_channel, parent, false);
             Item it = data.get(p);
             ((TextView) v.findViewById(R.id.num)).setText(String.valueOf(it.num > 0 ? it.num : p + 1));
-            ((TextView) v.findViewById(R.id.name)).setText(it.name);
+            ((TextView) v.findViewById(R.id.name)).setText(
+                    com.atlanta.maraplayer.data.BroadcastApi.displayChannel(it.name));
             v.findViewById(R.id.archive).setVisibility(it.archive ? View.VISIBLE : View.GONE);
             v.findViewById(R.id.fav).setVisibility(favs.contains(it.id) ? View.VISIBLE : View.GONE);
             ImageLoader.get().load((ImageView) v.findViewById(R.id.logo), it.icon, R.drawable.ph_channel, w, h);

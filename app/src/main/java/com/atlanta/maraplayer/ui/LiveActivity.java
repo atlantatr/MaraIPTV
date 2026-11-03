@@ -10,7 +10,9 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.atlanta.maraplayer.BuildConfig;
 import com.atlanta.maraplayer.R;
+import com.atlanta.maraplayer.data.BroadcastApi;
 import com.atlanta.maraplayer.data.Db;
 import com.atlanta.maraplayer.data.Models;
 import com.atlanta.maraplayer.data.Models.Category;
@@ -44,6 +46,10 @@ public class LiveActivity extends BaseActivity {
     private PreviewPlayer previewPlayer;
     private long currentProgramEnd;
     private String previewId;
+    private Item previewItem;
+    private boolean previewRelay;
+    /** Onizlemesi hata veren kanal: tekrar denemek yerine dogrudan tam ekran acilir. */
+    private String previewFailed;
 
     // onResume'da son izlenen kanal ID'si buraya yazilir; kategori listesi
     // asenkron gelince openCategory callback'i bu ID'ye gore sec + onizleme/EPG
@@ -63,6 +69,18 @@ public class LiveActivity extends BaseActivity {
         @Override
         public void run() {
             if (pendingEpg != null) loadEpg(pendingEpg);
+        }
+    };
+    /** Kanal odakta beklerken onizlemeyi baslat (OK artik dogrudan tam ekran). */
+    private Item pendingPreview;
+    private final Runnable previewHover = new Runnable() {
+        @Override
+        public void run() {
+            Item it = pendingPreview;
+            if (it == null || previewPlayer != null) return;
+            if (!Prefs.preview() || Prefs.externalPlayer()) return;
+            if (it.id.equals(previewFailed)) return;
+            startPreview(it);
         }
     };
 
@@ -127,10 +145,14 @@ public class LiveActivity extends BaseActivity {
             @Override
             public void onItemSelected(AdapterView<?> p, View view, int pos, long id) {
                 Item it = chAdapter.getItem(pos);
-                chName.setText(it.name);
+                chName.setText(BroadcastApi.displayChannel(it.name));
                 pendingEpg = it;
                 Async.MAIN.removeCallbacks(epgHover);
                 Async.MAIN.postDelayed(epgHover, 500);
+                // Odakta bekleyen kanal icin kucuk onizleme (OK ile tam ekran).
+                pendingPreview = it;
+                Async.MAIN.removeCallbacks(previewHover);
+                Async.MAIN.postDelayed(previewHover, 700);
             }
 
             @Override
@@ -140,14 +162,9 @@ public class LiveActivity extends BaseActivity {
         channels.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> p, View view, int pos, long id) {
+                // OK: dogrudan tam ekran (onizleme odakta bekleyince kendiliginden acilir)
                 channels.setItemChecked(pos, true);
-                Item it = chAdapter.getItem(pos);
-                if (Prefs.preview() && !Prefs.externalPlayer() && !it.id.equals(previewId)) {
-                    startPreview(it);
-                    loadEpg(it);
-                } else {
-                    fullscreen(pos);
-                }
+                fullscreen(pos);
             }
         });
         channels.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -261,7 +278,7 @@ public class LiveActivity extends BaseActivity {
         Async.run(this, new Async.Task<List<Item>>() {
             @Override
             public List<Item> run() throws Exception {
-                if (c.id.equals(Category.FAV)) return Db.get().favorites(Repo.pid(), Models.LIVE);
+                if (c.id.equals(Category.FAV)) return Repo.filterKids(Models.LIVE, Db.get().favorites(Repo.pid(), Models.LIVE));
                 if (c.id.equals(Category.ALL)) return Repo.allUnlocked(Models.LIVE);
                 if (c.id.equals(Category.RECENT)) return recentChannels(Repo.pid());
                 return Repo.items(Models.LIVE, c.id);
@@ -271,6 +288,7 @@ public class LiveActivity extends BaseActivity {
             public void on(List<Item> list) {
                 if (token != loadToken) return;
                 loading.setVisibility(View.GONE);
+                list = dedupe(list);
                 chAdapter.set(list);
                 catTitle.setText(c.name + "  (" + list.size() + ")");
                 if (list.isEmpty()) {
@@ -319,6 +337,45 @@ public class LiveActivity extends BaseActivity {
         msg.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Ayni kanalin tekrarlarini (ornegin "TR: beIN 1" / "beIN Sports 1" /
+     * "... FHD") listeden ayiklar. Sirayla ilk konum korunur; daha iyi kalite
+     * veya TR etiketli kayit varsa onunla degistirilir.
+     */
+    private static List<Item> dedupe(List<Item> src) {
+        List<Item> out = new ArrayList<>();
+        Map<String, Integer> pos = new HashMap<>();
+        Map<String, Integer> score = new HashMap<>();
+        Map<String, Boolean> ids = new HashMap<>();
+        for (Item it : src) {
+            if (it == null) continue;
+            if (ids.containsKey(it.id)) continue;
+            String key = BroadcastApi.channelKey(it.name);
+            if (key.isEmpty()) {
+                ids.put(it.id, Boolean.TRUE);
+                out.add(it);
+                continue;
+            }
+            Integer p = pos.get(key);
+            int sc = BroadcastApi.channelScore(it.name);
+            if (p == null) {
+                pos.put(key, out.size());
+                score.put(key, sc);
+                ids.put(it.id, Boolean.TRUE);
+                out.add(it);
+            } else if (sc > score.get(key)) {
+                // iyi kaydi sec, eski kimligi de "goruldu" say
+                ids.put(out.get(p).id, Boolean.TRUE);
+                out.set(p, it);
+                score.put(key, sc);
+                ids.put(it.id, Boolean.TRUE);
+            } else {
+                ids.put(it.id, Boolean.TRUE);
+            }
+        }
+        return out;
+    }
+
     private void categoryOptions(final Category c) {
         if (c.isVirtual()) return;
         final boolean locked = Prefs.isLockedPermanent(Repo.pid(), c.type, c.id, c.name);
@@ -346,11 +403,19 @@ public class LiveActivity extends BaseActivity {
 
     private void channelOptions(final Item it) {
         final boolean fav = Db.get().isFavorite(Repo.pid(), Models.LIVE, it.id);
-        String[] opts = {getString(fav ? R.string.fav_remove : R.string.fav_add),
+        // Lite surumde kayit yok: secenek listesinden cikarilir.
+        String[] opts = BuildConfig.LITE
+                ? new String[]{getString(fav ? R.string.fav_remove : R.string.fav_add),
                 getString(it.archive ? R.string.epg_and_catchup : R.string.epg),
                 getString(R.string.epg_grid),
-                getString(R.string.watch_fullscreen), getString(R.string.record)};
-        Ui.choose(this, it.name, opts, -1, new Ui.Choice() {
+                getString(R.string.watch_fullscreen),
+                getString(Prefs.preview() ? R.string.preview_disable : R.string.preview_enable)}
+                : new String[]{getString(fav ? R.string.fav_remove : R.string.fav_add),
+                getString(it.archive ? R.string.epg_and_catchup : R.string.epg),
+                getString(R.string.epg_grid),
+                getString(R.string.watch_fullscreen), getString(R.string.record),
+                getString(Prefs.preview() ? R.string.preview_disable : R.string.preview_enable)};
+        Ui.choose(this, BroadcastApi.displayChannel(it.name), opts, -1, new Ui.Choice() {
             @Override
             public void on(int which) {
                 if (which == 0) {
@@ -370,16 +435,45 @@ public class LiveActivity extends BaseActivity {
                 } else if (which == 3) {
                     int pos = chAdapter.data().indexOf(it);
                     if (pos >= 0) fullscreen(pos);
-                } else {
+                } else if (!BuildConfig.LITE && which == 4) {
                     RecordUi.recordNow(LiveActivity.this, it, it.id.equals(epgFor) ? currentProgramEnd : 0);
+                } else {
+                    togglePreview();
                 }
             }
         });
     }
 
+    /** Onizlemeyi kalici olarak ac/kapat (ayarlardaki anahtarla ayni). */
+    private void togglePreview() {
+        boolean on = !Prefs.preview();
+        Prefs.sp().edit().putBoolean("preview", on).apply();
+        if (!on) releasePreview();
+        previewHint.setVisibility(View.VISIBLE);
+        previewHint.setText(on ? R.string.preview_hint : R.string.preview_off_hint);
+        Async.MAIN.removeCallbacks(previewHover);
+        Ui.toast(this, getString(on ? R.string.preview_enabled : R.string.preview_disabled));
+    }
+
     private void fullscreen(int pos) {
+        // Onizleme acikken tam ekrana gecis: yayini yeniden kurmak canli TS/HLS
+        // akisinda canli kenardan (ileriden) baslayip kisa bir ses kaymasina yol
+        // aciyordu. Media3 surumlerinde ayni oynatici tam ekrana devredilir; ses
+        // kesilmez ve yayin geri sarmaz. Devir yoksa (Android 4.2) konum aktarilir.
+        long start = 0;
+        if (previewPlayer != null) {
+            long dur = previewPlayer.getDuration();
+            long cur = previewPlayer.getPosition();
+            if (dur > 0 && cur > 2000 && previewPlayer.isSeekable()) {
+                start = Math.max(0, cur - 1000);
+            }
+        }
+        Item target = pos >= 0 && pos < chAdapter.data().size() ? chAdapter.data().get(pos) : null;
+        boolean handed = previewPlayer != null
+                && previewPlayer.detachForFullscreen(target != null ? target.id : null);
+        previewFailed = null;
         releasePreview();
-        Play.playLive(this, chAdapter.data(), pos);
+        Play.playLive(this, chAdapter.data(), pos, start, handed);
     }
 
     @Override
@@ -395,20 +489,15 @@ public class LiveActivity extends BaseActivity {
             }
         }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            // 1) önizleme acikken geri -> onizlemeyi kapat, sayfada kal
+            // 1) onizleme acikken geri -> onizlemeyi kapat, sayfada kal
             if (previewPlayer != null) {
                 releasePreview();
                 channels.requestFocus();
                 return true;
             }
-            // 2) kanal listesi odaginda -> kategoriye don
-            if (channels.hasFocus()) {
-                cats.requestFocus();
-                return true;
-            }
-            // 3) kategori odaginda ya da BIR YERE ODAK YOK -> home'a don
-            //    (uygulamayi asla tam kapatma; task'i koru)
-            startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            // 2) EXIT -> ana ekran (uygulamayi asla tam kapatma; task'i koru)
+            startActivity(new Intent(this, HomeActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
             finish();
             return true;
         }
@@ -420,7 +509,7 @@ public class LiveActivity extends BaseActivity {
     private void loadEpg(final Item it) {
         if (it.id.equals(epgFor)) return;
         epgFor = it.id;
-        chName.setText(it.name);
+        chName.setText(BroadcastApi.displayChannel(it.name));
         nowTitle.setText(R.string.epg_loading);
         nowDesc.setText("");
         nextList.setText("");
@@ -482,8 +571,11 @@ public class LiveActivity extends BaseActivity {
     private void startPreview(Item it) {
         releasePreview();
         previewId = it.id;
+        previewItem = it;
+        previewFailed = null;
         previewHint.setVisibility(View.GONE);
         previewLoading.setVisibility(View.VISIBLE);
+        final Item channel = it;
         previewPlayer = new PreviewPlayer(this, preview, new PreviewPlayer.Listener() {
             @Override
             public void onBuffering(boolean b) {
@@ -495,12 +587,33 @@ public class LiveActivity extends BaseActivity {
                 previewLoading.setVisibility(View.GONE);
                 previewHint.setVisibility(View.VISIBLE);
                 previewHint.setText(getString(R.string.stream_failed) + "\n" + message);
+                // Ayni kanala tekrar basinca onizlemeyi yeniden denemek yerine
+                // dogrudan tam ekran acilir (yayin geri sarmasin).
+                previewFailed = channel.id;
                 previewId = null;
             }
         });
-        previewPlayer.play(this, Repo.api().liveUrl(it.id, Prefs.liveFormat()));
-        Prefs.setLastChannel(Repo.pid(), it.id);
+        // Kanal kaydediliyorsa ikinci baglanti acmadan kayit akisindan besle
+        // (saglayici genelde tek baglantiya izin verir). Lite surumde kayit yok.
+        String src = BuildConfig.LITE ? null : com.atlanta.maraplayer.record.Recorder.relayUrl(it.id);
+        previewRelay = src != null;
+        if (src == null) src = Repo.api().liveUrl(it.id, Prefs.liveFormat());
+        previewPlayer.play(this, src);
+        Prefs.setLastChannel(Repo.pid(), it.id, BroadcastApi.displayChannel(it.name));
     }
+
+    /** Kayit baslarsa onizlemeyi yerel aktarima, biterse canliya gecirir. */
+    private final Runnable relayTick = new Runnable() {
+        @Override
+        public void run() {
+            if (BuildConfig.LITE) return; // Lite surumde kayit/relay yok
+            if (previewPlayer != null && previewItem != null) {
+                String r = com.atlanta.maraplayer.record.Recorder.relayUrl(previewItem.id);
+                if ((r != null) != previewRelay) startPreview(previewItem);
+            }
+            Async.MAIN.postDelayed(this, 2000);
+        }
+    };
 
     private void releasePreview() {
         if (previewPlayer != null) {
@@ -508,6 +621,8 @@ public class LiveActivity extends BaseActivity {
             previewPlayer = null;
         }
         previewId = null;
+        previewItem = null;
+        previewRelay = false;
         if (previewHint != null) {
             previewHint.setVisibility(View.VISIBLE);
             previewHint.setText(Prefs.preview() ? R.string.preview_hint : R.string.preview_off_hint);
@@ -518,6 +633,10 @@ public class LiveActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!BuildConfig.LITE) {
+            Async.MAIN.removeCallbacks(relayTick);
+            Async.MAIN.postDelayed(relayTick, 2000);
+        }
         if (chAdapter != null) chAdapter.reloadFavs();
         // tam ekrandan donuste son izlenen kanali sec + otomatik onizlemeyi ac
         // (MertStream: tikladigin gibi yayin baslar)
@@ -545,6 +664,7 @@ public class LiveActivity extends BaseActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        Async.MAIN.removeCallbacks(relayTick);
         releasePreview();
     }
 
@@ -553,5 +673,7 @@ public class LiveActivity extends BaseActivity {
         super.onDestroy();
         Async.MAIN.removeCallbacks(catHover);
         Async.MAIN.removeCallbacks(epgHover);
+        Async.MAIN.removeCallbacks(previewHover);
+        Async.MAIN.removeCallbacks(relayTick);
     }
 }

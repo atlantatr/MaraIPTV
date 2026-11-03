@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- [Android 5.0 / 7.0] Profil (giris) ekrani. ID'ler korunur. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/m_bg">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.6"
+        android:contentDescription="@string/app_name"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_art" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/splash_scrim" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="34dp">
+
+        <!-- Marka -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.85"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="132dp"
+                android:layout_height="132dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/logo_mark" />
+
+            <ImageView
+                android:layout_width="248dp"
+                android:layout_height="106dp"
+                android:layout_marginTop="6dp"
+                android:contentDescription="@string/app_name"
+                android:scaleType="fitCenter"
+                android:src="@drawable/logo_word" />
+
+            <TextView
+                android:id="@+id/version"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textColor="@color/m_text2"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/webInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:textColor="@color/m_accent2"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Hesaplar -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="26dp"
+            android:layout_weight="1.15"
+            android:background="@drawable/m_panel"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <TextView
+                style="@style/Header"
+                android:text="PROFİLLER (XTREAM HESAPLARI)" />
+
+            <ListView
+                android:id="@+id/list"
+                style="@style/TvList"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/empty"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Henüz profil yok.\n'Yeni Profil' ile Xtream hesabınızı ekleyin."
+                android:textColor="@color/m_text2"
+                android:textSize="16sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnAdd"
+                    style="@style/TvButton"
+                    android:text="+ Yeni Profil" />
+
+                <Button
+                    android:id="@+id/btnSettings"
+                    style="@style/TvButton"
+                    android:text="@string/settings" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="İpucu: Profil üzerinde MENU tuşu veya uzun basma ile düzenle / sil."
+                android:textColor="@color/m_text2"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

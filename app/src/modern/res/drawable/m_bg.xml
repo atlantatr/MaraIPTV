@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Modern ekran arka plani: koyu dikey gecis + sol alttan turuncu isik -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#FF0B1019"
+                android:centerColor="#FF080B11"
+                android:endColor="#FF05070A" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="45"
+                android:startColor="#3DFF7A1A"
+                android:centerColor="#12FF7A1A"
+                android:endColor="#00FF7A1A" />
+        </shape>
+    </item>
+</layer-list>

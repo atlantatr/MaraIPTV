@@ -47,7 +47,7 @@ public class ProfileEditActivity extends BaseActivity {
             if (p != null) {
                 profile = p;
                 type = p.type;
-                ((TextView) v(R.id.title)).setText("Profili Duzenle");
+                ((TextView) v(R.id.title)).setText("Profili Düzenle");
                 name.setText(p.name);
                 url.setText(p.url);
                 user.setText(p.user);
@@ -109,7 +109,7 @@ public class ProfileEditActivity extends BaseActivity {
         v(R.id.typeXtream).setSelected(!m3u);
         v(R.id.typeM3u).setSelected(m3u);
         v(R.id.credBox).setVisibility(m3u ? View.GONE : View.VISIBLE);
-        ((TextView) v(R.id.urlLabel)).setText(m3u ? "M3U calma listesi linki" : "Sunucu adresi (veya M3U linki yapistirin)");
+        ((TextView) v(R.id.urlLabel)).setText(m3u ? "M3U çalma listesi linki" : "Sunucu adresi (veya M3U linkini yapıştırın)");
         url.setHint(m3u ? "http://.../liste.m3u" : "http://sunucu.com:8080");
     }
 
@@ -135,7 +135,7 @@ public class ProfileEditActivity extends BaseActivity {
         String raw = url.getText().toString().trim();
         String u = m3u ? raw : XtreamApi.normalizeUrl(raw);
         if (u.isEmpty() || (!m3u && (Ui.empty(user.getText().toString()) || Ui.empty(pass.getText().toString())))) {
-            Ui.toast(this, m3u ? "M3U linki zorunlu" : "Sunucu, kullanici adi ve sifre zorunlu");
+            Ui.toast(this, m3u ? "M3U linki zorunlu" : "Sunucu, kullanıcı adı ve şifre zorunlu");
             return false;
         }
         profile.type = type;
@@ -163,9 +163,9 @@ public class ProfileEditActivity extends BaseActivity {
         }, new Async.Callback<Account>() {
             @Override
             public void on(Account a) {
-                String exp = a.expDate > 0 ? Ui.date(a.expDate) : "Sinirsiz";
-                status.setText("Basarili. Durum: " + a.status + "   Bitis: " + exp
-                        + "   Baglanti: " + a.activeConnections + "/" + a.maxConnections);
+                String exp = a.expDate > 0 ? Ui.date(a.expDate) : "Sınırsız";
+                status.setText("Başarılı. Durum: " + a.status + "   Bitiş: " + exp
+                        + "   Bağlantı: " + a.activeConnections + "/" + a.maxConnections);
                 status.setTextColor(getResources().getColor(R.color.ok));
             }
         }, new Async.Callback<Exception>() {

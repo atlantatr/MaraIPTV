@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- [Android 5.0 / 7.0] Modern arayuz renkleri -->
+<resources>
+    <color name="m_bg">#FF07090E</color>
+    <color name="m_bg2">#FF0E131D</color>
+    <color name="m_card">#FF161D2A</color>
+    <color name="m_card_hi">#FF212B3D</color>
+    <color name="m_panel">#B3121824</color>
+    <color name="m_accent">#FFFF7A1A</color>
+    <color name="m_accent2">#FFFFB15C</color>
+    <color name="m_text">#FFF4F6FB</color>
+    <color name="m_text2">#FF98A3B6</color>
+    <color name="m_line">#1FFFFFFF</color>
+    <color name="m_on_accent">#FF1A1206</color>
+
+    <!-- Ayarlar ekrani -->
+    <color name="settings_bg">#FF07090E</color>
+    <color name="settings_card">#FF161D2A</color>
+    <color name="settings_text">#FFF4F6FB</color>
+    <color name="settings_text2">#FF98A3B6</color>
+    <color name="settings_accent">#FFFF7A1A</color>
+</resources>

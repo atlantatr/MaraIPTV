@@ -92,12 +92,22 @@
         android:layout_weight="1"
         android:orientation="horizontal">
 
+        <Button android:id="@+id/tNew" style="@style/Tile" android:text="@string/new_added" android:textSize="16sp" />
         <Button android:id="@+id/tContinue" style="@style/Tile" android:text="@string/continue_watching" android:textSize="16sp" />
-        <Button android:id="@+id/tFav" style="@style/Tile" android:text="@string/favorites" android:textSize="16sp" />
+        <Button android:id="@+id/tSports" style="@style/Tile" android:text="@string/sports_guide" android:textSize="16sp" />
         <Button android:id="@+id/tSearch" style="@style/Tile" android:text="@string/search" android:textSize="16sp" />
-        <Button android:id="@+id/tRec" style="@style/Tile" android:text="@string/recordings" android:textSize="16sp" />
-        <Button android:id="@+id/tRefresh" style="@style/Tile" android:text="@string/refresh" android:textSize="16sp" />
-        <Button android:id="@+id/tSettings" style="@style/Tile" android:text="@string/settings" android:textSize="16sp" />
-        <Button android:id="@+id/tProfiles" style="@style/Tile" android:text="@string/profiles" android:textSize="16sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.55"
+        android:orientation="horizontal">
+
+        <Button android:id="@+id/tFav" style="@style/Tile" android:text="@string/favorites" android:textSize="15sp" />
+        <Button android:id="@+id/tRec" style="@style/Tile" android:text="@string/recordings" android:textSize="15sp" />
+        <Button android:id="@+id/tRefresh" style="@style/Tile" android:text="@string/refresh" android:textSize="15sp" />
+        <Button android:id="@+id/tSettings" style="@style/Tile" android:text="@string/settings" android:textSize="15sp" />
+        <Button android:id="@+id/tProfiles" style="@style/Tile" android:text="@string/profiles" android:textSize="15sp" />
     </LinearLayout>
 </LinearLayout>

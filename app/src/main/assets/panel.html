@@ -74,6 +74,7 @@
       <button data-tab="accounts" class="on">Hesaplar</button>
       <button data-tab="parental">Ebeveyn Kontrolu</button>
       <button data-tab="cats">Kategoriler (Gizle / Kilitle)</button>
+      <button data-tab="backup">Yedekleme</button>
     </nav>
 
     <!-- HESAPLAR -->
@@ -173,6 +174,21 @@
           <thead><tr><th>Kategori</th><th style="width:90px">Gizle</th><th style="width:90px">Kilitle</th></tr></thead>
           <tbody id="cats"></tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- YEDEKLEME -->
+    <section id="tab-backup" class="hidden">
+      <div class="card">
+        <h2>Yedekleme</h2>
+        <p class="muted">Profiller, favoriler, takip edilen takimlar, kanal eslestirmeleri ve mac
+          hatirlatmalari tek bir JSON dosyasinda saklanir. Dosyayi indirip baska bir cihaza
+          tasiyabilir, uygulamanin <b>Ayarlar &rarr; Yedekten geri yukle</b> ekranindan ice aktarabilirsiniz.</p>
+        <div class="toolbar">
+          <button class="btn" onclick="downloadBackup()">Yedegi indir (JSON)</button>
+          <button class="btn sec" onclick="refreshBackup()">Durumu yenile</button>
+        </div>
+        <p id="backupMsg" class="muted">Yedek hazirlaniyor...</p>
       </div>
     </section>
   </main>

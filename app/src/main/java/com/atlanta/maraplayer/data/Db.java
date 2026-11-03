@@ -175,7 +175,7 @@ public final class Db extends SQLiteOpenHelper {
         }
     }
 
-    // ------------------------------------------------------------ Zamanli kayit
+    // ------------------------------------------------------------ Zamanlı kayıt
 
     public static class Scheduled {
         public long id;

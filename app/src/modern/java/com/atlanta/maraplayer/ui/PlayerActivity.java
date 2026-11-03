@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.util.Rational;
 import android.view.KeyEvent;
 import android.util.Log;
-import android.view.TextureView;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -42,8 +42,10 @@ import com.atlanta.maraplayer.data.Models.Item;
 import com.atlanta.maraplayer.data.Models.PlayItem;
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.data.Repo;
+import com.atlanta.maraplayer.data.SportsApi;
 import com.atlanta.maraplayer.data.XtreamApi;
 import com.atlanta.maraplayer.player.PlayerFactory;
+import com.atlanta.maraplayer.player.PreviewHandoff;
 import com.atlanta.maraplayer.tv.TvHome;
 import com.atlanta.maraplayer.util.Async;
 import com.atlanta.maraplayer.util.ImageLoader;
@@ -66,32 +68,36 @@ import java.util.Map;
 public class PlayerActivity extends BaseActivity {
 
     private static final int MAX_RETRY = 6;
-    private static final String[] ASPECTS = {"Sigdir", "Doldur", "Yakinlastir", "16:9", "4:3"};
+    private static final String[] ASPECTS = {"Sığdır", "Doldur", "Yakınlaştır", "16:9", "4:3"};
     private static final boolean PIP = "nougat".equals(BuildConfig.FLAVOR);
     private static final float[] SPEEDS = {0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f};
 
     private List<PlayItem> queue;
     private int index;
     private long startMs;
+    /** Onizleme oynaticisi bu ekrana devredildi mi? (yalnizca ilk oynatmada) */
+    private boolean handoffPending;
     private ExoPlayer player;
     private int aspect;
     private int videoW, videoH;
     private float pixelRatio = 1f;
     private int retry;
+    private boolean relayOn; // yayin kayit akisindan (yerel aktarim) mi geliyor
     private boolean errorShown;
     private boolean inPip;
     private float speed = 1f;
     private long sleepAt;
 
     private View videoBox, infoBar, controls, chPanel;
-    private TextureView surface;
+    private SurfaceView surface;
     private ProgressBar buffering, infoProgress, ctlProgress;
-    private TextView subs, osd, numEntry, infoName, infoNow, infoNext, infoClock;
+    private TextView subs, osd, numEntry, infoName, infoNow, infoNext, infoClock, matchNote;
     private TextView ctlTitle, ctlSub, ctlPos, ctlDur, ctlState;
     private ImageView infoLogo;
     private ListView chList;
     private Adapters.RowAdapter chAdapter;
     private boolean audioDebugOnce = true;
+    private boolean matchNoteShown;
 
     private final StringBuilder numBuf = new StringBuilder();
     private final Map<String, List<Epg>> epgCache = new HashMap<>();
@@ -126,6 +132,7 @@ public class PlayerActivity extends BaseActivity {
         setContentView(R.layout.activity_player);
         index = getIntent().getIntExtra(Play.EXTRA_INDEX, 0);
         startMs = getIntent().getLongExtra(Play.EXTRA_START, 0);
+        handoffPending = getIntent().getBooleanExtra(Play.EXTRA_HANDOFF, false);
         if (b != null) {
             index = b.getInt("idx", index);
             startMs = b.getLong("pos", startMs);
@@ -146,6 +153,7 @@ public class PlayerActivity extends BaseActivity {
         infoClock = v(R.id.infoClock);
         infoLogo = v(R.id.infoLogo);
         infoProgress = v(R.id.infoProgress);
+        matchNote = v(R.id.matchNote);
         controls = v(R.id.controls);
         ctlTitle = v(R.id.ctlTitle);
         ctlSub = v(R.id.ctlSub);
@@ -179,6 +187,7 @@ public class PlayerActivity extends BaseActivity {
         if (queue == null || queue.isEmpty() || sessionLost) return;
         launchingChild = false;
         if (player == null) play(index, startMs);
+        showFavoriteMatch();
         Async.MAIN.removeCallbacks(progressTick);
         Async.MAIN.post(progressTick);
     }
@@ -225,9 +234,10 @@ public class PlayerActivity extends BaseActivity {
         Async.MAIN.removeCallbacks(hidePanel);
         Async.MAIN.removeCallbacks(commitNumber);
         Async.MAIN.removeCallbacks(sleepRunnable);
+        Async.MAIN.removeCallbacks(hideMatchNote);
     }
 
-    // ================================================================ Resim icinde resim (Android 7+)
+    // ================================================================ Resim içinde resim (Android 7+)
 
     private boolean pipSupported() {
         return PIP && Build.VERSION.SDK_INT >= 24
@@ -236,7 +246,7 @@ public class PlayerActivity extends BaseActivity {
 
     private void enterPip() {
         if (!pipSupported()) {
-            showOsd("Bu cihaz resim icinde resmi desteklemiyor");
+            showOsd("Bu cihaz resim içinde resmi desteklemiyor");
             return;
         }
         hideOverlays();
@@ -252,7 +262,7 @@ public class PlayerActivity extends BaseActivity {
                 enterPictureInPictureMode();
             }
         } catch (Exception e) {
-            showOsd("Resim icinde resim acilamadi");
+            showOsd("Resim içinde resim açılamadı");
         }
     }
 
@@ -299,6 +309,7 @@ public class PlayerActivity extends BaseActivity {
         chPanel.setVisibility(View.GONE);
         osd.setVisibility(View.GONE);
         numEntry.setVisibility(View.GONE);
+        matchNote.setVisibility(View.GONE);
     }
 
     // ================================================================ Oynatma
@@ -308,20 +319,50 @@ public class PlayerActivity extends BaseActivity {
         index = idx;
         errorShown = false;
         PlayItem p = cur();
+
+        // Onizlemeden devralinan oynatici (ayni yayin kesintisiz sursun)
+        boolean took = false;
+        if (player == null && handoffPending) {
+            ExoPlayer hp = PreviewHandoff.take(p.id);
+            if (hp != null) {
+                player = hp;
+                took = true;
+            }
+        }
+        handoffPending = false;
+
         if (player == null) {
             player = PlayerFactory.create(this, p.type == Models.LIVE);
-            player.setVideoTextureView(surface);
+            player.addListener(listener);
+        } else if (took) {
+            // Devredilen oynaticinin dinleyicisi onizleme tarafinda kaldirildi.
             player.addListener(listener);
         } else {
             player.stop();
         }
+        player.setVideoSurfaceView(surface);
+
         subs.setVisibility(View.GONE);
         videoW = videoH = 0;
         currentProgramEnd = 0;
-        player.setMediaSource(PlayerFactory.source(this, p.url), Math.max(0, startPos));
-        player.setPlaybackSpeed(p.type == Models.LIVE ? 1f : speed);
-        player.setPlayWhenReady(true);
-        player.prepare();
+
+        if (took) {
+            // Oynatici zaten hazir: yeniden prepare etmek yayini basa sarar.
+            VideoSize vs = player.getVideoSize();
+            videoW = vs.width;
+            videoH = vs.height;
+            pixelRatio = vs.pixelWidthHeightRatio > 0 ? vs.pixelWidthHeightRatio : 1f;
+            applyAspect();
+            player.setPlaybackSpeed(1f);
+            player.setPlayWhenReady(true);
+        } else {
+            String src = Play.resolveUrl(p);
+            relayOn = src != null && src.startsWith("http://127.0.0.1:");
+            player.setMediaSource(PlayerFactory.source(this, src), Math.max(0, startPos));
+            player.setPlaybackSpeed(p.type == Models.LIVE ? 1f : speed);
+            player.setPlayWhenReady(true);
+            player.prepare();
+        }
 
         if (inPip) return;
         if (p.type == Models.LIVE) {
@@ -381,7 +422,7 @@ public class PlayerActivity extends BaseActivity {
                         || cm.contains("eac3") || cm.contains("DTS") || cm.contains("TrueHD")
                         || error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED
                         || error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED) {
-                    showOsd("Ses codec cozemedi, harici oynatici aciliyor...");
+                    showOsd("Ses codec'i çözemedi, harici oynatıcı açılıyor...");
                     releasePlayer();
                     Play.openExternal(PlayerActivity.this, cur());
                     return;
@@ -389,7 +430,7 @@ public class PlayerActivity extends BaseActivity {
             }
             if (retry < (isLive() ? MAX_RETRY : 2)) {
                 retry++;
-                showOsd("Baglanti sorunu, yeniden deneniyor (" + retry + ")...");
+                showOsd("Bağlantı sorunu, yeniden deneniyor (" + retry + ")...");
                 Async.MAIN.removeCallbacks(retryRunnable);
                 Async.MAIN.postDelayed(retryRunnable, 1500L * retry);
                 return;
@@ -434,7 +475,7 @@ public class PlayerActivity extends BaseActivity {
             if (d > 0) Db.get().saveResume(Repo.pid(), p, d, d);
         }
         if (p.type == Models.EPISODE && Prefs.autoNext() && index + 1 < queue.size()) {
-            showOsd("Sonraki bolum: " + queue.get(index + 1).subtitle);
+            showOsd("Sonraki bölüm: " + queue.get(index + 1).subtitle);
             play(index + 1, resumeOf(queue.get(index + 1)));
             return;
         }
@@ -451,20 +492,20 @@ public class PlayerActivity extends BaseActivity {
     private void showError(PlaybackException e) {
         if (errorShown || isFinishing() || inPip) return;
         errorShown = true;
-        String msg = "Yayin oynatilamadi.\n\n" + e.getErrorCodeName();
+        String msg = "Yayın oynatılamadı.\n\n" + e.getErrorCodeName();
         if (e.getCause() != null && e.getCause().getMessage() != null) msg += "\n" + e.getCause().getMessage();
         String cm = e.getCause() != null ? e.getCause().toString() : "";
         if (cm.contains("EAC-3") || cm.contains("AC-3") || cm.contains("ac3") || cm.contains("eac3")
                 || cm.contains("DTS") || cm.contains("TrueHD") || cm.contains("mp2")) {
             msg += "\n\nSes codec'i (AC-3/EAC-3/DTS) bu cihazda cozulamadi. "
-                    + "Ayarlar > Oynatici: Harici oynatici (VLC/MX) secin veya su anahtari kapat: \nmara.ffmpeg=false";
+                    + "Ayarlar > Oynatici: Harici oynatıcı (VLC/MX) secin veya su anahtari kapat: \nmara.ffmpeg=false";
         }
         if (e.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED
                 || e.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED
                 || e.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED) {
-            msg += "\n\nBu cihaz bu formati desteklemiyor olabilir. Harici oynaticiyi deneyin.";
+            msg += "\n\nBu cihaz bu formatı desteklemiyor olabilir. Harici oynatıcıyı deneyin.";
         } else if (isLive()) {
-            msg += "\n\nAyarlar > Canli yayin formati (TS / HLS) degistirmeyi deneyin.";
+            msg += "\n\nAyarlar > Canlı yayın formatı (TS / HLS) değiştirmeyi deneyin.";
         }
         Ui.dialog(this).setTitle(cur().title).setMessage(msg)
                 .setPositiveButton("Tekrar dene", new android.content.DialogInterface.OnClickListener() {
@@ -474,13 +515,13 @@ public class PlayerActivity extends BaseActivity {
                         replayCurrent();
                     }
                 })
-                .setNeutralButton("Harici oynatici", new android.content.DialogInterface.OnClickListener() {
+                .setNeutralButton("Harici oynatıcı", new android.content.DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(android.content.DialogInterface d, int w) {
                         openExternal();
                     }
                 })
-                .setNegativeButton(isLive() ? "Kapat" : "Cik", new android.content.DialogInterface.OnClickListener() {
+                .setNegativeButton(isLive() ? "Kapat" : "Çık", new android.content.DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(android.content.DialogInterface d, int w) {
                         if (!isLive()) finish();
@@ -499,7 +540,7 @@ public class PlayerActivity extends BaseActivity {
         Db.get().saveResume(Repo.pid(), p, pos, dur);
     }
 
-    // ================================================================ Goruntu orani
+    // ================================================================ Görüntü oranı
 
     private void applyAspect() {
         int cw = videoBox.getWidth(), ch = videoBox.getHeight();
@@ -559,7 +600,7 @@ public class PlayerActivity extends BaseActivity {
     private final Runnable sleepRunnable = new Runnable() {
         @Override
         public void run() {
-            Ui.toast(PlayerActivity.this, "Uyku zamanlayicisi: oynatma durduruldu");
+            Ui.toast(PlayerActivity.this, "Uyku zamanlayıcısı: oynatma durduruldu");
             finish();
         }
     };
@@ -571,9 +612,29 @@ public class PlayerActivity extends BaseActivity {
         public void run() {
             if (player != null && controls.getVisibility() == View.VISIBLE) updateProgress();
             if (++n % 20 == 0 && player != null && player.isPlaying()) saveProgress();
+            checkRelay();
             Async.MAIN.postDelayed(this, 500);
         }
     };
+
+    /**
+     * Kanal kaydedilmeye basladiginda yayini yerel aktarima (tek baglanti),
+     * kayit bitince canli adrese geri gecirir. Saglayici tek baglantiya izin
+     * verdigi icin kayit sirasinda yayinin durmasini onler.
+     */
+    private void checkRelay() {
+        PlayItem p = cur();
+        if (p == null || p.type != Models.LIVE) return;
+        String relay = com.atlanta.maraplayer.record.Recorder.relayUrl(p.id);
+        if (relay != null && !relayOn) {
+            relayOn = true;
+            play(index, 0);
+            showOsd("Kayıt akışından izleniyor (tek bağlantı)");
+        } else if (relay == null && relayOn) {
+            relayOn = false;
+            play(index, 0);
+        }
+    }
 
     private void showOsd(String s) {
         if (inPip) return;
@@ -581,6 +642,28 @@ public class PlayerActivity extends BaseActivity {
         osd.setVisibility(View.VISIBLE);
         Async.MAIN.removeCallbacks(hideOsd);
         Async.MAIN.postDelayed(hideOsd, 2500);
+    }
+
+    private final Runnable hideMatchNote = new Runnable() {
+        @Override
+        public void run() {
+            if (matchNote != null) matchNote.setVisibility(View.GONE);
+        }
+    };
+
+    /** Takip edilen takimin bugunku macini oynatma sirasinda kosede gosterir. */
+    private void showFavoriteMatch() {
+        if (matchNoteShown || inPip || matchNote == null) return;
+        SportsApi.Match m = SportsApi.favoriteMatchToday(Prefs.favoriteTeams());
+        if (m == null) return;
+        matchNoteShown = true;
+        String when = m.live() && !m.score.isEmpty()
+                ? getString(R.string.match_note_live, m.score)
+                : getString(R.string.match_note_time, m.league, Ui.time(m.start / 1000L));
+        matchNote.setText(getString(R.string.match_note_x, m.home, m.away) + "\n" + when);
+        matchNote.setVisibility(View.VISIBLE);
+        Async.MAIN.removeCallbacks(hideMatchNote);
+        Async.MAIN.postDelayed(hideMatchNote, 15000);
     }
 
     private void showControls() {
@@ -663,10 +746,10 @@ public class PlayerActivity extends BaseActivity {
         }
         if (cur != null) {
             currentProgramEnd = cur.stop;
-            infoNow.setText("Simdi  " + Ui.time(cur.start + off) + " - " + Ui.time(cur.stop + off) + "   " + cur.title);
+            infoNow.setText("Şimdi  " + Ui.time(cur.start + off) + " - " + Ui.time(cur.stop + off) + "   " + cur.title);
             infoProgress.setProgress((int) ((now - cur.start) * 100 / Math.max(1, cur.stop - cur.start)));
         } else {
-            infoNow.setText("Yayin akisi bilgisi yok");
+            infoNow.setText("Yayın akışı bilgisi yok");
             infoProgress.setProgress(0);
         }
         infoNext.setText(next != null ? "Sonra  " + Ui.time(next.start + off) + "   " + next.title : "");
@@ -768,7 +851,7 @@ public class PlayerActivity extends BaseActivity {
             for (int i = 0; i < queue.size(); i++) if (queue.get(i).num == n) { target = i; break; }
             if (target < 0 && n >= 1 && n <= queue.size()) target = n - 1;
             if (target < 0) {
-                showOsd("Kanal " + n + " bulunamadi");
+                showOsd("Kanal " + n + " bulunamadı");
             } else if (target != index) {
                 previousIndex = index;
                 play(target, 0);
@@ -796,15 +879,7 @@ public class PlayerActivity extends BaseActivity {
                 chPanel.setVisibility(View.GONE);
                 return true;
             }
-            // RAM baskisiyla alt activity kill edilmisse task bos olur,
-            // finish() launcher'a atar. O yüzden VOD'da Home'a gecen bir
-            // intent baslat; CANLI TV'de sadece finish() (altta LiveActivity
-            // zaten vardi, onune don).
-            if (queue != null && queue.get(index).type != Models.LIVE) {
-                startActivity(new Intent(this, HomeActivity.class)
-                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
-            }
-            finish(); // onStop() releasePlayer() cagirir; cift release olmaz
+            exitPlayer();
             return true;
         }
         if (player == null) return super.onKeyDown(keyCode, event);
@@ -936,6 +1011,20 @@ public class PlayerActivity extends BaseActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+    /**
+     * EXIT/geri: altta bir ekran varsa (kanal listesi, film listesi, spor rehberi...)
+     * ona doner. Oynatici gorev koku kaldiysa -ornegin mac alarmindan, bildirimden
+     * veya RAM baskisi yuzunden alt ekran kapatildiysa- finish() uygulamayi
+     * kapatip launcher'a atacagi icin ana ekrana doner.
+     */
+    private void exitPlayer() {
+        if (isTaskRoot()) {
+            startActivity(new Intent(this, HomeActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+        }
+        finish(); // onStop() releasePlayer() cagirir; cift release olmaz
+    }
+
     private long step(KeyEvent e) {
         int r = e.getRepeatCount();
         if (r < 4) return 10000;
@@ -953,7 +1042,7 @@ public class PlayerActivity extends BaseActivity {
 
     private void togglePause() {
         player.setPlayWhenReady(!player.getPlayWhenReady());
-        if (isLive()) showOsd(player.getPlayWhenReady() ? "Oynatiliyor" : "Duraklatildi");
+        if (isLive()) showOsd(player.getPlayWhenReady() ? "Oynatiliyor" : "Duraklatıldı");
         else showControls();
     }
 
@@ -964,45 +1053,56 @@ public class PlayerActivity extends BaseActivity {
         final List<Runnable> actions = new ArrayList<>();
         labels.add("Ses dili / parca");
         actions.add(new Runnable() { @Override public void run() { chooseTrack(C.TRACK_TYPE_AUDIO); } });
-        labels.add("Altyazi");
+        labels.add("Altyazı");
         actions.add(new Runnable() { @Override public void run() { chooseTrack(C.TRACK_TYPE_TEXT); } });
-        labels.add("Goruntu orani (" + ASPECTS[aspect] + ")");
+        labels.add("Görüntü oranı (" + ASPECTS[aspect] + ")");
         actions.add(new Runnable() { @Override public void run() { chooseAspect(); } });
         if (isLive()) {
             final PlayItem p = cur();
             final Item it = Play.toItem(p);
             final boolean fav = Db.get().isFavorite(Repo.pid(), Models.LIVE, p.id);
-            labels.add(fav ? "Favorilerden cikar" : "Favorilere ekle");
+            labels.add(fav ? "Favorilerden çıkar" : "Favorilere ekle");
             actions.add(new Runnable() {
                 @Override
                 public void run() {
                     boolean now = Db.get().toggleFavorite(Repo.pid(), it);
-                    showOsd(now ? "Favorilere eklendi" : "Favorilerden cikarildi");
+                    showOsd(now ? "Favorilere eklendi" : "Favorilerden çıkarıldı");
                 }
             });
             labels.add("Kaydet");
             actions.add(new Runnable() { @Override public void run() { RecordUi.recordNow(PlayerActivity.this, it, currentProgramEnd); } });
-            labels.add("Coklu ekran (2 / 4 kanal)");
+            final long recId = com.atlanta.maraplayer.record.Recorder.activeId(p.id);
+            if (recId > 0) {
+                labels.add("Kaydı durdur");
+                actions.add(new Runnable() {
+                    @Override
+                    public void run() {
+                        com.atlanta.maraplayer.record.Recorder.stop(PlayerActivity.this, recId);
+                        showOsd("Kayıt durduruldu, canlıya dönülüyor");
+                    }
+                });
+            }
+            labels.add("Çoklu ekran (2 / 4 kanal)");
             actions.add(new Runnable() { @Override public void run() { openMultiView(); } });
             labels.add("Yayin akisi" + (p.archive ? " / Geri izle" : ""));
             actions.add(new Runnable() { @Override public void run() { openEpg(); } });
             labels.add("Kanal listesi");
             actions.add(new Runnable() { @Override public void run() { showPanel(); } });
         } else {
-            labels.add("Oynatma hizi (" + speed + "x)");
+            labels.add("Oynatma hızı (" + speed + "x)");
             actions.add(new Runnable() { @Override public void run() { chooseSpeed(); } });
         }
         if (pipSupported()) {
-            labels.add("Resim icinde resim");
+            labels.add("Resim içinde resim");
             actions.add(new Runnable() { @Override public void run() { enterPip(); } });
         }
-        labels.add("Uyku zamanlayicisi" + (sleepAt > 0 ? " (" + Ui.time(sleepAt / 1000) + ")" : ""));
+        labels.add("Uyku zamanlayıcısı" + (sleepAt > 0 ? " (" + Ui.time(sleepAt / 1000) + ")" : ""));
         actions.add(new Runnable() { @Override public void run() { chooseSleep(); } });
-        labels.add("Yeniden baglan");
+        labels.add("Yeniden bağlan");
         actions.add(new Runnable() { @Override public void run() { retry = 0; replayCurrent(); } });
-        labels.add("Yayin bilgisi");
+        labels.add("Yayın bilgisi");
         actions.add(new Runnable() { @Override public void run() { streamInfo(); } });
-        labels.add("Harici oynaticida ac");
+        labels.add("Harici oynatıcıda aç");
         actions.add(new Runnable() { @Override public void run() { openExternal(); } });
 
         Ui.choose(this, cur().title, labels.toArray(new String[0]), -1, new Ui.Choice() {
@@ -1039,14 +1139,14 @@ public class PlayerActivity extends BaseActivity {
 
     private void chooseSleep() {
         final int[] mins = {0, 15, 30, 45, 60, 90, 120};
-        String[] names = {"Kapali", "15 dakika", "30 dakika", "45 dakika", "60 dakika", "90 dakika", "120 dakika"};
-        Ui.choose(this, "Uyku zamanlayicisi", names, -1, new Ui.Choice() {
+        String[] names = {"Kapalı", "15 dakika", "30 dakika", "45 dakika", "60 dakika", "90 dakika", "120 dakika"};
+        Ui.choose(this, "Uyku zamanlayıcısı", names, -1, new Ui.Choice() {
             @Override
             public void on(int which) {
                 Async.MAIN.removeCallbacks(sleepRunnable);
                 if (mins[which] == 0) {
                     sleepAt = 0;
-                    showOsd("Uyku zamanlayicisi kapatildi");
+                    showOsd("Uyku zamanlayıcısı kapatıldı");
                 } else {
                     sleepAt = System.currentTimeMillis() + mins[which] * 60000L;
                     Async.MAIN.postDelayed(sleepRunnable, mins[which] * 60000L);
@@ -1066,7 +1166,7 @@ public class PlayerActivity extends BaseActivity {
     }
 
     private void chooseAspect() {
-        Ui.choose(this, "Goruntu orani", ASPECTS, aspect, new Ui.Choice() {
+        Ui.choose(this, "Görüntü oranı", ASPECTS, aspect, new Ui.Choice() {
             @Override
             public void on(int which) {
                 aspect = which;
@@ -1083,7 +1183,7 @@ public class PlayerActivity extends BaseActivity {
         final List<Integer> idx = new ArrayList<>();
         int checked = -1;
         if (trackType == C.TRACK_TYPE_TEXT) {
-            labels.add("Kapali");
+            labels.add("Kapalı");
             groups.add(null);
             idx.add(-1);
             if (player.getTrackSelectionParameters().disabledTrackTypes.contains(C.TRACK_TYPE_TEXT)) checked = 0;
@@ -1102,10 +1202,10 @@ public class PlayerActivity extends BaseActivity {
             }
         }
         if (labels.isEmpty() || (trackType == C.TRACK_TYPE_TEXT && labels.size() == 1)) {
-            showOsd(trackType == C.TRACK_TYPE_AUDIO ? "Baska ses parcasi yok" : "Altyazi yok");
+            showOsd(trackType == C.TRACK_TYPE_AUDIO ? "Başka ses parçası yok" : "Altyazı yok");
             return;
         }
-        Ui.choose(this, trackType == C.TRACK_TYPE_AUDIO ? "Ses" : "Altyazi", labels.toArray(new String[0]), checked, new Ui.Choice() {
+        Ui.choose(this, trackType == C.TRACK_TYPE_AUDIO ? "Ses" : "Altyazı", labels.toArray(new String[0]), checked, new Ui.Choice() {
             @Override
             public void on(int which) {
                 if (player == null) return;
@@ -1164,6 +1264,6 @@ public class PlayerActivity extends BaseActivity {
         sb.append("Motor: Media3 (").append(BuildConfig.EDITION).append(")\n");
         String pass = Repo.profile().pass;
         sb.append("Adres: ").append(Ui.empty(pass) ? cur().url : cur().url.replace(pass, "****"));
-        Ui.dialog(this).setTitle("Yayin bilgisi").setMessage(sb.toString()).setPositiveButton("Tamam", null).show();
+        Ui.dialog(this).setTitle("Yayın bilgisi").setMessage(sb.toString()).setPositiveButton("Tamam", null).show();
     }
 }

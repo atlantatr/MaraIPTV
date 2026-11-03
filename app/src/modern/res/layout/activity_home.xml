@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  [Android 5.0 / 7.0] Ana ekran.
+  ID'ler main/res/layout/activity_home.xml ile aynidir; HomeActivity degismeden calisir.
+
+  Duzen:
+    1. satir : Canli TV | Filmler | Diziler  (esit boyda uc kart)
+    2. satir : Son Eklenenler | Devam Et | Spor Rehberi | Ara
+    3. satir : Favoriler | Kayitlar | Yenile | Ayarlar | Profiller
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/m_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingBottom="22dp"
+        android:paddingLeft="34dp"
+        android:paddingRight="34dp"
+        android:paddingTop="20dp">
+
+        <!-- ================= Ust bar ================= -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="168dp"
+                android:layout_height="52dp"
+                android:contentDescription="@string/app_name"
+                android:scaleType="fitStart"
+                android:src="@drawable/logo_text" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="18dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/profile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:textColor="@color/m_text"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/account"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/m_text2"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/webInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/m_accent2"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right|center_vertical"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/clock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="right"
+                    android:lineSpacingExtra="2dp"
+                    android:textColor="@color/m_text"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/refreshInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:gravity="right"
+                    android:maxLines="1"
+                    android:textColor="@color/m_text2"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ================= Icerik ================= -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- 1. satir: Canli TV / Filmler / Diziler -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="2"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/tLive"
+                    style="@style/MCard"
+                    android:layout_marginRight="14dp"
+                    android:gravity="center"
+                    android:nextFocusDown="@+id/tNew"
+                    android:nextFocusLeft="@+id/tSeries"
+                    android:nextFocusRight="@+id/tMovies"
+                    android:nextFocusUp="@+id/tLive"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:contentDescription="@string/tile_live"
+                        android:src="@drawable/m_ic_live" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:letterSpacing="0.02"
+                        android:text="@string/tile_live"
+                        android:textColor="@color/m_text"
+                        android:textSize="26sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tMovies"
+                    style="@style/MCard"
+                    android:layout_marginRight="14dp"
+                    android:gravity="center"
+                    android:nextFocusDown="@+id/tContinue"
+                    android:nextFocusLeft="@+id/tLive"
+                    android:nextFocusRight="@+id/tSeries"
+                    android:nextFocusUp="@+id/tMovies"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:contentDescription="@string/tile_movies"
+                        android:src="@drawable/m_ic_movie" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:letterSpacing="0.02"
+                        android:text="@string/tile_movies"
+                        android:textColor="@color/m_text"
+                        android:textSize="26sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tSeries"
+                    style="@style/MCard"
+                    android:gravity="center"
+                    android:nextFocusDown="@+id/tSports"
+                    android:nextFocusLeft="@+id/tMovies"
+                    android:nextFocusRight="@+id/tLive"
+                    android:nextFocusUp="@+id/tSeries"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:contentDescription="@string/tile_series"
+                        android:src="@drawable/m_ic_series" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:letterSpacing="0.02"
+                        android:text="@string/tile_series"
+                        android:textColor="@color/m_text"
+                        android:textSize="26sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 2. satir: Son Eklenenler / Devam Et / Favoriler / Ara -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="14dp"
+                android:layout_weight="1.1"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/tNew"
+                    style="@style/MCard"
+                    android:layout_marginRight="12dp"
+                    android:gravity="center"
+                    android:nextFocusDown="@+id/tFav"
+                    android:nextFocusLeft="@+id/tSearch"
+                    android:nextFocusRight="@+id/tContinue"
+                    android:nextFocusUp="@+id/tLive"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:contentDescription="@string/new_added"
+                        android:src="@drawable/m_ic_new" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="12dp"
+                        android:maxLines="1"
+                        android:text="@string/new_added"
+                        android:textColor="@color/m_text"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tContinue"
+                    style="@style/MCard"
+                    android:layout_marginRight="12dp"
+                    android:gravity="center"
+                    android:nextFocusDown="@+id/tRec"
+                    android:nextFocusLeft="@+id/tNew"
+                    android:nextFocusRight="@+id/tSports"
+                    android:nextFocusUp="@+id/tMovies"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:contentDescription="@string/continue_watching"
+                        android:src="@drawable/m_ic_continue" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="12dp"
+                        android:maxLines="1"
+                        android:text="@string/continue_watching"
+                        android:textColor="@color/m_text"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tSports"
+                    style="@style/MCard"
+                    android:layout_marginRight="12dp"
+                    android:gravity="center"
+                    android:nextFocusDown="@+id/tRec"
+                    android:nextFocusLeft="@+id/tContinue"
+                    android:nextFocusRight="@+id/tSearch"
+                    android:nextFocusUp="@+id/tSeries"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:contentDescription="@string/sports_guide"
+                        android:src="@drawable/m_ic_sport" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="12dp"
+                        android:maxLines="1"
+                        android:text="@string/sports_guide"
+                        android:textColor="@color/m_text"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tSearch"
+                    style="@style/MCard"
+                    android:gravity="center"
+                    android:nextFocusDown="@+id/tSettings"
+                    android:nextFocusLeft="@+id/tSports"
+                    android:nextFocusRight="@+id/tNew"
+                    android:nextFocusUp="@+id/tSeries"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:contentDescription="@string/search"
+                        android:src="@drawable/m_ic_search" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="12dp"
+                        android:maxLines="1"
+                        android:text="@string/search"
+                        android:textColor="@color/m_text"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 3. satir: Spor Rehberi / Kayitlar / Yenile / Ayarlar / Profiller -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="12dp"
+                android:layout_weight="0.46"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/tFav"
+                    style="@style/MChip"
+                    android:layout_marginRight="12dp"
+                    android:nextFocusLeft="@+id/tProfiles"
+                    android:nextFocusRight="@+id/tRec"
+                    android:nextFocusUp="@+id/tNew">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@string/favorites"
+                        android:src="@drawable/m_ic_fav" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="8dp"
+                        android:text="@string/favorites"
+                        android:textColor="@color/m_text"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tRec"
+                    style="@style/MChip"
+                    android:layout_marginRight="12dp"
+                    android:nextFocusLeft="@+id/tFav"
+                    android:nextFocusRight="@+id/tRefresh"
+                    android:nextFocusUp="@+id/tContinue">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@string/recordings"
+                        android:src="@drawable/m_ic_rec" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="8dp"
+                        android:text="@string/recordings"
+                        android:textColor="@color/m_text"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tRefresh"
+                    style="@style/MChip"
+                    android:layout_marginRight="12dp"
+                    android:nextFocusLeft="@+id/tRec"
+                    android:nextFocusRight="@+id/tSettings"
+                    android:nextFocusUp="@+id/tSports">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@string/refresh"
+                        android:src="@drawable/m_ic_refresh" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="8dp"
+                        android:text="@string/refresh"
+                        android:textColor="@color/m_text"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tSettings"
+                    style="@style/MChip"
+                    android:layout_marginRight="12dp"
+                    android:nextFocusLeft="@+id/tRefresh"
+                    android:nextFocusRight="@+id/tProfiles"
+                    android:nextFocusUp="@+id/tSearch">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@string/settings"
+                        android:src="@drawable/m_ic_settings" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="8dp"
+                        android:text="@string/settings"
+                        android:textColor="@color/m_text"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tProfiles"
+                    style="@style/MChip"
+                    android:nextFocusLeft="@+id/tSettings"
+                    android:nextFocusRight="@+id/tFav"
+                    android:nextFocusUp="@+id/tSearch">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@string/profiles"
+                        android:src="@drawable/m_ic_users" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="8dp"
+                        android:text="@string/profiles"
+                        android:textColor="@color/m_text"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

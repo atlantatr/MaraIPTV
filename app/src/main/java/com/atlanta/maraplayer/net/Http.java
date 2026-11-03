@@ -84,13 +84,18 @@ public final class Http {
 
     /** Yonlendirmeleri (http<->https dahil) elle takip ederek baglanti acar. */
     public static HttpURLConnection open(String url, int timeoutMs) throws IOException {
+        return open(url, timeoutMs, userAgent());
+    }
+
+    /** Belirli bir User-Agent ile baglanti acar (harici HTML kaynaklari icin). */
+    public static HttpURLConnection open(String url, int timeoutMs, String ua) throws IOException {
         String current = url;
         for (int i = 0; i < 6; i++) {
             HttpURLConnection c = (HttpURLConnection) new URL(current).openConnection();
             c.setInstanceFollowRedirects(false);
             c.setConnectTimeout(timeoutMs);
             c.setReadTimeout(timeoutMs * 2);
-            c.setRequestProperty("User-Agent", userAgent());
+            c.setRequestProperty("User-Agent", ua == null || ua.isEmpty() ? userAgent() : ua);
             c.setRequestProperty("Accept-Encoding", "gzip");
             c.setRequestProperty("Accept", "*/*");
             int code = c.getResponseCode();

@@ -10,8 +10,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /** Oturum (secili profil) ve bellek onbellegi. */
 public final class Repo {
@@ -96,12 +98,17 @@ public final class Repo {
         return c;
     }
 
-    /** Web panelden gizlenen kategoriler haric */
+    /** Web panelden gizlenen kategoriler haric (cocuk modunda yalnizca cocuk kategorileri) */
     public static List<Category> visibleCategories(int type) throws IOException {
         List<Category> all = categories(type);
         List<Category> out = new ArrayList<>(all.size());
         long pid = pid();
-        for (Category c : all) if (!Prefs.isHidden(pid, type, c.id)) out.add(c);
+        boolean kids = Prefs.kidsMode();
+        for (Category c : all) {
+            if (Prefs.isHidden(pid, type, c.id)) continue;
+            if (kids && !Prefs.looksKids(c.name)) continue;
+            out.add(c);
+        }
         return out;
     }
 
@@ -112,6 +119,30 @@ public final class Repo {
 
     /** categoryId: gercek id veya Category.ALL. Arka planda cagrilmali. */
     public static List<Item> items(int type, String categoryId) throws IOException {
+        if (!Prefs.kidsMode()) return rawItems(type, categoryId);
+
+        // Cocuk modu: yalnizca izinli kategorilerdeki icerik, sonuç onbelleklenir
+        String kidsKey = "kids|" + type + "|" + categoryId;
+        synchronized (Repo.class) {
+            List<Item> hit = items.get(kidsKey);
+            if (hit != null) return hit;
+        }
+        Set<String> allowed = kidsCategoryIds(type);
+        List<Item> out = new ArrayList<>();
+        if (Category.ALL.equals(categoryId)) {
+            for (Item it : rawItems(type, Category.ALL)) {
+                if (allowed.contains(it.categoryId)) out.add(it);
+            }
+        } else if (allowed.contains(categoryId)) {
+            out.addAll(rawItems(type, categoryId));
+        }
+        synchronized (Repo.class) {
+            items.put(kidsKey, out);
+        }
+        return out;
+    }
+
+    private static List<Item> rawItems(int type, String categoryId) throws IOException {
         String key = type + "|" + categoryId;
         List<Item> l;
         synchronized (Repo.class) {
@@ -133,6 +164,31 @@ public final class Repo {
             }
         }
         return l;
+    }
+
+    /** Cocuk modunda izinli kategori kimlikleri (kategori adlarindan) */
+    private static Set<String> kidsCategoryIds(int type) throws IOException {
+        Set<String> ids = new HashSet<>();
+        for (Category c : categories(type)) {
+            if (Prefs.looksKids(c.name)) ids.add(c.id);
+        }
+        return ids;
+    }
+
+    /** Cocuk modunda bu kategori gorunur mu? (kategori adi onbellekte yoksa guvenli taraf: hayir) */
+    public static boolean isKidsAllowed(int type, String categoryId) {
+        if (!Prefs.kidsMode()) return true;
+        if (categoryId == null) return false;
+        String name = categoryName(type, categoryId);
+        return name != null && Prefs.looksKids(name);
+    }
+
+    /** Cocuk modunda izinli olmayan ogeleri ayiklar (favoriler gibi hazir listeler icin). */
+    public static List<Item> filterKids(int type, List<Item> src) {
+        if (!Prefs.kidsMode()) return src;
+        List<Item> out = new ArrayList<>(src.size());
+        for (Item it : src) if (isKidsAllowed(type, it.categoryId)) out.add(it);
+        return out;
     }
 
     /** Ebeveyn kilidi olan ve gizlenen kategorileri disarida birakarak tum liste. */

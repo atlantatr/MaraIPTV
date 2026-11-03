@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- [Android 4.2] Lig filtresi: logo + lig adi -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="46dp"
+    android:layout_marginRight="8dp"
+    android:background="@drawable/chip_bg"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minWidth="108dp"
+    android:orientation="horizontal"
+    android:paddingLeft="12dp"
+    android:paddingRight="14dp">
+
+    <ImageView
+        android:id="@+id/chipLogo"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginRight="7dp"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:id="@+id/chipName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textColor="@color/text"
+        android:textSize="14sp" />
+</LinearLayout>

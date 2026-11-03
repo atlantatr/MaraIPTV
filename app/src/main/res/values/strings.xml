@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Mara IPTV Player</string>
+    <string name="splash_tagline">CANLI TV  •  FILM  •  DİZİ</string>
 
     <!-- Ana ekran / karolar -->
-    <string name="tile_live">Canlı</string>
+    <string name="tile_live">Canlı TV</string>
     <string name="tile_movies">Filmler</string>
     <string name="tile_series">Diziler</string>
     <string name="continue_watching">İzlemeye Devam Et</string>
@@ -13,6 +14,100 @@
     <string name="profiles">Profiller</string>
     <string name="recordings">Kayıtlar</string>
     <string name="refresh">Yenile</string>
+
+    <!-- Son eklenenler / spor rehberi / cocuk modu -->
+    <string name="new_added">Son Eklenenler</string>
+    <string name="sports_guide">Spor Rehberi</string>
+    <string name="sports_empty">Yaklaşan maç bulunamadı.</string>
+    <string name="sports_failed_x">Spor verisi alınamadı: %1$s</string>
+    <string name="sports_live">CANLI</string>
+    <string name="sports_hint">Yaklaşan maçlar</string>
+    <string name="sports_tab_all">Tümü</string>
+    <string name="sports_tab_mine">Takımlarım</string>
+    <string name="sports_follow_x">Takip et: %1$s</string>
+    <string name="sports_unfollow_x">Takipten çıkar: %1$s</string>
+    <string name="sports_followed_x">%1$s artık takip ediliyor</string>
+    <string name="sports_unfollowed_x">%1$s takipten çıkarıldı</string>
+    <string name="sports_follow_hint">Takım takip etmek için maça basın</string>
+    <string name="sports_mine_empty">Takip ettiğin takımların yaklaşan maçı yok.</string>
+    <string name="sports_all_leagues">Tüm ligler</string>
+    <string name="sports_today">Bugün</string>
+    <string name="sports_tomorrow">Yarın</string>
+    <string name="sports_day_count">%1$s · %2$d maç</string>
+    <string name="sports_teams_hint">Takımlarım · OK ile takipten çıkar</string>
+    <string name="sports_teams_empty">Henüz takım takip etmiyorsun. Tümü sekmesinde bir maça basıp takımı takip et.</string>
+    <string name="sports_no_match">Yaklaşan maç yok</string>
+    <string name="sports_count_x">%1$d maç</string>
+    <string name="sports_tv_x">Yayın: %1$s</string>
+    <string name="sports_tv_iptv">IPTV kanalları</string>
+    <string name="sports_tv_broadcasters">Yayıncılar</string>
+    <string name="sports_tv_searching">Yayın: aranıyor…</string>
+    <string name="sports_tv_unknown">Yayın: bilinmiyor</string>
+    <string name="sports_tv_not_iptv">IPTV listesinde yok</string>
+    <string name="sports_tv_open_x">Kanala git: %1$s</string>
+    <string name="sports_timer_x">Maç saatinde aç: %1$s</string>
+    <string name="sports_timer_cancel">Zamanlayıcıyı iptal et</string>
+    <string name="sports_timer_set_x">Zamanlayıcı kuruldu: %1$s</string>
+    <string name="sports_timer_off">Zamanlayıcı iptal edildi</string>
+    <string name="sports_timer_started_x">Maç başladı: %1$s</string>
+    <string name="match_note_x">⚽ %1$s – %2$s</string>
+    <string name="match_note_time">%1$s  ·  %2$s</string>
+    <string name="match_note_live">CANLI  %1$s</string>
+
+    <!-- Mac hatirlatmalari -->
+    <string name="sports_remind_10">Maçtan 10 dk önce hatırlat</string>
+    <string name="sports_remind_start">Maç başlayınca hatırlat</string>
+    <string name="sports_remind_cancel">Hatırlatmayı kaldır</string>
+    <string name="sports_remind_on_10">Hatırlatma kuruldu: maçtan 10 dk önce</string>
+    <string name="sports_remind_on_start">Hatırlatma kuruldu: maç başlarken</string>
+    <string name="sports_remind_off">Hatırlatma kaldırıldı</string>
+    <string name="match_reminder_channel">Maç hatırlatmaları</string>
+    <string name="match_reminder_channel_desc">Takip ettiğin maçlar başlamadan önce bildirim</string>
+    <string name="match_reminder_soon">Maç %1$d dakika sonra başlıyor</string>
+    <string name="match_reminder_now">Maç başladı</string>
+    <string name="match_reminder_title">Maç hatırlatması</string>
+    <string name="match_reminder_open">Spor Rehberi</string>
+    <string name="match_reminder_watch">Kanalı aç</string>
+    <string name="sports_link_channel">Yayıncıyı IPTV kanalına bağla…</string>
+    <string name="sports_link_choose_bc">Hangi yayıncıyı bağlayacaksın?</string>
+    <string name="sports_link_done_x">%1$s → %2$s bağlandı</string>
+    <string name="sports_link_remove_x">Bağlantıyı kaldır: %1$s</string>
+    <string name="sports_link_removed">Bağlantı kaldırıldı</string>
+    <string name="sports_auto_remind">Otomatik hatırlatma</string>
+    <string name="sports_on">Açık</string>
+    <string name="sports_off">Kapalı</string>
+    <string name="sports_auto_remind_on">Takım maçlarına otomatik hatırlatma açık</string>
+    <string name="sports_auto_remind_off">Takım maçlarına otomatik hatırlatma kapalı</string>
+    <string name="sports_mine_hint_auto">Takımlarım · otomatik hatırlatma: %1$s · OK ile takipten çıkar</string>
+    <string name="pick_channel_title">Kanal seç</string>
+    <string name="pick_channel_search">Kanal ara…</string>
+    <string name="pick_channel_count">%1$d kanal</string>
+    <string name="pick_channel_none">Kanal bulunamadı</string>
+    <string name="new_tab_all">Tümü</string>
+    <string name="new_empty">Son eklenen içerik bulunamadı.</string>
+    <string name="new_hint">En yeni kanal, film ve diziler</string>
+    <string name="type_channel">Kanal</string>
+    <string name="type_movie">Film</string>
+    <string name="type_series">Dizi</string>
+    <string name="pref_kids">Çocuk Modu</string>
+    <string name="pref_kids_sum">Yalnızca çocuk kategorileri görünür (kapatmak için PIN)</string>
+    <string name="kids_on">Çocuk modu açık</string>
+    <string name="kids_off">Çocuk modu kapalı</string>
+    <string name="kids_no_content">Çocuk kategorisi bulunamadı. Sağlayıcınızda çocuk kategorisi yok.</string>
+
+    <!-- Modern (Android 5/7) ana ekran alt yazilari -->
+    <string name="m_live_sub">Yüzlerce kanal, anında açılır</string>
+    <string name="m_live_cta">OK ile aç</string>
+    <string name="m_movies_sub">Film arşivini keşfet</string>
+    <string name="m_series_sub">Sezonlar ve bölümler</string>
+    <string name="m_continue_sub">Kaldığın yerden</string>
+    <string name="m_fav_sub">Kaydettiklerin</string>
+    <string name="m_search_sub">Tüm içerikte ara</string>
+    <string name="m_rec_sub">Kayıtlar</string>
+    <string name="m_refresh_sub">Listeleri güncelle</string>
+    <string name="m_settings_sub">Tercihler</string>
+    <string name="m_profiles_sub">Hesaplar</string>
+    <string name="m_live_badge">CANLI</string>
 
     <!-- Ana ekran başlık / hesap -->
     <string name="expires">Bitiş</string>
@@ -42,8 +137,8 @@
     <string name="category_locked">Kilitli kategori</string>
     <string name="category_locked_msg">Bu kategori kilitli, PIN girilerek açılabilir</string>
     <string name="locked_category_pin">Kilitli kategori için PIN</string>
-    <string name="unlock_category">Kategoriyi kilitle</string>
-    <string name="lock_category">Kategoriyi kilidi kaldır</string>
+    <string name="unlock_category">Kategori kilidini kaldır</string>
+    <string name="lock_category">Kategoriyi kilitle</string>
     <string name="search_dots">Ara…</string>
     <string name="watch_fullscreen">Kanalı tam ekran aç</string>
     <string name="record">Kaydet</string>
@@ -52,8 +147,12 @@
     <string name="epg_loading">Yayın akışı yükleniyor…</string>
     <string name="no_epg">Bu kanal için yayın akışı yok</string>
     <string name="stream_failed">Yayın akışı alınamadı</string>
-    <string name="preview_hint">Kanal önizleme penceresi açıktır; kapatmak için geri tuşu</string>
-    <string name="preview_off_hint">Önizleme kapalı; kanala çift dokunarak açın</string>
+    <string name="preview_hint">Kanal üzerinde bekleyince önizleme açılır · OK: tam ekran</string>
+    <string name="preview_off_hint">Önizleme kapalı · OK: tam ekran</string>
+    <string name="preview_enable">Önizlemeyi aç</string>
+    <string name="preview_disable">Önizlemeyi kapat</string>
+    <string name="preview_enabled">Kanal önizlemesi açıldı</string>
+    <string name="preview_disabled">Kanal önizlemesi kapatıldı</string>
     <string name="fav_add">Favorilere ekle</string>
     <string name="fav_remove">Favorilerden çıkar</string>
     <string name="fav_added">Favorilere eklendi</string>
@@ -144,9 +243,40 @@
     <string name="pref_cat_player">Oynatıcı</string>
     <string name="pref_cat_connection">Bağlantı</string>
     <string name="pref_cat_epg">Yayın Akışı (EPG)</string>
+    <string name="pref_cat_web">Web Panel</string>
     <string name="pref_cat_rec_web">Kayıt ve Web Panel</string>
     <string name="pref_cat_parental">Ebeveyn Kilidi</string>
     <string name="pref_cat_other">Diğer</string>
+    <string name="pref_cat_backup">Yedekleme</string>
+    <string name="pref_cat_update">Güncelleme</string>
+    <string name="pref_update_check">Güncelleme kontrolü</string>
+    <string name="pref_update_check_sum">GitHub sürümlerini denetle, yeni sürümü indir ve kur</string>
+    <string name="update_checking">Güncellemeler denetleniyor…</string>
+    <string name="update_no_release">Henüz yayınlanmış sürüm yok</string>
+    <string name="update_current_x">Kurulu sürüm: %1$s</string>
+    <string name="update_latest_x">En son sürüm: %1$s</string>
+    <string name="update_none">En son sürümü kullanıyorsunuz (%1$s)</string>
+    <string name="update_failed_x">Güncelleme denetlenemedi: %1$s</string>
+    <string name="update_new_title">Yeni sürüm: %1$s</string>
+    <string name="update_notes_empty">Sürüm notu yok.</string>
+    <string name="update_download">İndir ve kur</string>
+    <string name="update_no_apk">Bu sürümde APK dosyası yok</string>
+    <string name="update_downloading_x">%1$s indiriliyor…</string>
+    <string name="update_start_failed_x">İndirme başlatılamadı: %1$s</string>
+    <string name="update_size_x">%1$s · %2$s</string>
+    <string name="pref_backup_now">Şimdi yedekle</string>
+    <string name="pref_backup_now_sum">Profiller, favoriler, takımlar ve hatırlatmalar JSON olarak kaydedilir</string>
+    <string name="pref_backup_last_x">Son yedek: %1$s</string>
+    <string name="pref_backup_restore">Yedekten geri yükle</string>
+    <string name="pref_backup_restore_sum">Kayıtlı JSON yedeğini içe aktar (mevcut veriler korunur)</string>
+    <string name="pref_backup_web">Web panelden indir</string>
+    <string name="pref_backup_web_sum">Aynı ağdaki tarayıcıdan yedek dosyasını indir</string>
+    <string name="pref_backup_web_hint">Tarayıcıdan açın: %1$s</string>
+    <string name="backup_done_x">Yedek kaydedildi:\n%1$s</string>
+    <string name="backup_failed_x">Yedekleme hatası: %1$s</string>
+    <string name="backup_none">Henüz yedek dosyası yok</string>
+    <string name="backup_restore_confirm_x">%1$s geri yüklensin mi?\nMevcut profiller, favoriler ve hatırlatmalar silinmez; yedektekiler eklenir.</string>
+    <string name="backup_restored_x">Geri yüklendi — %1$s</string>
 
     <string name="pref_language">Uygulama dili</string>
     <string name="pref_engine">Oynatıcı motoru</string>
@@ -176,13 +306,14 @@
     <string name="pref_pin_change_sum">Ebeveyn kilidi / PIN girişinde kullanılan 4 haneli kodu değiştir</string>
     <string name="pref_trust_all">Tüm sertifika oturumlarını kabul et</string>
     <string name="pref_trust_all_sum">Herkese açık / self-signed sunucuların TLS hatalarını yoksay (güvensiz)</string>
-    <string name="pref_user_agent_sum">Sunucuya isteklerde kullanılması için kullanıcı ajanı (user agent)</string>
+    <string name="pref_user_agent">User-Agent</string>
+    <string name="pref_user_agent_sum">Sunucuya gönderilen kullanıcı ajanı. Sağlayıcıya göre hazır seçeneklerden birini seçin.</string>
     <string name="pref_clear_cache">Görsel önbelleğini temizle</string>
     <string name="pref_clear_cache_sum">İndirilmiş kanal/film/dizi görsellerini sil</string>
     <string name="cache_cleared">Önbellek temizlendi</string>
     <string name="pref_clear_locks">Kilidi sıfırla</string>
     <string name="pref_clear_locks_sum">Profil kilidi / ebeveyn PIN\'ini sıfırla</string>
-    <string name="pref_auto_login">Otomotik giriş</string>
+    <string name="pref_auto_login">Otomatik Giriş</string>
     <string name="pref_auto_login_sum">Son seçilen profille uygulamayı aç</string>
     <string name="pref_adult">Yetişkin içeriği</string>
     <string name="pref_adult_sum">Yetişkin kategorilerini gizle / göster</string>

@@ -27,10 +27,19 @@ public class RecordingsActivity extends BaseActivity {
     private Button[] tabs;
     private int tab;
 
+    /** Son yenilemedeki aktif kayit sayisi: kayit bitince liste de yenilensin. */
+    private int lastActive = -1;
+
     private final Runnable refresh = new Runnable() {
         @Override
         public void run() {
-            if (tab == 0 && !Recorder.active().isEmpty()) reload();
+            int n = Recorder.active().size();
+            // Kayit surerken boyut/sure canli kalsin; kayit bitince (n=0) satir
+            // "Kaydediliyor" olarak takili kalmasin diye gecisde de yenile.
+            if (tab == 0 && (n > 0 || n != lastActive)) {
+                lastActive = n;
+                reload();
+            }
             Async.MAIN.postDelayed(this, 3000);
         }
     };
@@ -40,15 +49,15 @@ public class RecordingsActivity extends BaseActivity {
         super.onCreate(b);
         if (sessionLost) return;
         setContentView(R.layout.activity_list);
-        ((TextView) v(R.id.title)).setText("Kayitlar");
-        ((TextView) v(R.id.hint)).setText("MENU / uzun bas: sil / iptal");
+        ((TextView) v(R.id.title)).setText("Kayıtlar");
+        ((TextView) v(R.id.hint)).setText("MENÜ / uzun bas: sil / iptal");
         list = v(R.id.list);
         msg = v(R.id.msg);
         adapter = new Adapters.RowAdapter(this);
         list.setAdapter(adapter);
         v(R.id.tabs).setVisibility(View.VISIBLE);
         tabs = new Button[]{v(R.id.tab0), v(R.id.tab1), v(R.id.tab2)};
-        String[] names = {"Kayitlar", "Zamanlanmis", "Kayit yeri"};
+        String[] names = {"Kayıtlar", "Zamanlanmis", "Kayıt yeri"};
         for (int i = 0; i < 3; i++) {
             final int t = i;
             tabs[i].setText(names[i]);
@@ -96,8 +105,12 @@ public class RecordingsActivity extends BaseActivity {
     private void reload() {
         List<Adapters.Row> rows = new ArrayList<>();
         if (tab == 0) {
+            long now = System.currentTimeMillis();
             for (Recorder.Active a : Recorder.active()) {
-                Adapters.Row r = new Adapters.Row("● " + a.title, a.status + "  ·  " + Recorder.size(a.bytes)
+                long elapsed = Math.max(0, now - a.startedAt);
+                Adapters.Row r = new Adapters.Row("● " + a.title, a.status
+                        + "  ·  " + Recorder.size(a.bytes)
+                        + "  ·  süren " + RecordUi.compactDuration(elapsed)
                         + (a.stopAt > 0 ? "  ·  bitis " + Ui.time(a.stopAt / 1000) : ""), a);
                 r.right = "OK: Durdur";
                 rows.add(r);
@@ -106,7 +119,10 @@ public class RecordingsActivity extends BaseActivity {
                 boolean busy = false;
                 for (Recorder.Active a : Recorder.active()) if (a.file.equals(f)) busy = true;
                 if (busy) continue;
-                Adapters.Row r = new Adapters.Row(f.getName(), Ui.dayTime(f.lastModified() / 1000) + "  ·  " + Recorder.size(f.length()), f);
+                long dur = Recorder.durationMs(f);
+                Adapters.Row r = new Adapters.Row(f.getName(),
+                        Ui.dayTime(f.lastModified() / 1000) + "  ·  " + Recorder.size(f.length())
+                                + (dur > 0 ? "  ·  " + RecordUi.compactDuration(dur) : ""), f);
                 rows.add(r);
             }
         } else {
@@ -122,18 +138,25 @@ public class RecordingsActivity extends BaseActivity {
         adapter.set(rows);
         if (sel >= 0 && sel < rows.size()) list.setSelection(sel);
         msg.setVisibility(rows.isEmpty() ? View.VISIBLE : View.GONE);
-        msg.setText(tab == 0 ? "Henuz kayit yok.\nCanli yayinda MENU > Kaydet veya yayin akisindan program kaydedin."
-                : "Zamanlanmis kayit yok.\nYayin akisinda ileri tarihli bir programa basin > Kaydet.");
+        msg.setText(tab == 0 ? "Henüz kayıt yok.\nCanlı yayında MENÜ > Kaydet veya yayın akışından program kaydedin."
+                : "Zamanlanmış kayıt yok.\nYayın akışında ileri tarihli bir programa basın > Kaydet.");
     }
 
     private void open(final Object tag) {
         if (tag instanceof Recorder.Active) {
             final Recorder.Active a = (Recorder.Active) tag;
-            Ui.confirm(this, "Kaydi durdur", a.title + " kaydi durdurulsun mu?", new Runnable() {
+            Ui.confirm(this, "Kaydi durdur", a.title + " kaydı durdurulsun mu?", new Runnable() {
                 @Override
                 public void run() {
                     Recorder.stop(RecordingsActivity.this, a.id);
-                    Ui.toast(RecordingsActivity.this, "Kayit durduruluyor...");
+                    Ui.toast(RecordingsActivity.this, "Kayıt durduruluyor...");
+                    // Servis kaydi kapatana kadar kisa bekle, sonra listeyi tazele
+                    Async.MAIN.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (adapter != null) reload();
+                        }
+                    }, 2000);
                 }
             });
         } else if (tag instanceof File) {
@@ -146,17 +169,16 @@ public class RecordingsActivity extends BaseActivity {
     private void remove(final Object tag) {
         if (tag instanceof File) {
             final File f = (File) tag;
-            Ui.confirm(this, "Kaydi sil", f.getName() + " silinsin mi?", new Runnable() {
+            Ui.confirm(this, "Kaydı sil", f.getName() + " silinsin mi?", new Runnable() {
                 @Override
                 public void run() {
-                    //noinspection ResultOfMethodCallIgnored
-                    f.delete();
+                    Recorder.deleteRecording(f);
                     reload();
                 }
             });
         } else if (tag instanceof Db.Scheduled) {
             final Db.Scheduled s = (Db.Scheduled) tag;
-            Ui.confirm(this, "Zamanli kaydi iptal et", s.title + " iptal edilsin mi?", new Runnable() {
+            Ui.confirm(this, "Zamanlı kaydı iptal et", s.title + " iptal edilsin mi?", new Runnable() {
                 @Override
                 public void run() {
                     Recorder.cancel(RecordingsActivity.this, s.id);
@@ -175,8 +197,8 @@ public class RecordingsActivity extends BaseActivity {
             sb.append(d.equals(target) ? "> " : "   ").append(d.getAbsolutePath())
                     .append("\n     bos: ").append(Recorder.size(d.getUsableSpace())).append("\n");
         }
-        sb.append("\nYeni kayitlar '>' isaretli klasore yazilir. Ayarlar > Kayit yeri ile degistirilebilir.");
-        Ui.dialog(this).setTitle("Kayit yeri").setMessage(sb.toString()).setPositiveButton("Tamam", null).show();
+        sb.append("\nYeni kayıtlar '>' işaretli klasöre yazılır. Ayarlar > Kayıt yeri ile değiştirilebilir.");
+        Ui.dialog(this).setTitle("Kayıt yeri").setMessage(sb.toString()).setPositiveButton("Tamam", null).show();
     }
 
     @Override

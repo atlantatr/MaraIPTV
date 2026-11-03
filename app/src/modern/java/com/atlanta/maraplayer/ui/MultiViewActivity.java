@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * [Android 5.0 / 7.0] Coklu ekran: 2 veya 4 kanali ayni anda izleme.
+ * [Android 5.0 / 7.0] Çoklu ekran: 2 veya 4 kanali ayni anda izleme.
  * Secili pencerenin sesi acik, digerleri sessiz. Cihazin donanim video cozucu sayisi sinirlidir;
  * zayif kutularda 4 pencerede bazi kanallar acilmayabilir.
  */
@@ -166,8 +166,8 @@ public class MultiViewActivity extends BaseActivity {
     }
 
     private void menu() {
-        final String[] opts = {count == 4 ? "2 pencereye gec" : "4 pencereye gec", "Secili kanali tam ekran ac", "Kanal degistir"};
-        Ui.choose(this, "Coklu ekran", opts, -1, new Ui.Choice() {
+        final String[] opts = {count == 4 ? "2 pencereye geç" : "4 pencereye geç", "Seçili kanalı tam ekran aç", "Kanal değiştir"};
+        Ui.choose(this, "Çoklu ekran", opts, -1, new Ui.Choice() {
             @Override
             public void on(int which) {
                 if (which == 0) {

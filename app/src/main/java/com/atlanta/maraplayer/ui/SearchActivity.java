@@ -78,7 +78,7 @@ public class SearchActivity extends BaseActivity {
         final Intent voice = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "tr-TR")
-                .putExtra(RecognizerIntent.EXTRA_PROMPT, "Kanal, film veya dizi adini soyleyin");
+                .putExtra(RecognizerIntent.EXTRA_PROMPT, "Kanal, film veya dizi adını söyleyin");
         if (!getPackageManager().queryIntentActivities(voice, 0).isEmpty()) {
             View btn = v(R.id.btnVoice);
             btn.setVisibility(View.VISIBLE);
@@ -88,7 +88,7 @@ public class SearchActivity extends BaseActivity {
                     try {
                         startActivityForResult(voice, REQ_VOICE);
                     } catch (Exception e) {
-                        Ui.toast(SearchActivity.this, "Sesli arama kullanilamiyor");
+                        Ui.toast(SearchActivity.this, "Sesli arama kullanılamıyor");
                     }
                 }
             });
@@ -101,7 +101,7 @@ public class SearchActivity extends BaseActivity {
         v(R.id.tabs).setVisibility(View.VISIBLE);
         tabs = new Button[]{v(R.id.tab0), v(R.id.tab1), v(R.id.tab2), v(R.id.tab3)};
         tabs[3].setVisibility(View.VISIBLE);
-        final String[] names = {"Tumu", "Kanallar", "Filmler", "Diziler"};
+        final String[] names = {"Tümü", "Kanallar", "Filmler", "Diziler"};
         final int[] types = {-1, Models.LIVE, Models.MOVIE, Models.SERIES};
         for (int i = 0; i < 4; i++) {
             final int t = types[i];
@@ -205,7 +205,7 @@ public class SearchActivity extends BaseActivity {
                 @Override
                 public void on(Exception e) {
                     data.remove(t);
-                    Ui.toast(SearchActivity.this, "Liste yuklenemedi: " + Ui.err(e));
+                    Ui.toast(SearchActivity.this, "Liste yüklenemedi: " + Ui.err(e));
                     done();
                 }
             });
@@ -243,15 +243,15 @@ public class SearchActivity extends BaseActivity {
         }
         adapter.set(rows);
         if (q.length() < 2) {
-            msg.setText("En az 2 harf yazin");
+            msg.setText("En az 2 harf yazın");
             msg.setVisibility(View.VISIBLE);
         } else if (rows.isEmpty()) {
-            msg.setText(loadingCount > 0 ? "Listeler yukleniyor..." : "Sonuc bulunamadi");
+            msg.setText(loadingCount > 0 ? "Listeler yükleniyor..." : "Sonuç bulunamadı");
             msg.setVisibility(View.VISIBLE);
         } else {
             msg.setVisibility(View.GONE);
         }
-        ((TextView) v(R.id.hint)).setText(rows.size() >= MAX_RESULTS ? "Ilk " + MAX_RESULTS + " sonuc" : rows.size() + " sonuc");
+        ((TextView) v(R.id.hint)).setText(rows.size() >= MAX_RESULTS ? "İlk " + MAX_RESULTS + " sonuç" : rows.size() + " sonuç");
     }
 
     private void hideKeyboard() {

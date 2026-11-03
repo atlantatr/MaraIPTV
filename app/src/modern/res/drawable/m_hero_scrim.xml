@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Buyuk kartin alt kisminda yazilarin okunmasi icin koyu gecis -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="#00070A0E"
+        android:centerColor="#8C070A0E"
+        android:endColor="#F2070A0E" />
+</shape>

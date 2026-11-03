@@ -43,8 +43,8 @@ public class FavoritesActivity extends BaseActivity {
         msg = v(R.id.msg);
         adapter = new Adapters.RowAdapter(this);
         list.setAdapter(adapter);
-        ((TextView) v(R.id.title)).setText(mode == MODE_FAV ? "Favoriler" : "Izlemeye Devam Et");
-        ((TextView) v(R.id.hint)).setText("MENU / uzun bas: listeden kaldir");
+        ((TextView) v(R.id.title)).setText(mode == MODE_FAV ? "Favoriler" : "İzlemeye Devam Et");
+        ((TextView) v(R.id.hint)).setText("MENÜ / uzun bas: listeden kaldır");
 
         if (mode == MODE_FAV) {
             v(R.id.tabs).setVisibility(View.VISIBLE);
@@ -102,6 +102,7 @@ public class FavoritesActivity extends BaseActivity {
         long pid = Repo.pid();
         if (mode == MODE_FAV) {
             for (Item it : Db.get().favorites(pid, tab)) {
+                if (!Repo.isKidsAllowed(tab, it.categoryId)) continue;
                 Adapters.Row r = new Adapters.Row(it.name, null, it);
                 r.icon = it.icon;
                 r.showIcon = true;
@@ -125,7 +126,7 @@ public class FavoritesActivity extends BaseActivity {
         }
         adapter.set(rows);
         msg.setVisibility(rows.isEmpty() ? View.VISIBLE : View.GONE);
-        msg.setText(mode == MODE_FAV ? "Bu listede favori yok." : "Yarida kalan film veya bolum yok.");
+        msg.setText(mode == MODE_FAV ? "Bu listede favori yok." : "Yarıda kalan film veya bölüm yok.");
     }
 
     private void open(int pos) {
@@ -149,7 +150,7 @@ public class FavoritesActivity extends BaseActivity {
     private void remove(final int pos) {
         if (pos < 0 || pos >= adapter.getCount()) return;
         final Object tag = adapter.getItem(pos).tag;
-        Ui.confirm(this, "Kaldir", adapter.getItem(pos).title + " listeden kaldirilsin mi?", new Runnable() {
+        Ui.confirm(this, "Kaldır", adapter.getItem(pos).title + " listeden kaldırılsın mı?", new Runnable() {
             @Override
             public void run() {
                 if (tag instanceof Db.Resume) Db.get().deleteResume(Repo.pid(), ((Db.Resume) tag).key);

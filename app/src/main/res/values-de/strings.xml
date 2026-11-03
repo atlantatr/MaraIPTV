@@ -117,6 +117,7 @@
     <string name="pref_cat_player">Player</string>
     <string name="pref_cat_connection">Verbindung</string>
     <string name="pref_cat_epg">Programm (EPG)</string>
+    <string name="pref_cat_web">Web-Panel</string>
     <string name="pref_cat_rec_web">Aufnahme &amp; Web-Panel</string>
     <string name="pref_cat_parental">Elternkontrolle</string>
     <string name="pref_cat_other">Sonstiges</string>

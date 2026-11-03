@@ -6,6 +6,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
 
+import com.atlanta.maraplayer.BuildConfig;
 import com.atlanta.maraplayer.R;
 import com.atlanta.maraplayer.data.AppEvents;
 import com.atlanta.maraplayer.data.Db;
@@ -53,9 +54,17 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
         refreshInfo = v(R.id.refreshInfo);
         bindHeader();
 
-        int[] ids = {R.id.tLive, R.id.tMovies, R.id.tSeries, R.id.tContinue, R.id.tFav, R.id.tSearch,
-                R.id.tRec, R.id.tRefresh, R.id.tSettings, R.id.tProfiles};
-        for (int id : ids) v(id).setOnClickListener(this);
+        int[] ids = {R.id.tLive, R.id.tMovies, R.id.tSeries, R.id.tNew, R.id.tContinue, R.id.tFav, R.id.tSearch,
+                R.id.tSports, R.id.tRec, R.id.tRefresh, R.id.tSettings, R.id.tProfiles};
+        for (int id : ids) {
+            View tile = v(id);
+            if (tile != null) tile.setOnClickListener(this);
+        }
+        if (BuildConfig.LITE) {
+            // Lite surumde kayit listesi ve spor rehberi yok.
+            v(R.id.tSports).setVisibility(View.GONE);
+            v(R.id.tRec).setVisibility(View.GONE);
+        }
         v(R.id.tLive).requestFocus();
     }
 
@@ -97,6 +106,9 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
             Profile p = Db.get().profile(pending);
             if (p != null) refreshInBackground(p, true);
         }
+        // Mac zamanlayicisi uygulama kapaliyken tetiklendiyse kanali ac
+        String[] playNow = PendingPlay.take(Repo.pid());
+        if (playNow != null) Play.playLiveById(this, playNow[0], playNow[1]);
     }
 
     @Override
@@ -186,6 +198,10 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
             startActivity(new Intent(this, VodActivity.class).putExtra(VodActivity.EXTRA_TYPE, Models.MOVIE));
         } else if (id == R.id.tSeries) {
             startActivity(new Intent(this, VodActivity.class).putExtra(VodActivity.EXTRA_TYPE, Models.SERIES));
+        } else if (id == R.id.tNew) {
+            startActivity(new Intent(this, NewActivity.class));
+        } else if (id == R.id.tSports) {
+            if (!BuildConfig.LITE) startActivity(new Intent(this, SportsActivity.class));
         } else if (id == R.id.tContinue) {
             startActivity(new Intent(this, FavoritesActivity.class).putExtra(FavoritesActivity.EXTRA_MODE, FavoritesActivity.MODE_CONTINUE));
         } else if (id == R.id.tFav) {
@@ -193,7 +209,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
         } else if (id == R.id.tSearch) {
             startActivity(new Intent(this, SearchActivity.class));
         } else if (id == R.id.tRec) {
-            startActivity(new Intent(this, RecordingsActivity.class));
+            if (!BuildConfig.LITE) startActivity(new Intent(this, RecordingsActivity.class));
         } else if (id == R.id.tRefresh) {
             ImageLoader.get().clearMemory();
             refreshInBackground(null, false);

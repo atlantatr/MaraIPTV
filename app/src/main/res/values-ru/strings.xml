@@ -117,6 +117,7 @@
     <string name="pref_cat_player">Плеер</string>
     <string name="pref_cat_connection">Подключение</string>
     <string name="pref_cat_epg">Программа (EPG)</string>
+    <string name="pref_cat_web">Веб-панель</string>
     <string name="pref_cat_rec_web">Запись и веб-панель</string>
     <string name="pref_cat_parental">Родительский контроль</string>
     <string name="pref_cat_other">Прочее</string>

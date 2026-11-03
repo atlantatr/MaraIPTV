@@ -13,6 +13,17 @@
         <item name="android:windowBackground">@android:color/black</item>
     </style>
 
+    <style name="SettingsTheme" parent="AppTheme">
+        <item name="android:windowBackground">@color/settings_bg</item>
+    </style>
+
+    <!-- Mac hatirlatmasi: TV'nin uzerinde yari saydam pencere -->
+    <style name="ReminderTheme" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
     <style name="TvButton">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>

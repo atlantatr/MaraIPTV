@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.atlanta.maraplayer.BuildConfig;
 import com.atlanta.maraplayer.R;
 import com.atlanta.maraplayer.data.Models;
 import com.atlanta.maraplayer.data.Models.Epg;
@@ -51,8 +52,12 @@ public class EpgGridActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        // Alt activity (LiveActivity) var, task'i koru: oncekine don
+        // Altta bir ekran varsa ona don. Bu ekran gorev koku kaldiysa
+        // (ornegin bildirimden dogrudan acildiysa) finish() uygulamayi
+        // kapatacagi icin ana ekrana don.
         if (isTaskRoot() && !isChangingConfigurations()) {
+            startActivity(new Intent(this, HomeActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
             finish();
         } else {
             super.onBackPressed();
@@ -125,7 +130,7 @@ public class EpgGridActivity extends BaseActivity {
     private void build() {
         long off = Prefs.epgOffsetSec();
         // Epg.start/stop = sunucu saatinde (yapilanma saati, raw unix).
-        // "Bugun" cizgisi: yapilanma saatine gore gece yarisi.
+        // "Bugün" cizgisi: yapilanma saatine gore gece yarisi.
         // bugun (raw) = sistem bugun (raw) + off  (yerel gece yarisi, yapilanma cizgisine cevirmek icin +off)
         Calendar c = Calendar.getInstance();
         c.set(Calendar.HOUR_OF_DAY, 0);
@@ -163,11 +168,28 @@ public class EpgGridActivity extends BaseActivity {
     private void click(final Epg e) {
         long off = Prefs.epgOffsetSec();
         long now = System.currentTimeMillis() / 1000L - off;
+        if (BuildConfig.LITE) {
+            // Lite surumde kayit ve hatirlatma yok: yalnizca izleme.
+            if (e.isNow(now)) {
+                List<Item> one = new ArrayList<Item>();
+                one.add(channel);
+                Play.playLive(EpgGridActivity.this, one, 0);
+            } else if (e.stop <= now) {
+                if (e.start >= now - Math.max(1, channel.archiveDays) * 86400L) {
+                    Play.playCatchup(this, channel, e);
+                } else {
+                    Ui.toast(this, getString(R.string.no_archive));
+                }
+            } else {
+                Ui.toast(this, "Bu sürümde kayıt ve hatırlatma yok");
+            }
+            return;
+        }
         if (e.isNow(now)) {
             Ui.choose(this, e.title, new String[]{
                     getString(R.string.watch_fullscreen),
                     getString(R.string.schedule_rec),
-                    Prefs.hasReminder(Repo.pid(), channel.id, e.start) ? "Hatirlatmayi kaldir" : "Hatirlat"}, -1, new Ui.Choice() {
+                    Prefs.hasReminder(Repo.pid(), channel.id, e.start) ? "Hatırlatmayı kaldır" : "Hatırlat"}, -1, new Ui.Choice() {
                 @Override
                 public void on(int which) {
                     if (which == 0) {

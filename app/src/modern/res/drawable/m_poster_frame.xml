@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Poster cercevesi (kose yuvarlatma icin clipToOutline ile birlikte) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FF1A2231" />
+    <corners android:radius="14dp" />
+</shape>

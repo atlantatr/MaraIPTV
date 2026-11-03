@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Acilis ekrani arka plani: koyu taban + sol alttan turuncu isik -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="315"
+                android:startColor="#FF171009"
+                android:centerColor="#FF0B0D12"
+                android:endColor="#FF07080B" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="45"
+                android:startColor="#4DFF7A1A"
+                android:centerColor="#14FF7A1A"
+                android:endColor="#00FF7A1A" />
+        </shape>
+    </item>
+</layer-list>

@@ -10,7 +10,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <TextureView
+        <!-- SurfaceView: Amlogic'te video dogrudan video katmanina cikar.
+             TextureView GPU uzerinden kopyaladigi icin FHD/RAW yayinlarda
+             donmaya ve codec_mm (ION) tampon sizintisina yol aciyordu. -->
+        <SurfaceView
             android:id="@+id/surface"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -76,6 +79,26 @@
         android:textStyle="bold"
         android:visibility="gone" />
 
+    <!-- Takip edilen takimin mac bildirimi (oynatma sirasinda) -->
+    <TextView
+        android:id="@+id/matchNote"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|left"
+        android:layout_marginLeft="34dp"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/panel_bg"
+        android:drawablePadding="10dp"
+        android:lineSpacingExtra="3dp"
+        android:maxWidth="520dp"
+        android:paddingBottom="12dp"
+        android:paddingLeft="18dp"
+        android:paddingRight="18dp"
+        android:paddingTop="12dp"
+        android:textColor="@color/text"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
     <!-- Canli yayin bilgi cubugu -->
     <LinearLayout
         android:id="@+id/infoBar"
@@ -85,11 +108,17 @@
         android:background="@drawable/overlay_bg"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingBottom="24dp"
+        android:paddingBottom="26dp"
         android:paddingLeft="40dp"
         android:paddingRight="40dp"
-        android:paddingTop="50dp"
+        android:paddingTop="72dp"
         android:visibility="gone">
+
+        <View
+            android:layout_width="4dp"
+            android:layout_height="70dp"
+            android:layout_marginRight="18dp"
+            android:background="@color/accent" />
 
         <ImageView
             android:id="@+id/infoLogo"
@@ -109,27 +138,35 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
+                android:shadowColor="#E6000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="6"
                 android:singleLine="true"
-                android:textColor="@color/text"
-                android:textSize="24sp"
+                android:textColor="#FFFFFFFF"
+                android:textSize="26sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/infoNow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:ellipsize="end"
+                android:shadowColor="#E6000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="6"
                 android:singleLine="true"
-                android:textColor="@color/accent"
-                android:textSize="17sp" />
+                android:textColor="#FFFFC48C"
+                android:textSize="19sp" />
 
             <ProgressBar
                 android:id="@+id/infoProgress"
                 style="@android:style/Widget.ProgressBar.Horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="5dp"
-                android:layout_marginTop="6dp"
+                android:layout_height="6dp"
+                android:layout_marginTop="8dp"
                 android:max="100"
                 android:progressDrawable="@drawable/progress_bar" />
 
@@ -137,11 +174,15 @@
                 android:id="@+id/infoNext"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="8dp"
                 android:ellipsize="end"
+                android:shadowColor="#E6000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="6"
                 android:singleLine="true"
-                android:textColor="@color/text2"
-                android:textSize="15sp" />
+                android:textColor="#FFD3DBE6"
+                android:textSize="16sp" />
         </LinearLayout>
 
         <TextView
@@ -150,8 +191,13 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:gravity="right"
-            android:textColor="@color/text"
-            android:textSize="20sp" />
+            android:shadowColor="#E6000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6"
+            android:textColor="#FFFFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <!-- Film / dizi kontrolleri -->
@@ -162,10 +208,10 @@
         android:layout_gravity="bottom"
         android:background="@drawable/overlay_bg"
         android:orientation="vertical"
-        android:paddingBottom="24dp"
+        android:paddingBottom="26dp"
         android:paddingLeft="40dp"
         android:paddingRight="40dp"
-        android:paddingTop="50dp"
+        android:paddingTop="72dp"
         android:visibility="gone">
 
         <TextView
@@ -173,9 +219,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
+            android:shadowColor="#E6000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6"
             android:singleLine="true"
-            android:textColor="@color/text"
-            android:textSize="22sp"
+            android:textColor="#FFFFFFFF"
+            android:textSize="24sp"
             android:textStyle="bold" />
 
         <TextView
@@ -183,9 +233,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
+            android:shadowColor="#E6000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6"
             android:singleLine="true"
-            android:textColor="@color/text2"
-            android:textSize="15sp" />
+            android:textColor="#FFD3DBE6"
+            android:textSize="16sp" />
 
         <LinearLayout
             android:layout_width="match_parent"

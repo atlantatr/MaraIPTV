@@ -6,6 +6,11 @@ plugins {
 def media3Version = '1.5.0'
 def useFfmpeg = (project.findProperty('mara.ffmpeg') ?: 'true').toString().toBoolean()
 
+// Her derlemede degisen surum: kullanici hangi yapinin kurulu oldugunu gorebilsin.
+// versionCode = 2026-01-01'den bu yana gecen dakika (tek yonlu artar, < 2.1 milyar).
+def buildStamp = new java.text.SimpleDateFormat("yyMMdd-HHmm").format(new java.util.Date())
+def buildNo = (int) ((System.currentTimeMillis() - 1767225600000L) / 60000L)
+
 android {
     namespace 'com.atlanta.maraplayer'
     compileSdk 35
@@ -25,31 +30,39 @@ android {
 
     // ---------------------------------------------------------------
     // 3 surum: legacy = Android 4.2+, lollipop = Android 5.0+, nougat = Android 7.0+
+    //
+    // LITE: Android 4.2 surumu hafif surumdur. Kayit (tum zamanli kayitlar,
+    // kayit listesi, arka plan servisi, tek baglanti relay) ve spor rehberi /
+    // mac hatirlatici bu surumde yoktur. BuildConfig.LITE derleme zamani sabiti
+    // oldugu icin R8 bu dallari ve kullanilmayan siniflari APK'dan cikarir.
     // ---------------------------------------------------------------
     flavorDimensions 'api'
     productFlavors {
         legacy {
             dimension 'api'
             minSdk 17
-            versionCode 1200
-            versionName '2.0.0-a42'
+            versionCode 5000000 + buildNo
+            versionName "2.0.0-a43." + buildStamp
             buildConfigField 'boolean', 'ADVANCED', 'false'
-            buildConfigField 'String', 'EDITION', '"Android 4.2+"'
+            buildConfigField 'boolean', 'LITE', 'true'
+            buildConfigField 'String', 'EDITION', '"Android 4.2+ (Lite)"'
         }
         lollipop {
             dimension 'api'
             minSdk 21
-            versionCode 2200
-            versionName '2.0.0-a50'
+            versionCode 5000000 + buildNo
+            versionName "2.0.0-a51." + buildStamp
             buildConfigField 'boolean', 'ADVANCED', 'true'
+            buildConfigField 'boolean', 'LITE', 'false'
             buildConfigField 'String', 'EDITION', '"Android 5.0+"'
         }
         nougat {
             dimension 'api'
             minSdk 24
-            versionCode 3200
-            versionName '2.0.0-a70'
+            versionCode 5000000 + buildNo
+            versionName "2.0.0-a71." + buildStamp
             buildConfigField 'boolean', 'ADVANCED', 'true'
+            buildConfigField 'boolean', 'LITE', 'false'
             buildConfigField 'String', 'EDITION', '"Android 7.0+"'
         }
     }
@@ -63,6 +76,21 @@ android {
         nougat {
             java.srcDirs += 'src/modern/java'
             res.srcDirs += 'src/modern/res'
+        }
+    }
+
+    // Imza: guncellemelerin mevcut kurulumlarin uzerine sorunsuz kurulabilmesi icin
+    // (ayni sertifika) keystore yolu SABIT tutulur. Bazi ortamlarda user.home gecici
+    // bir dizine yonlendirilebiliyor; bu durumda Gradle yeni bir debug anahtari
+    // uretiyor ve "INSTALL_FAILED_INCONSISTENT_CERTIFICATES" hatasi cikiyor.
+    def stableDebugKeystore = new File(
+            System.getenv('USERPROFILE') ?: System.getProperty('user.home'),
+            '.android/debug.keystore')
+    signingConfigs {
+        if (stableDebugKeystore.exists()) {
+            debug {
+                storeFile stableDebugKeystore
+            }
         }
     }
 

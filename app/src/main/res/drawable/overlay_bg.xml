@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Oynatici alt bilgi/kontrol cubugu: yazilarin okunmasi icin guclu koyu gecis -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <gradient android:angle="90" android:startColor="#F0000000" android:endColor="#00000000" />
+    <gradient
+        android:angle="90"
+        android:startColor="#FC05070A"
+        android:centerColor="#E005070A"
+        android:endColor="#0005070A" />
 </shape>

@@ -28,7 +28,22 @@ public final class PlayerFactory {
         // EAC-3/AC-3/DTS sesleri cihazin MediaCodec donanim cozucusu icinde
         // (Amlogic vb. kutularda genelde var) cozulur. Cozemiyorsa hata
         // dialog'u harici oynaticiya yonlendirir.
-        DefaultRenderersFactory rf = new DefaultRenderersFactory(c)
+        DefaultRenderersFactory rf = new DefaultRenderersFactory(c) {
+            @Override
+            protected void buildVideoRenderers(android.content.Context context,
+                                               int extensionRendererMode,
+                                               com.google.android.exoplayer2.mediacodec.MediaCodecSelector mediaCodecSelector,
+                                               boolean enableDecoderFallback,
+                                               android.os.Handler eventHandler,
+                                               com.google.android.exoplayer2.video.VideoRendererEventListener eventListener,
+                                               long allowedVideoJoiningTimeMs,
+                                               java.util.ArrayList<com.google.android.exoplayer2.Renderer> out) {
+                // Android 4.2: codec flush = yeniden kurulum oldugu icin keyframe'e atlamayi
+                // kapatan ozel renderer kullanilir (bkz. MaraVideoRenderer).
+                out.add(new MaraVideoRenderer(context, mediaCodecSelector, allowedVideoJoiningTimeMs,
+                        enableDecoderFallback, eventHandler, eventListener, 10));
+            }
+        }
                 .setEnableDecoderFallback(true)
                 .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
 
@@ -100,9 +115,10 @@ public final class PlayerFactory {
                     .setAllowChunklessPreparation(true)
                     .createMediaSource(item);
         }
+        // NOT: TS bayraklari (FLAG_DETECT_ACCESS_UNITS / FLAG_ALLOW_NON_IDR_KEYFRAMES)
+        // Android 4.2'de kareleri birden fazla ornege boluyor ve donmaya yol
+        // aciyor; bu surumde varsayilan ayristirici kullanilir.
         DefaultExtractorsFactory ef = new DefaultExtractorsFactory()
-                .setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES
-                        | DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS)
                 .setConstantBitrateSeekingEnabled(true);
         return new ProgressiveMediaSource.Factory(ds, ef).createMediaSource(item);
     }

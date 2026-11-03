@@ -10,6 +10,7 @@ import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.RenderersFactory;
 import androidx.media3.exoplayer.dash.DashMediaSource;
 import androidx.media3.exoplayer.hls.HlsMediaSource;
 import androidx.media3.exoplayer.source.MediaSource;
@@ -33,23 +34,19 @@ public final class PlayerFactory {
     }
 
     public static ExoPlayer create(Context c, boolean live) {
-        // Canli TV: FFmpeg extension'u KAPALI (donanım MediaCodec) -> donma
-        // engellenir. VOD (film/dizi): AC-3/EAC-3/DTS/TrueHD donanım MediaCodec'ta
-        // cozulmedigi icin FFmpeg yazılım decoder'i aktif -> ses gelir.
-        // (Media3 1.5.0'ta EXTENSION_RENDERER_MODE_FALLBACK sabiti yok; ON/OFF)
-        int mode = live
-                ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-                : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
-        DefaultRenderersFactory rf = new DefaultRenderersFactory(c)
+        // Canli TV: FFmpeg tamamen KAPALI (donanim MediaCodec) -> donma olmaz.
+        // VOD (film/dizi): asagidaki FfmpegAudioSupport, AC-3/E-AC-3/DTS/TrueHD
+        // sesleri FFmpeg yazilim decoder'ina, digerlerini donanima yonlendirir.
+        //
+        // ONEMLI: EXTENSION_RENDERER_MODE_ON kullanmiyoruz. ON modunda FFmpeg
+        // renderer'i MediaCodec'ten SONRA eklenir, ExoPlayer once donanimi secer.
+        // Bazi Amlogic kutularda OMX.google.eac3.decoder "destekliyor" gorunup
+        // sessiz PCM uretir (goruntu oynar, ses gelmez, hata da olusmaz).
+        DefaultRenderersFactory base = new DefaultRenderersFactory(c)
                 .setEnableDecoderFallback(true)
-                .setExtensionRendererMode(mode);
+                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
 
-        // VOD: Jellyfin FFmpeg audio renderer'ini manuel bagla (EAC-3/AC-3/DTS/TrueHD/MP2).
-        // Media3 otomatik kesfi jellyfin fork'u class adlarini tanimadigi icin sessizce
-        // bos doner; probe saf reflection ile dener, build'i bozmaz, teshis loglar.
-        if (!live) {
-            FfmpegAudioProbe.attach(rf, c);
-        }
+        RenderersFactory rf = live ? base : FfmpegAudioSupport.wrap(base, c);
 
         ExoPlayer.Builder builder = new ExoPlayer.Builder(c, rf);
 
@@ -97,8 +94,8 @@ public final class PlayerFactory {
             int cap = (Prefs.buffer().equals("fhd") || Prefs.buffer().equals("high")) ? 45000 : 30000;
             max = Math.min(max, cap);
             min = Math.min(min, max);
-            start = Math.min(start, 1000);
-            rebuffer = Math.min(rebuffer, 2500);
+            start = Math.max(1500, Math.min(start, 2500));
+            rebuffer = Math.max(4000, Math.min(rebuffer, 6000));
         } else {
             // VOD (film/dizi): canli TV'deki sinirlar gecerli degil;
             // donarak oynatma sorunu icin minimum tamponu asgari 20sn tut,
@@ -110,6 +107,14 @@ public final class PlayerFactory {
         return new int[]{min, max, start, rebuffer};
     }
 
+    /** Canli HLS: varsayilan 3 sn'lik canli kenar boslugu IPTV listelerinde
+     *  sik sik yeniden tamponlamaya yol aciyor; biraz geriden takip etmek
+     *  (4.5 sn) oynatmayi belirgin sekilde stabil tutuyor. */
+    private static final MediaItem.LiveConfiguration LIVE =
+            new MediaItem.LiveConfiguration.Builder()
+                    .setTargetOffsetMs(4500)
+                    .build();
+
     public static MediaSource source(Context c, String url) {
         DefaultHttpDataSource.Factory http = new DefaultHttpDataSource.Factory()
                 .setUserAgent(Http.userAgent())
@@ -117,7 +122,10 @@ public final class PlayerFactory {
                 .setConnectTimeoutMs(15000)
                 .setReadTimeoutMs(20000);
         DefaultDataSource.Factory ds = new DefaultDataSource.Factory(c, http);
-        MediaItem item = MediaItem.fromUri(url);
+        MediaItem item = new MediaItem.Builder()
+                .setUri(url)
+                .setLiveConfiguration(LIVE)
+                .build();
         String lower = url.toLowerCase();
         int q = lower.indexOf('?');
         String path = q > 0 ? lower.substring(0, q) : lower;

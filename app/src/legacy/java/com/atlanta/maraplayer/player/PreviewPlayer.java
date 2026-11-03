@@ -34,11 +34,35 @@ public class PreviewPlayer {
         });
     }
 
+    /** Onizlemenin su anki konumu (ms). Tam ekrana gecerken kaldigi yerden devam etmek icin. */
+    public long getPosition() {
+        return player != null ? player.getCurrentPosition() : 0;
+    }
+
+    /** Toplam sure (ms). Canli yayinda genellikle C.TIME_UNSET (negatif) doner. */
+    public long getDuration() {
+        return player != null ? player.getDuration() : 0;
+    }
+
+    /** Yayin ileri/geri sarilabiliyor mu? */
+    public boolean isSeekable() {
+        return player != null && player.isCurrentMediaItemSeekable();
+    }
+
     public void play(Context c, String url) {
         if (player == null) return;
         player.setMediaSource(PlayerFactory.source(c, url));
         player.setPlayWhenReady(true);
         player.prepare();
+    }
+
+    /**
+     * [Android 4.2] Oynatici devri yok: onizleme kapatilir ve tam ekran sifirdan
+     * baslar. false doner.
+     */
+    public boolean detachForFullscreen(String channelId) {
+        release();
+        return false;
     }
 
     public void release() {

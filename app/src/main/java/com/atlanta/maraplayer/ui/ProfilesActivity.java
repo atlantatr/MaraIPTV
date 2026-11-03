@@ -32,10 +32,20 @@ import java.util.List;
 public class ProfilesActivity extends BaseActivity implements AppEvents.Listener {
 
     public static final String EXTRA_MANUAL = "manual";
+    /** Giristen sonra Spor Rehberi acilsin (mac hatirlatmasindan gelindi). */
+    /** Giristen sonra Spor Rehberi acilsin (mac hatirlatmasindan gelindi). */
+    public static final String EXTRA_OPEN_SPORTS = "open_sports";
+    /** Giristen sonra bu IPTV kanali acilsin (hatirlatmadaki "Kanalı aç"). */
+    public static final String EXTRA_PLAY_CHANNEL_ID = "play_channel_id";
+    public static final String EXTRA_PLAY_CHANNEL_NAME = "play_channel_name";
 
     private Adapters.RowAdapter adapter;
     private ListView list;
     private boolean loggingIn;
+    /** Ekran kendiliginden mi acildi (kullanici profillere elle gelmedi) */
+    private boolean autoLogin;
+    private int autoTries;
+    private final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
 
     @Override
     protected boolean needsSession() {
@@ -83,18 +93,31 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
         });
 
         // Otomatik giris: kullanici manuel gelmediyse ve oturum henuz yoksa
-        boolean manual = getIntent().getBooleanExtra(EXTRA_MANUAL, false);
-        if (!manual && !Repo.hasSession()) {
-            List<Profile> all = Db.get().profiles();
-            Profile p = null;
-            if (all.size() == 1) {
-                // Tek hesap varsa secim yapmadan dogrudan ac
-                p = all.get(0);
-            } else if (Prefs.autoLogin() && Prefs.lastProfile() > 0) {
-                p = Db.get().profile(Prefs.lastProfile());
-            }
-            if (p != null) fastLogin(p);
+        autoLogin = !getIntent().getBooleanExtra(EXTRA_MANUAL, false);
+        if (autoLogin && !Repo.hasSession()) {
+            // liste dolduktan sonra tek deneme (reload -> onResume)
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    tryAutoLogin();
+                }
+            }, 150);
         }
+    }
+
+    /** Tek kayitli hesap (veya son kullanilan) varsa kendiliginden giris yap. */
+    private void tryAutoLogin() {
+        if (!autoLogin || loggingIn || Repo.hasSession() || isFinishing()) return;
+        if (autoTries >= 3) return;
+        List<Profile> all = Db.get().profiles();
+        Profile p = null;
+        if (all.size() == 1) {
+            // Tek hesap varsa secim yapmadan dogrudan ac
+            p = all.get(0);
+        } else if (Prefs.autoLogin() && Prefs.lastProfile() > 0) {
+            p = Db.get().profile(Prefs.lastProfile());
+        }
+        if (p != null) fastLogin(p, true);
     }
 
     @Override
@@ -109,6 +132,14 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
         reload();
         AppEvents.register(this);
         // web panelden bu ekran kapaliyken eklenen hesap varsa ac
+        if (autoLogin && !Repo.hasSession() && !loggingIn && autoTries < 3) {
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    tryAutoLogin();
+                }
+            }, 400);
+        }
         long pending = AppEvents.takePending();
         if (pending > 0) {
             Profile p = Db.get().profile(pending);
@@ -148,15 +179,16 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
     }
 
     /** Otomatik giris: sunucu yavarsa beklemeden ekran acilir, hata bildirir */
-    private void fastLogin(final Profile p) {
+    private void fastLogin(final Profile p, final boolean auto) {
         if (loggingIn) return;
         loggingIn = true;
         final Source src = Sources.create(p);
         final ProgressDialog pd = Ui.progress(this, getString(R.string.connecting_x, p.name));
+        final boolean full = auto && autoTries > 0; // 2. denemede tam giris (daha toleransli)
         Async.run(this, new Async.Task<Account>() {
             @Override
             public Account run() throws Exception {
-                return src.loginFast();
+                return full ? src.login() : src.loginFast();
             }
         }, new Async.Callback<Account>() {
             @Override
@@ -167,7 +199,14 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
                 Repo.setSession(p, acc, src);
                 Db.get().touchProfile(p.id);
                 Prefs.setLastProfile(p.id);
-                Intent i = new Intent(ProfilesActivity.this, HomeActivity.class);
+                String playId = getIntent().getStringExtra(EXTRA_PLAY_CHANNEL_ID);
+                if (playId != null && !playId.isEmpty()) {
+                    PendingPlay.set(p.id, playId,
+                            getIntent().getStringExtra(EXTRA_PLAY_CHANNEL_NAME), "");
+                }
+                Intent i = new Intent(ProfilesActivity.this,
+                        !BuildConfig.LITE && getIntent().getBooleanExtra(EXTRA_OPEN_SPORTS, false)
+                                ? SportsActivity.class : HomeActivity.class);
                 i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(i);
                 finish();
@@ -178,6 +217,17 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
                 if (isFinishing() || isDestroyed()) { loggingIn = false; return; }
                 Ui.dismiss(pd);
                 loggingIn = false;
+                // Kendiliginden giris: ag dalgalanmasina karsi sessizce tekrar dene.
+                if (auto && autoTries < 2) {
+                    autoTries++;
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!Repo.hasSession()) fastLogin(p, true);
+                        }
+                    }, 1200L + autoTries * 800L);
+                    return;
+                }
                 reload();
                 Ui.toast(ProfilesActivity.this, getString(R.string.connection_failed) + ": " + Ui.err(e));
             }
@@ -207,6 +257,14 @@ public class ProfilesActivity extends BaseActivity implements AppEvents.Listener
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_MENU && list.hasFocus() && list.getSelectedItemPosition() >= 0) {
             options((Profile) adapter.getItem(list.getSelectedItemPosition()).tag);
+            return true;
+        }
+        // Profiller tek gorev (singleTask) olarak acildigi icin ana ekrandan
+        // gelindiginde gorev koku olur; finish() uygulamayi kapatmasin.
+        if (keyCode == KeyEvent.KEYCODE_BACK && isTaskRoot() && Repo.hasSession()) {
+            startActivity(new Intent(this, HomeActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+            finish();
             return true;
         }
         return super.onKeyDown(keyCode, event);

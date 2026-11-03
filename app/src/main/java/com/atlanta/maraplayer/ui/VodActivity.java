@@ -195,7 +195,7 @@ public class VodActivity extends BaseActivity {
         Async.run(this, new Async.Task<List<Item>>() {
             @Override
             public List<Item> run() throws Exception {
-                if (c.id.equals(Category.FAV)) return Db.get().favorites(Repo.pid(), type);
+                if (c.id.equals(Category.FAV)) return Repo.filterKids(type, Db.get().favorites(Repo.pid(), type));
                 if (c.id.equals(Category.ALL)) return Repo.allUnlocked(type);
                 return Repo.items(type, c.id);
             }

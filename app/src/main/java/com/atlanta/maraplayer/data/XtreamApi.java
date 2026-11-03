@@ -120,7 +120,7 @@ public class XtreamApi implements Source {
         JsonReader r = new JsonReader(new InputStreamReader(in, "UTF-8"));
         r.setLenient(true);
         try {
-            if (r.peek() != JsonToken.BEGIN_OBJECT) throw new IOException("Gecersiz sunucu yaniti");
+            if (r.peek() != JsonToken.BEGIN_OBJECT) throw new IOException("Geçersiz sunucu yanıtı");
             Account a = new Account();
             boolean auth = false;
             r.beginObject();
@@ -147,7 +147,7 @@ public class XtreamApi implements Source {
                 }
             }
             r.endObject();
-            if (!auth) throw new IOException("Oturum acilamadi: yetkisiz hesap");
+            if (!auth) throw new IOException("Oturum açılamadı: yetkisiz hesap");
             return a;
         } finally {
             try {
@@ -162,7 +162,7 @@ public class XtreamApi implements Source {
         return readUrl(api(null, null), new ObjReader<Account>() {
             @Override
             public Account read(JsonReader r) throws IOException {
-                if (r.peek() != JsonToken.BEGIN_OBJECT) throw new IOException("Gecersiz sunucu yaniti");
+                if (r.peek() != JsonToken.BEGIN_OBJECT) throw new IOException("Geçersiz sunucu yanıtı");
                 Account a = new Account();
                 boolean auth = false;
                 r.beginObject();
@@ -199,7 +199,7 @@ public class XtreamApi implements Source {
                     }
                 }
                 r.endObject();
-                if (!auth) throw new IOException("Kullanici adi veya sifre hatali");
+                if (!auth) throw new IOException("Kullanıcı adı veya şifre hatalı");
                 return a;
             }
         });
@@ -594,7 +594,7 @@ public class XtreamApi implements Source {
         try {
             return reader.read(r);
         } catch (IllegalStateException e) {
-            throw new IOException("Sunucu yaniti okunamadi", e);
+            throw new IOException("Sunucu yanıtı okunamadı", e);
         } finally {
             try {
                 r.close();

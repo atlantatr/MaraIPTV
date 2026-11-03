@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- [Android 5.0 / 7.0] Ayarlar: kart gorunumlu modern duzen -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference
+        android:key="header"
+        android:layout="@layout/m_pref_header"
+        android:persistent="false"
+        android:selectable="false"
+        android:summary="@string/m_settings_sub"
+        android:title="@string/settings" />
+
+    <PreferenceCategory
+        android:layout="@layout/m_pref_category"
+        android:title="@string/pref_cat_general">
+
+        <ListPreference
+            android:defaultValue="tr"
+            android:entries="@array/lang_names"
+            android:entryValues="@array/lang_values"
+            android:key="lang"
+            android:layout="@layout/m_pref_row"
+            android:summary="%s"
+            android:title="@string/pref_language" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/m_pref_category"
+        android:title="@string/pref_cat_player">
+
+        <ListPreference
+            android:defaultValue="exo"
+            android:entries="@array/engine_names"
+            android:entryValues="@array/engine_values"
+            android:key="engine"
+            android:layout="@layout/m_pref_row"
+            android:summary="%s"
+            android:title="@string/pref_engine" />
+        <ListPreference
+            android:defaultValue="ts"
+            android:entries="@array/format_names"
+            android:entryValues="@array/format_values"
+            android:key="live_format"
+            android:layout="@layout/m_pref_row"
+            android:summary="%s"
+            android:title="@string/pref_live_format" />
+        <ListPreference
+            android:defaultValue="normal"
+            android:entries="@array/buffer_names"
+            android:entryValues="@array/buffer_values"
+            android:key="buffer"
+            android:layout="@layout/m_pref_row"
+            android:summary="%s"
+            android:title="@string/pref_buffer" />
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/aspect_names"
+            android:entryValues="@array/aspect_values"
+            android:key="aspect"
+            android:layout="@layout/m_pref_row"
+            android:summary="%s"
+            android:title="@string/pref_aspect" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="preview"
+            android:layout="@layout/m_pref_check"
+            android:summary="@string/pref_preview_sum"
+            android:title="@string/pref_preview" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="auto_next"
+            android:layout="@layout/m_pref_check"
+            android:summary="@string/pref_auto_next_sum"
+            android:title="@string/pref_auto_next" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/m_pref_category"
+        android:title="@string/pref_cat_epg">
+
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/offset_names"
+            android:entryValues="@array/offset_values"
+            android:key="epg_offset"
+            android:layout="@layout/m_pref_row"
+            android:summary="%s"
+            android:title="@string/pref_epg_offset" />
+        <ListPreference
+            android:defaultValue="auto"
+            android:entries="@array/epg_source_names"
+            android:entryValues="@array/epg_source_values"
+            android:key="epg_source"
+            android:layout="@layout/m_pref_row"
+            android:summary="%s"
+            android:title="@string/pref_epg_source" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="xmltv_auto"
+            android:layout="@layout/m_pref_check"
+            android:summary="@string/pref_xmltv_auto_sum"
+            android:title="@string/pref_xmltv_auto" />
+        <Preference
+            android:key="xmltv_now"
+            android:layout="@layout/m_pref_row"
+            android:summary="@string/pref_xmltv_now_sum"
+            android:title="@string/pref_xmltv_now" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/m_pref_category"
+        android:title="@string/pref_cat_rec_web">
+
+        <ListPreference
+            android:defaultValue="auto"
+            android:entries="@array/rec_storage_names"
+            android:entryValues="@array/rec_storage_values"
+            android:key="rec_storage"
+            android:layout="@layout/m_pref_row"
+            android:summary="%s"
+            android:title="@string/pref_rec_storage" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="web_panel"
+            android:layout="@layout/m_pref_check"
+            android:summary="@string/pref_web_panel_sum"
+            android:title="@string/pref_web_panel" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pip_home"
+            android:layout="@layout/m_pref_check"
+            android:summary="@string/pref_pip_sum"
+            android:title="@string/pref_pip" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/m_pref_category"
+        android:title="@string/pref_cat_parental">
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="kids_mode"
+            android:layout="@layout/m_pref_check"
+            android:summary="@string/pref_kids_sum"
+            android:title="@string/pref_kids" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="parental"
+            android:layout="@layout/m_pref_check"
+            android:summary="@string/pref_parental_sum"
+            android:title="@string/pref_parental" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="adult_autolock"
+            android:layout="@layout/m_pref_check"
+            android:summary="@string/pref_adult_sum"
+            android:title="@string/pref_adult" />
+        <Preference
+            android:key="pin_change"
+            android:layout="@layout/m_pref_row"
+            android:summary="@string/pref_pin_change_sum"
+            android:title="@string/pref_pin_change" />
+        <Preference
+            android:key="clear_locks"
+            android:layout="@layout/m_pref_row"
+            android:summary="@string/pref_clear_locks_sum"
+            android:title="@string/pref_clear_locks" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/m_pref_category"
+        android:title="@string/pref_cat_connection">
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="auto_login"
+            android:layout="@layout/m_pref_check"
+            android:summary="@string/pref_auto_login_sum"
+            android:title="@string/pref_auto_login" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="trust_all"
+            android:layout="@layout/m_pref_check"
+            android:summary="@string/pref_trust_all_sum"
+            android:title="@string/pref_trust_all" />
+        <ListPreference
+            android:defaultValue="default"
+            android:entries="@array/ua_names"
+            android:entryValues="@array/ua_values"
+            android:key="user_agent"
+            android:layout="@layout/m_pref_row"
+            android:summary="%s"
+            android:title="@string/pref_user_agent" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/m_pref_category"
+        android:title="@string/pref_cat_update">
+
+        <Preference
+            android:key="update_check"
+            android:layout="@layout/m_pref_row"
+            android:summary="@string/pref_update_check_sum"
+            android:title="@string/pref_update_check" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/m_pref_category"
+        android:title="@string/pref_cat_backup">
+
+        <Preference
+            android:key="backup_now"
+            android:layout="@layout/m_pref_row"
+            android:summary="@string/pref_backup_now_sum"
+            android:title="@string/pref_backup_now" />
+        <Preference
+            android:key="backup_restore"
+            android:layout="@layout/m_pref_row"
+            android:summary="@string/pref_backup_restore_sum"
+            android:title="@string/pref_backup_restore" />
+        <Preference
+            android:key="backup_web"
+            android:layout="@layout/m_pref_row"
+            android:summary="@string/pref_backup_web_sum"
+            android:title="@string/pref_backup_web" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/m_pref_category"
+        android:title="@string/pref_cat_other">
+
+        <Preference
+            android:key="clear_cache"
+            android:layout="@layout/m_pref_row"
+            android:summary="@string/pref_clear_cache_sum"
+            android:title="@string/pref_clear_cache" />
+        <Preference
+            android:key="about"
+            android:layout="@layout/m_pref_row"
+            android:title="@string/pref_about" />
+    </PreferenceCategory>
+</PreferenceScreen>

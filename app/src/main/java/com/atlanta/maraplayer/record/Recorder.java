@@ -11,11 +11,14 @@ import com.atlanta.maraplayer.data.Db;
 import com.atlanta.maraplayer.data.Prefs;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,7 +31,9 @@ public final class Recorder {
     /** Devam eden kayit bilgisi */
     public static class Active {
         public long id;
+        public String streamId; // kanal kimligi (oynatmayla eslestirmek icin)
         public String title;
+        public String url;
         public File file;
         public long startedAt;
         public long stopAt; // ms, 0 = elle durdurulana kadar
@@ -48,11 +53,42 @@ public final class Recorder {
         return false;
     }
 
+    /**
+     * Kanal su an kaydediliyorsa yerel aktarim adresi (tek baglanti),
+     * yoksa null. Oynatici/onizleme bu adresi kullanarak ikinci baglanti
+     * acmaz; saglayicinin baglanti siniri asilmaz.
+     */
+    public static String relayUrl(String streamId) {
+        if (streamId == null || streamId.isEmpty() || !LocalRelay.isRunning()) return null;
+        for (Active a : ACTIVE.values()) {
+            if (streamId.equals(a.streamId) && a.file != null) {
+                if (a.url != null && a.url.toLowerCase(Locale.US).contains(".m3u8")) return null;
+                return LocalRelay.url(a.id);
+            }
+        }
+        return null;
+    }
+
+    /** Bu kanal icin kayit suren bir is var mi (HLS dahil). */
+    public static boolean isRecordingStream(String streamId) {
+        if (streamId == null) return false;
+        for (Active a : ACTIVE.values()) if (streamId.equals(a.streamId)) return true;
+        return false;
+    }
+
+    /** Bu kanal icin suren kaydin kimligi, yoksa -1. */
+    public static long activeId(String streamId) {
+        if (streamId == null) return -1;
+        for (Active a : ACTIVE.values()) if (streamId.equals(a.streamId)) return a.id;
+        return -1;
+    }
+
     // ------------------------------------------------------------ Baslat / durdur
 
     /** @param minutes 0 = elle durdurulana kadar */
-    public static void start(Context c, String url, String title, int minutes) {
+    public static void start(Context c, String streamId, String url, String title, int minutes) {
         Intent i = new Intent(c, RecordingService.class).setAction(RecordingService.ACTION_START)
+                .putExtra("streamId", streamId)
                 .putExtra("url", url).putExtra("title", title)
                 .putExtra("stopAt", minutes > 0 ? System.currentTimeMillis() + minutes * 60000L : 0L);
         startService(c, i);
@@ -68,7 +104,7 @@ public final class Recorder {
         else c.startService(i);
     }
 
-    // ------------------------------------------------------------ Zamanli kayit
+    // ------------------------------------------------------------ Zamanlı kayıt
 
     public static void schedule(Context c, Db.Scheduled s) {
         Db.get().addSchedule(s);
@@ -168,5 +204,58 @@ public final class Recorder {
     public static String size(long bytes) {
         if (bytes > 1024L * 1024 * 1024) return String.format(java.util.Locale.US, "%.2f GB", bytes / 1073741824.0);
         return String.format(java.util.Locale.US, "%.1f MB", bytes / 1048576.0);
+    }
+
+    // ------------------------------------------------------------ Kayit meta
+
+    /** Kayit dosyasinin yaniina yazilan ".meta" dosyasi. */
+    public static File metaFile(File ts) {
+        return new File(ts.getParentFile(), ts.getName() + ".meta");
+    }
+
+    /** Kayit suresini (ms) meta'ya yazar; kayit biterken cagrilir. */
+    public static void writeMeta(File ts, long startMs, long durationMs) {
+        try {
+            FileOutputStream fos = new FileOutputStream(metaFile(ts));
+            try {
+                fos.write(String.valueOf(Math.max(0, durationMs)).getBytes("UTF-8"));
+            } finally {
+                fos.close();
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    /** Kaydin girilen suresi (ms); meta yoksa 0. */
+    public static long durationMs(File ts) {
+        File m = metaFile(ts);
+        if (!m.exists()) return 0;
+        try {
+            FileInputStream in = new FileInputStream(m);
+            try {
+                java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                byte[] buf = new byte[1024];
+                int n;
+                while ((n = in.read(buf)) > 0) bos.write(buf, 0, n);
+                return Long.parseLong(new String(bos.toByteArray(), "UTF-8").trim());
+            } finally {
+                in.close();
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    /** Kayitla birlikte silinir (meta + ts). */
+    public static void deleteRecording(File ts) {
+        //noinspection ResultOfMethodCallIgnored
+        ts.delete();
+        //noinspection ResultOfMethodCallIgnored
+        metaFile(ts).delete();
+    }
+
+    /** Depolamada kalan bos alan "kayit icin yeterli" mi. */
+    public static boolean lowSpace(Context c) {
+        return targetDir(c).getUsableSpace() < 300L * 1024 * 1024;
     }
 }

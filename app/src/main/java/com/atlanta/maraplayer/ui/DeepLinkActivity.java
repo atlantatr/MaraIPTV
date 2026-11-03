@@ -18,7 +18,7 @@ import com.atlanta.maraplayer.util.Async;
 import com.atlanta.maraplayer.util.Ui;
 
 /**
- * mara://play?... baglantilarini acar (Android TV ana ekran "Izlemeye devam" / oneri kartlari).
+ * mara://play?... baglantilarini acar (Android TV ana ekran "İzlemeye devam" / oneri kartlari).
  * Oturum yoksa once ilgili profile sessizce baglanir.
  */
 public class DeepLinkActivity extends Activity {
@@ -78,7 +78,7 @@ public class DeepLinkActivity extends Activity {
         }, new Async.Callback<Exception>() {
             @Override
             public void on(Exception e) {
-                Ui.toast(DeepLinkActivity.this, "Baglanti basarisiz: " + Ui.err(e));
+                Ui.toast(DeepLinkActivity.this, "Bağlantı başarısız: " + Ui.err(e));
                 startActivity(new Intent(DeepLinkActivity.this, ProfilesActivity.class));
                 finish();
             }

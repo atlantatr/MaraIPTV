@@ -25,6 +25,7 @@ public abstract class BaseActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        com.atlanta.maraplayer.util.KeyGuard.reset();
         if (needsSession() && !Repo.hasSession()) {
             sessionLost = true;
             Intent i = new Intent(this, ProfilesActivity.class);
@@ -39,6 +40,33 @@ public abstract class BaseActivity extends Activity {
     protected void onDestroy() {
         com.atlanta.maraplayer.util.Ui.dismissAllDialogs();
         super.onDestroy();
+    }
+
+    /**
+     * Kumanda tus tekrari korumasi: ayni OK/yon/geri tusunun 120 ms icindeki
+     * ikinci basimi yutulur; basili tutma (tekrar) etkilenmez.
+     */
+    @Override
+    public boolean dispatchKeyEvent(android.view.KeyEvent event) {
+        if (com.atlanta.maraplayer.util.KeyGuard.swallow(event)) return true;
+        return super.dispatchKeyEvent(event);
+    }
+
+    /**
+     * Alt ekranlar gorev koku kalmissa (ornegin ana ekran bellekten dusuruldugunde
+     * spor rehberi dogrudan acildiysa) EXIT'e basinca uygulamadan atilmak yerine
+     * ana ekrana don.
+     */
+    @Override
+    public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
+        if (keyCode == android.view.KeyEvent.KEYCODE_BACK && isTaskRoot()
+                && needsSession() && Repo.hasSession()) {
+            startActivity(new Intent(this, HomeActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+            finish();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @SuppressWarnings("unchecked")

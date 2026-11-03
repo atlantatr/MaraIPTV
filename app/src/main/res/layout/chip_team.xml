@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- [Android 4.2] Takimlarim karti: logo + takim + lig. OK ile takipten cikarir. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="58dp"
+    android:layout_marginRight="8dp"
+    android:background="@drawable/chip_bg"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minWidth="154dp"
+    android:orientation="horizontal"
+    android:paddingLeft="10dp"
+    android:paddingRight="16dp">
+
+    <ImageView
+        android:id="@+id/chipLogo"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:layout_marginRight="9dp"
+        android:scaleType="fitCenter" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/chipName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxWidth="150dp"
+            android:singleLine="true"
+            android:textColor="@color/text"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/chipSub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxWidth="150dp"
+            android:singleLine="true"
+            android:textColor="@color/text2"
+            android:textSize="11sp" />
+    </LinearLayout>
+</LinearLayout>

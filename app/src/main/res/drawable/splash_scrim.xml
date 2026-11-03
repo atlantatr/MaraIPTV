@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Marka gorselinin uzerine koyu gecis: solda seffaf, sagda koyu -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="0"
+        android:startColor="#B30B0D12"
+        android:centerColor="#990B0D12"
+        android:endColor="#F20B0D12" />
+</shape>

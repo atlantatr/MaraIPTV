@@ -8,6 +8,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.atlanta.maraplayer.BuildConfig;
 import com.atlanta.maraplayer.R;
 import com.atlanta.maraplayer.data.Models;
 import com.atlanta.maraplayer.data.Models.Epg;
@@ -40,9 +41,9 @@ public class EpgActivity extends BaseActivity {
         setContentView(R.layout.activity_list);
         channel = getItem(getIntent());
         channel.type = Models.LIVE;
-        ((TextView) v(R.id.title)).setText("Yayin Akisi: " + channel.name);
+        ((TextView) v(R.id.title)).setText("Yayın Akışı: " + channel.name);
         ((TextView) v(R.id.hint)).setText(channel.archive
-                ? "'Geri izle' yazan programlar acilabilir (" + channel.archiveDays + " gun arsiv)"
+                ? "'Geri izle' yazan programlar açılabilir (" + channel.archiveDays + " gün arşiv)"
                 : "Bu kanalda geri izleme yok");
         list = v(R.id.list);
         detail = v(R.id.detail);
@@ -91,7 +92,7 @@ public class EpgActivity extends BaseActivity {
             public void on(Exception e) {
                 v(R.id.loading).setVisibility(View.GONE);
                 TextView m = v(R.id.msg);
-                m.setText("Yayin akisi alinamadi: " + Ui.err(e));
+                m.setText("Yayın akışı alınamadı: " + Ui.err(e));
                 m.setVisibility(View.VISIBLE);
             }
         });
@@ -100,7 +101,7 @@ public class EpgActivity extends BaseActivity {
     private void show(List<Epg> l) {
         if (l.isEmpty()) {
             TextView m = v(R.id.msg);
-            m.setText("Bu kanal icin yayin akisi yok.");
+            m.setText("Bu kanal için yayın akışı yok.");
             m.setVisibility(View.VISIBLE);
             return;
         }
@@ -123,7 +124,7 @@ public class EpgActivity extends BaseActivity {
             } else if (e.stop <= now && canCatchup(e, archiveFrom)) {
                 r.right = "Geri izle";
             } else if (e.start > now) {
-                r.right = "OK: Kaydet";
+                r.right = BuildConfig.LITE ? "Yakında" : "OK: Kaydet";
             }
             r.sub = prefix.isEmpty() ? null : prefix.trim();
             r.tag = e;
@@ -149,9 +150,25 @@ public class EpgActivity extends BaseActivity {
     private void click(final Epg e) {
         long off = Prefs.epgOffsetSec();
         long now = System.currentTimeMillis() / 1000L - off;
+        if (BuildConfig.LITE) {
+            // Lite surumde kayit ve hatirlatma yok: yalnizca izleme.
+            if (e.isNow(now)) {
+                List<Item> one = Collections.singletonList(channel);
+                Play.playLive(EpgActivity.this, new ArrayList<>(one), 0);
+            } else if (e.stop <= now) {
+                if (canCatchup(e, now - Math.max(1, channel.archiveDays) * 86400L)) {
+                    Play.playCatchup(this, channel, e);
+                } else {
+                    Ui.toast(this, "Bu program için geri izleme yok");
+                }
+            } else {
+                Ui.toast(this, "Bu sürümde kayıt ve hatırlatma yok");
+            }
+            return;
+        }
         if (e.isNow(now)) {
-            Ui.choose(this, e.title, new String[]{"Canli izle", "Kaydet (program sonuna kadar)",
-                    Prefs.hasReminder(Repo.pid(), channel.id, e.start) ? "Hatirlatmayi kaldir" : "Hatirlat"}, -1, new Ui.Choice() {
+            Ui.choose(this, e.title, new String[]{"Canlı izle", "Kaydet (program sonuna kadar)",
+                    Prefs.hasReminder(Repo.pid(), channel.id, e.start) ? "Hatırlatmayı kaldır" : "Hatırlat"}, -1, new Ui.Choice() {
                 @Override
                 public void on(int which) {
                     if (which == 0) {
@@ -168,7 +185,7 @@ public class EpgActivity extends BaseActivity {
             if (canCatchup(e, now - Math.max(1, channel.archiveDays) * 86400L)) {
                 Play.playCatchup(this, channel, e);
             } else {
-                Ui.toast(this, "Bu program icin geri izleme yok");
+                Ui.toast(this, "Bu program için geri izleme yok");
             }
         } else {
             // ileri tarihli program -> zamanli kayit

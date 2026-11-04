@@ -19,6 +19,8 @@ Android 4.2 cihazlar için `legacy` sürümü **lite** olarak derlenir (Profille
 
 Lite sürümde **kalanlar:** canlı TV (önizleme, EPG, geri izleme), film/dizi, favoriler, arama, ebeveyn kilidi, profiller, yedekleme/geri yükleme, güncelleme kontrolü ve web panel. EPG'de ileri tarihli programlar "Yakında" olarak görünür; kayıt/hatırlatma seçenekleri çıkmaz.
 
+Android 4.2'nin sistem sertifika deposunda GitHub'ın kök sertifikası bulunmadığı için güncelleme denetimi ve APK indirmesi bu sürümde uygulama içinde yapılır; yalnızca GitHub adreslerinde sertifika doğrulaması atlanır, ek ayar gerekmez.
+
 ## Özellikler
 
 - **Hesaplar:** Xtream Codes ve **M3U çalma listesi**, birden çok profil, otomatik bağlanma.

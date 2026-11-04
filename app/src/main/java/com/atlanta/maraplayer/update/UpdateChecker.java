@@ -2,16 +2,25 @@ package com.atlanta.maraplayer.update;
 
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
 
 import com.atlanta.maraplayer.BuildConfig;
 import com.atlanta.maraplayer.data.Prefs;
 import com.atlanta.maraplayer.net.Http;
+import com.atlanta.maraplayer.util.Ui;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,6 +64,15 @@ public final class UpdateChecker {
         } catch (Http.HttpException e) {
             if (e.code == 404) return null; // hic release yayınlanmamis
             throw e;
+        } catch (Exception e) {
+            // Android 4.2: sistem kok deposunda GitHub sertifikasi yok.
+            // Lite surumde yalnizca bu istek icin dogrulamayi atlayip yeniden dene.
+            // Cevrimdisi hatalarda (DNS/baglanti/zaman asimi) tekrar denenmez.
+            boolean offline = e instanceof java.net.UnknownHostException
+                    || e instanceof java.net.ConnectException
+                    || e instanceof java.net.SocketTimeoutException;
+            if (!BuildConfig.LITE || offline) throw e;
+            json = Http.getStringTrustAll(API);
         }
         JSONObject o = new JSONObject(json);
         Release r = new Release();
@@ -123,6 +141,10 @@ public final class UpdateChecker {
      * ekranini acar.
      */
     public static void download(Context c, Release r) {
+        if (BuildConfig.LITE) {
+            downloadInApp(c, r);
+            return;
+        }
         DownloadManager dm = (DownloadManager) c.getSystemService(Context.DOWNLOAD_SERVICE);
         if (dm == null) throw new IllegalStateException("DownloadManager yok");
         String name = r.apkName == null || r.apkName.isEmpty() ? "MaraIPTV.apk" : r.apkName;
@@ -137,6 +159,74 @@ public final class UpdateChecker {
                 .putLong("update_download_id", id)
                 .putString("update_apk_name", name)
                 .apply();
+    }
+
+    private static volatile boolean downloading;
+
+    /**
+     * Lite/Android 4.2: DownloadManager sistem TLS'ini kullanir ve eski Android'de
+     * GitHub sertifikasi guvenilir olmadigi icin indirme basarisiz olur. Bu yuzden
+     * APK uygulama icinde indirilir, harici klasore yazilir ve kurulum ekrani acilir.
+     */
+    private static void downloadInApp(final Context c, final Release r) {
+        if (downloading) return;
+        final String name = r.apkName == null || r.apkName.isEmpty() ? "MaraIPTV.apk" : r.apkName;
+        final Handler ui = new Handler(Looper.getMainLooper());
+        downloading = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                File dir = c.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+                if (dir == null) dir = c.getFilesDir();
+                final File out = new File(dir, name);
+                File tmp = new File(out.getAbsolutePath() + ".part");
+                Exception err = null;
+                InputStream in = null;
+                FileOutputStream fos = null;
+                try {
+                    in = Http.getStreamTrustAll(r.apkUrl);
+                    fos = new FileOutputStream(tmp);
+                    byte[] buf = new byte[32768];
+                    int n;
+                    while ((n = in.read(buf)) != -1) fos.write(buf, 0, n);
+                    fos.flush();
+                    fos.close();
+                    fos = null;
+                    in.close();
+                    in = null;
+                    if (out.exists() && !out.delete()) throw new IOException("Eski dosya silinemedi");
+                    if (!tmp.renameTo(out)) throw new IOException("Dosya kaydedilemedi");
+                    out.setReadable(true, false);
+                } catch (Exception e) {
+                    err = e;
+                } finally {
+                    downloading = false;
+                    if (fos != null) try { fos.close(); } catch (IOException ignored) { }
+                    if (in != null) try { in.close(); } catch (IOException ignored) { }
+                    if (err != null) tmp.delete();
+                }
+                final Exception fe = err;
+                ui.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (fe != null) {
+                            Toast.makeText(c, c.getString(
+                                    com.atlanta.maraplayer.R.string.update_failed_x, Ui.err(fe)),
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        Intent i = new Intent(Intent.ACTION_VIEW)
+                                .setDataAndType(Uri.fromFile(out), APK_MIME)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        try {
+                            c.startActivity(i);
+                        } catch (Exception e) {
+                            Toast.makeText(c, out.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+            }
+        }, "mara-update-download").start();
     }
 
     public static long pendingDownloadId() {

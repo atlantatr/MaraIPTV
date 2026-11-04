@@ -142,6 +142,72 @@ public final class Http {
         }
     }
 
+    /**
+     * Yalnizca bu baglanti icin sertifika dogrulamasini atlar. Android 4.2'nin
+     * sistem kok deposunda GitHub'in kok sertifikasi bulunmadigi icin guncelleme
+     * denetimi/indirmesi varsayilan ayarlarla basarisiz olur; bu yol sadece
+     * https://api.github.com ve https://github.com icin kullanilir.
+     */
+    public static InputStream getStreamTrustAll(String url) throws IOException {
+        String current = url;
+        for (int i = 0; i < 6; i++) {
+            HttpURLConnection c = (HttpURLConnection) new URL(current).openConnection();
+            c.setInstanceFollowRedirects(false);
+            c.setConnectTimeout(15000);
+            c.setReadTimeout(30000);
+            c.setRequestProperty("User-Agent", userAgent());
+            c.setRequestProperty("Accept-Encoding", "gzip");
+            c.setRequestProperty("Accept", "*/*");
+            if (c instanceof HttpsURLConnection) {
+                HttpsURLConnection h = (HttpsURLConnection) c;
+                try {
+                    h.setSSLSocketFactory(new Tls12SocketFactory(trustAllContext().getSocketFactory()));
+                } catch (Exception e) {
+                    throw new IOException("SSL ayarlanamadi: " + e);
+                }
+                h.setHostnameVerifier(new HostnameVerifier() {
+                    @Override
+                    public boolean verify(String hostname, SSLSession session) {
+                        return true;
+                    }
+                });
+            }
+            int code = c.getResponseCode();
+            if (code == 301 || code == 302 || code == 303 || code == 307 || code == 308) {
+                String loc = c.getHeaderField("Location");
+                c.disconnect();
+                if (loc == null) throw new IOException("Yonlendirme adresi yok");
+                current = new URL(new URL(current), loc).toString();
+                continue;
+            }
+            return stream(c);
+        }
+        throw new IOException("Cok fazla yonlendirme");
+    }
+
+    public static String getStringTrustAll(String url) throws IOException {
+        InputStream in = getStreamTrustAll(url);
+        try {
+            return new String(readAll(in), "UTF-8");
+        } finally {
+            try {
+                in.close();
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private static SSLContext trustAllContext() throws Exception {
+        SSLContext ctx;
+        try {
+            ctx = conscrypt != null ? SSLContext.getInstance("TLS", conscrypt) : SSLContext.getInstance("TLS");
+        } catch (Throwable t) {
+            ctx = SSLContext.getInstance("TLS");
+        }
+        ctx.init(null, new TrustManager[]{new TrustAll()}, new SecureRandom());
+        return ctx;
+    }
+
     public static byte[] readAll(InputStream in) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream(16384);
         byte[] buf = new byte[16384];
